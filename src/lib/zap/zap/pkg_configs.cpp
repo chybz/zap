@@ -3,6 +3,7 @@
 #include <zap/pkg_configs.hpp>
 #include <zap/utils.hpp>
 #include <zap/executor.hpp>
+#include <zap/inc_dirs.hpp>
 
 namespace zap {
 
@@ -10,11 +11,8 @@ namespace detail {
 
 struct pkg_config_context
 {
-    using inc_dir_set = std::set<std::string>;
-    using inc_dir_sets = std::unordered_map<std::string, inc_dir_set>;
-
     zap::string_set names;
-    inc_dir_sets inc_dirs;
+    zap::inc_dir_sets inc_dirs;
 
     void merge(pkg_config_context& other)
     {
@@ -26,8 +24,7 @@ struct pkg_config_context
 }
 
 pkg_configs::pkg_configs(const zap::toolchain& tc, const std::string& root)
-: tc_{ tc },
-root_(root),
+: package_configs(tc, root),
 pc_{ zap::find_cmd("pkg-config") }
 {
     load_configs();
@@ -35,10 +32,6 @@ pc_{ zap::find_cmd("pkg-config") }
 
 pkg_configs::~pkg_configs()
 {}
-
-const zap::string_set&
-pkg_configs::pc_names() const
-{ return names_; }
 
 bool
 pkg_configs::has(const std::string& pc_name) const
@@ -57,7 +50,7 @@ pkg_configs::has_include_dirs(const std::string& pc_name) const
     return ret;
 }
 
-const pkg_configs::inc_dir_set&
+const inc_dir_set&
 pkg_configs::include_dirs(const std::string& pc_name) const
 { return inc_dirs_.at(pc_name); }
 
@@ -105,9 +98,9 @@ pkg_configs::load_configs()
 
     using pool = zap::async_pool<decltype(cb), detail::pkg_config_context>;
 
-    pool ap(tc_.exec(), cb);
+    pool ap(tc().exec(), cb);
 
-    for (const auto& dir : tc_.make_arch_dirs(root_, "lib", "pkg_configs")) {
+    for (const auto& dir : tc().make_arch_dirs(root(), "lib", "pkg_configs")) {
         for (auto& pc : find_files(dir, ".*\\.pc")) {
             ap.async(std::move(pc));
         }

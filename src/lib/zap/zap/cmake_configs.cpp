@@ -43,40 +43,10 @@ inc_dirs_pat()
     return pat;
 }
 
-struct cmake_context
-{
-    cmake_modules modules;
-
-    bool has_targets(const std::string& module) const
-    {
-        if (!modules.contains(module)) {
-            return false;
-        }
-
-        return !modules.at(module).targets.empty();
-    }
-
-    bool has_inc_dirs(const std::string& module) const
-    {
-        if (!modules.contains(module)) {
-            return false;
-        }
-
-        return !modules.at(module).inc_dirs.empty();
-    }
-
-    void erase(const std::string& module)
-    { modules.erase(module); }
-
-    void merge(cmake_context& other)
-    { modules.merge(other.modules); }
-};
-
 }
 
 cmake_configs::cmake_configs(const zap::toolchain& tc, const std::string& root)
-: tc_{ tc },
-root_(root),
+: package_configs(tc, root),
 cmake_{ zap::find_cmd("cmake") },
 add_lib_re_(detail::add_lib_pat()),
 target_name_re_(detail::target_name_pat()),
@@ -88,38 +58,30 @@ inc_dirs_re_(detail::inc_dirs_pat())
 cmake_configs::~cmake_configs()
 {}
 
-const cmake_modules&
-cmake_configs::modules() const
-{ return modules_; }
-
 bool
 cmake_configs::has(const std::string& module) const
-{ return modules_.count(module) != 0; }
+{ return names_.count(module) != 0; }
 
 bool
 cmake_configs::has_include_dirs(const std::string& module) const
 {
     bool ret = false;
-    auto it = modules_.find(module);
+    auto it = inc_dirs_.find(module);
 
-    if (it != modules_.end()) {
-        ret = !it->second.inc_dirs.empty();
+    if (it != inc_dirs_.end()) {
+        ret = !it->second.empty();
     }
 
     return ret;
 }
 
-const cmake_configs::inc_dir_set&
+const inc_dir_set&
 cmake_configs::include_dirs(const std::string& module) const
-{ return modules_.at(module).inc_dirs; }
+{ return inc_dirs_.at(module); }
 
 void
 cmake_configs::load_configs()
 {
-    // I promise I tried *very* hard to have this right, without too much
-    // kludge.
-    // There are just too many broken .cmake files not respecting variables and
-    // other niceties
     cmake_.push_args({
         "-DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON"
     });
@@ -131,7 +93,7 @@ cmake_configs::load_configs()
             return;
         }
 
-        scan_config(ctx.modules, cmi.name, cmi.config);
+        scan_config(ctx, cmi.name, cmi.config, true);
 
         auto tmp = "/tmp/zap";
         auto tdir = empty_temp_dir(tmp);
@@ -141,17 +103,17 @@ cmake_configs::load_configs()
                 continue;
             }
 
-            scan_config(ctx.modules, cmi.name, conf);
+            scan_config(ctx, cmi.name, conf);
         }
 
-        get_properties(ctx.modules, cmi.name, tdir);
+        get_properties(ctx, cmi.name, tdir);
 
         rmpath(tdir);
     };
 
-    zap::async_pool<decltype(cb), detail::cmake_context> ap(tc_.exec(), cb);
+    zap::async_pool<decltype(cb), cmake_config_context> ap(tc().exec(), cb);
 
-    for (const auto& dir : tc_.make_arch_dirs(root_, "lib", "cmake")) {
+    for (const auto& dir : tc().make_arch_dirs(root(), "lib", "cmake")) {
         for (const auto& mdir : find_dirs(dir)) {
             auto adir = cat_dir(dir, mdir);
             ap.async(std::move(adir));
@@ -160,7 +122,10 @@ cmake_configs::load_configs()
 
     auto& merged = ap.wait();
 
-    process_modules(merged.modules);
+    process_modules(merged);
+
+    names_ = std::move(merged.names);
+    inc_dirs_ = std::move(merged.inc_dirs);
 }
 
 cmake_module_info
@@ -189,44 +154,37 @@ cmake_configs::module_info(const std::string& path) const
     return cmi;
 }
 
-bool
-cmake_configs::is_module_config(const std::string& path) const
+void
+cmake_configs::scan_config(
+    cmake_config_context& ctx,
+    const std::string& module,
+    const std::string& f,
+    bool main_config
+)
 {
-    for (const auto& s : detail::config_suffixes) {
-        if (path.ends_with(s)) {
-            return true;
+    ctx.names.insert(module);
+
+    auto data = slurp(f);
+
+    if (main_config) {
+        std::string find_comps_pat = "foreach\\(\\w+\\s+.+{?";
+        find_comps_pat += join("_", module, "FIND_COMPONENTS");
+        find_comps_pat += "}?\\)";
+
+        re2::RE2 find_comps_re(find_comps_pat);
+        re2::StringPiece input(data);
+
+        if (re2::RE2::PartialMatch(input, find_comps_re)) {
+            ctx.component_modules.insert(module);
         }
     }
 
-    return false;
-}
-
-void
-cmake_configs::scan_config(
-    cmake_modules& modules,
-    const std::string& module,
-    const std::string& f
-)
-{
-    auto data = slurp(f);
-
-    if (!modules.contains(module)) {
-        auto find_comps = join("_", module, "FIND_COMPONENTS");
-
-        cmake_module mod{
-            .name = module,
-            .has_components = data.find(find_comps) != std::string::npos
-        };
-
-        modules.try_emplace(module, std::move(mod));
-    }
-
-    find_targets(modules, module, data);
+    find_targets(ctx, module, data);
 }
 
 void
 cmake_configs::find_targets(
-    cmake_modules& modules,
+    cmake_config_context& ctx,
     const std::string& module,
     const std::string& data
 )
@@ -237,25 +195,13 @@ cmake_configs::find_targets(
     re2::StringPiece name;
 
     while (re2::RE2::FindAndConsume(&input, add_lib_re_, &match)) {
-        cmake_target t;
-
-        if (re2::RE2::FullMatch(match, target_name_re_, &mod, &name)) {
-            // Target with namespace
-            t.module.assign(mod.begin(), mod.end());
-            t.name.assign(name.begin(), name.end());
-        } else {
-            t.name.assign(match.begin(), match.end());
-        }
-
-        auto tname = match.as_string();
-
-        modules[module].targets.try_emplace(std::move(tname), std::move(t));
+        ctx.target_names.insert({ match.data(), match.size() });
     }
 }
 
 void
 cmake_configs::write_cmake_file(
-    const cmake_modules& modules,
+    cmake_config_context& ctx,
     const std::string& module,
     const std::string& file
 )
@@ -273,8 +219,8 @@ cmake_configs::write_cmake_file(
         << "    TARGETS\n"
         ;
 
-    for (const auto& p : modules.at(module).targets) {
-        os << "        " << p.first << "\n";
+    for (const auto& t : ctx.target_names) {
+        os << "        " << t << "\n";
     }
 
     os
@@ -287,91 +233,71 @@ cmake_configs::write_cmake_file(
 
 void
 cmake_configs::get_properties(
-    cmake_modules& modules,
+    cmake_config_context& ctx,
     const std::string& module,
     const std::string& dir
 )
 {
-    if (modules[module].targets.empty()) {
+    if (ctx.target_names.empty()) {
         return;
     }
 
     auto cml = cat_file(dir, "CMakeLists.txt");
 
-    write_cmake_file(modules, module, cml);
+    write_cmake_file(ctx, module, cml);
 
     auto res = cmake_.run_silent_no_fail({ "-S", dir, "-B", dir });
     re2::StringPiece input(res.out);
     re2::StringPiece t;
     re2::StringPiece il;
 
-    auto& mod = modules[module];
-    string_view_set seen_targets;
-
     while (re2::RE2::FindAndConsume(&input, inc_dirs_re_, &t, &il)) {
+        std::string target{ t.data(), t.size() };
         std::string_view list{ il.data(), il.size() };
-
-        seen_targets.insert({ t.data(), t.size() });
 
         for (const auto& dirv : split("\\s*;\\s*", list)) {
             std::string dir{ dirv.data(), dirv.size() };
 
-            mod.inc_dirs.insert(std::move(dir));
+            ctx.inc_dirs[target].insert(std::move(dir));
         }
     }
 
-    // Remove targets without include dirs
-    strings to_remove;
-
-    for (const auto& p : mod.targets) {
-        if (!seen_targets.contains(p.first)) {
-            to_remove.push_back(p.first);
-        }
-    }
-
-    for (const auto& : to_remove) {
-        mod.targets.erase()
-    }
+    ctx.target_names.clear();
 }
 
 void
-cmake_configs::process_modules(cmake_modules& modules)
+cmake_configs::process_modules(cmake_config_context& ctx)
 {
-    strings to_clean;
+    // for (auto& p : modules) {
+    //     auto& m = p.second;
 
-    for (auto& p : modules) {
-        auto& m = p.second;
+    //     strings moved;
 
-        strings moved;
+    //     for (auto& tp : m.targets) {
+    //         auto& t = tp.second;
 
-        for (auto& tp : m.targets) {
-            auto& t = tp.second;
+    //         if (!t.module.empty() && t.module != p.first) {
+    //             moved.push_back(tp.first);
+    //             auto& parent = modules[t.module];
+    //             parent.inc_dirs.merge(t.inc_dirs);
+    //             t.inc_dirs.clear();
+    //             parent.targets.insert(std::move(tp));
+    //         } else {
+    //             m.inc_dirs.merge(t.inc_dirs);
+    //             t.inc_dirs.clear();
+    //         }
+    //     }
+    // }
 
-            if (!t.module.empty() && t.module != p.first) {
-                moved.push_back(tp.first);
-                auto& parent = modules[t.module];
-                parent.targets.insert(std::move(tp));
-            }
-        }
+    // for (auto it = modules.begin(); it != modules.end(); ) {
+    //     auto& m = it->second;
 
-        if (!moved.empty() && moved.size() == m.targets.size()) {
-            to_clean.push_back(p.first);
-        }
-    }
-
-    for (const auto& m : to_clean) {
-        modules.erase(m);
-    }
-}
-
-bool
-cmake_configs::clean_dir(std::string_view& dir) const
-{
-    if (dir.ends_with('/')) {
-        dir.remove_suffix(1);
-    }
-
-    return !dir.empty();
+    //     if (m.inc_dirs.empty() || m.targets.empty()) {
+    //         it = modules.erase(it);
+    //     } else {
+    //         ++it;
+    //     }
+    // }
 }
 
 }
