@@ -1,0 +1,25 @@
+#pragma once
+
+#include <zap/toolchain_type.hpp>
+#include <zap/prog.hpp>
+#include <zap/config.hpp>
+#include <zap/utils.hpp>
+
+namespace zap {
+
+struct toolchain_info
+{
+    prog cxx;
+    prog cc;
+    prog nm;
+    prog ldd;
+    prog fetcher;
+    config cfg;
+    toolchain_type type = toolchain_type::unknown;
+    std::string version;
+};
+
+void
+detect_toolchain(toolchain_info& ti);
+
+}
