@@ -14,6 +14,7 @@
 #include <zap/cmake_configs.hpp>
 #include <zap/dep_info.hpp>
 #include <zap/pkg_items.hpp>
+#include <zap/inc_dirs.hpp>
 
 namespace zap::resolvers {
 
@@ -58,14 +59,16 @@ private:
     void process_pkg_headers(
         apt_context& ctx,
         const std::string& pkg,
-        const std::string& pcname = {}
+        const zap::pkg_items_map& config_names,
+        const zap::package_configs& configs
     );
 
     void strip_pkg_headers(
         apt_context& ctx,
-        const std::set<std::string>& inc_dirs,
+        const zap::inc_dir_set& inc_dirs,
         const std::string& pkg,
-        const std::string& pcname
+        const std::string& config_name = {},
+        zap::package_config_type config_type = zap::package_config_type::unknown
     );
 
     void load_installed();
@@ -73,7 +76,7 @@ private:
     const zap::toolchain& tc_;
     zap::pkg_configs pc_;
     zap::cmake_configs cmc_;
-    std::set<std::string> std_inc_dirs_;
+    zap::inc_dir_set std_inc_dirs_;
     zap::string_set installed_;
     apt_contexts ctxs_;
 

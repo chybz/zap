@@ -217,26 +217,18 @@ apt::make_deps(apt_context& ctx)
     for (const auto& hp : ctx.headers) {
         const auto& pkg = hp.first;
 
-        auto it = ctx.pkg_config_names.find(pkg);
-
-        if (it != ctx.pkg_config_names.end()) {
-            const auto& pkg_config_names = it->second;
-
-            for (const auto& pcname : pkg_config_names) {
-                if (!pc_.has(pcname)) {
-                    // pkg-config file is not installed
-                    continue;
-                }
-
-                process_pkg_headers(ctx, pkg, pcname);
-            }
+        if (ctx.cmake_names.contains(pkg)) {
+            process_pkg_headers(ctx, pkg, ctx.cmake_names, cmc_);
+        } else if (ctx.pkg_config_names.contains(pkg)) {
+            process_pkg_headers(ctx, pkg, ctx.pkg_config_names, pc_);
         } else {
-            process_pkg_headers(ctx, pkg);
+            strip_pkg_headers(ctx, std_inc_dirs_, pkg);
         }
     }
 
     ctx.headers.clear();
     ctx.pkg_config_names.clear();
+    ctx.cmake_names.clear();
 
     zap::normalize_deps(ctx.header_to_dep, installed_);
 }
@@ -245,22 +237,40 @@ void
 apt::process_pkg_headers(
     apt_context& ctx,
     const std::string& pkg,
-    const std::string& pcname
+    const zap::pkg_items_map& config_names,
+    const zap::package_configs& configs
 )
 {
-    if (!pcname.empty() && pc_.has_include_dirs(pcname)) {
-        strip_pkg_headers(ctx, pc_.include_dirs(pcname), pkg, pcname);
-    } else {
-        strip_pkg_headers(ctx, std_inc_dirs_, pkg, pcname);
+    const auto& names = config_names.at(pkg);
+
+    for (const auto& config_name : names) {
+        if (!configs.has(config_name)) {
+            // config file is not installed
+            continue;
+        }
+
+        if (configs.has_include_dirs(config_name)) {
+            // config file declares some include directories
+            strip_pkg_headers(
+                ctx,
+                configs.include_dirs(config_name),
+                pkg,
+                config_name,
+                configs.type()
+            );
+        } else {
+            strip_pkg_headers(ctx, std_inc_dirs_, pkg, config_name);
+        }
     }
 }
 
 void
 apt::strip_pkg_headers(
     apt_context& ctx,
-    const std::set<std::string>& inc_dirs,
+    const zap::inc_dir_set& inc_dirs,
     const std::string& pkg,
-    const std::string& pcname
+    const std::string& config_name,
+    zap::package_config_type config_type
 )
 {
     for (auto& h : ctx.headers.at(pkg)) {
@@ -282,8 +292,9 @@ apt::strip_pkg_headers(
 
             di.status = zap::dep_status::found;
 
-            if (!pcname.empty()) {
-                di.pc = pcname;
+            if (!config_name.empty()) {
+                di.config_name = config_name;
+                di.config_type = config_type;
             }
 
             di.pkg_candidates.insert(pkg);
@@ -292,6 +303,7 @@ apt::strip_pkg_headers(
                 zap::dep_status::found,
                 pkg,
                 {},
+                package_config_type::unknown,
                 std::move(h)
             };
 

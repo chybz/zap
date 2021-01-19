@@ -46,7 +46,7 @@ inc_dirs_pat()
 }
 
 cmake_configs::cmake_configs(const zap::toolchain& tc, const std::string& root)
-: package_configs(tc, root),
+: package_configs(tc, root, package_config_type::cmake),
 cmake_{ zap::find_cmd("cmake") },
 add_lib_re_(detail::add_lib_pat()),
 target_name_re_(detail::target_name_pat()),
@@ -255,10 +255,17 @@ cmake_configs::get_properties(
         std::string target{ t.data(), t.size() };
         std::string_view list{ il.data(), il.size() };
 
-        for (const auto& dirv : split("\\s*;\\s*", list)) {
-            std::string dir{ dirv.data(), dirv.size() };
+        for (auto& dirv : split("\\s*;\\s*", list)) {
+            if (!clean_dir(dirv)) {
+                continue;
+            }
 
-            ctx.inc_dirs[target].insert(std::move(dir));
+            std::string cleaned(dirv.size() + 1, 0);
+            cleaned.assign(dirv.begin(), dirv.end());
+            cleaned.push_back('/');
+
+            // TODO: per module inc dirs, may need per target
+            ctx.inc_dirs[module].insert(std::move(cleaned));
         }
     }
 
@@ -298,6 +305,16 @@ cmake_configs::process_modules(cmake_config_context& ctx)
     //         ++it;
     //     }
     // }
+}
+
+bool
+cmake_configs::clean_dir(std::string_view& dir) const
+{
+    if (dir.ends_with('/')) {
+        dir.remove_suffix(1);
+    }
+
+    return !dir.empty();
 }
 
 }

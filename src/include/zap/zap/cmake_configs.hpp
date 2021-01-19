@@ -87,6 +87,8 @@ private:
 
     void process_modules(cmake_config_context& ctx);
 
+    bool clean_dir(std::string_view& dir) const;
+
     prog cmake_;
     zap::string_set names_;
     inc_dir_sets inc_dirs_;

@@ -5,21 +5,18 @@
 #include <unordered_map>
 
 #include <zap/types.hpp>
+#include <zap/dep_status.hpp>
+#include <zap/dep_info.hpp>
+#include <zap/package_config_type.hpp>
 
 namespace zap {
-
-enum class dep_status
-{
-    not_found,
-    found,
-    ambiguous
-};
 
 struct dep_info
 {
     dep_status status = dep_status::not_found;
     std::string pkg;
-    std::string pc;
+    std::string config_name;
+    package_config_type config_type = package_config_type::unknown;
     std::string file;
     string_set pkg_candidates;
 

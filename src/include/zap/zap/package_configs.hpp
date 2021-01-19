@@ -7,14 +7,22 @@
 #include <zap/prog.hpp>
 #include <zap/types.hpp>
 #include <zap/inc_dirs.hpp>
+#include <zap/package_config_type.hpp>
 
 namespace zap {
 
 class package_configs
 {
 public:
-    package_configs(const toolchain& tc, const std::string& root);
+    package_configs(
+        const toolchain& tc,
+        const std::string& root,
+        package_config_type type
+    );
+
     virtual ~package_configs();
+
+    package_config_type type() const;
 
     virtual bool has(const std::string& name) const = 0;
     virtual bool has_include_dirs(const std::string& name) const = 0;
@@ -27,6 +35,7 @@ protected:
 private:
     const toolchain& tc_;
     std::string root_;
+    package_config_type type_;
 };
 
 }

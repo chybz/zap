@@ -24,7 +24,7 @@ struct pkg_config_context
 }
 
 pkg_configs::pkg_configs(const zap::toolchain& tc, const std::string& root)
-: package_configs(tc, root),
+: package_configs(tc, root, package_config_type::pkg_config),
 pc_{ zap::find_cmd("pkg-config") }
 {
     load_configs();
