@@ -2,6 +2,7 @@
 #include <unordered_map>
 
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 #include <zap/toolchain_type.hpp>
 
 namespace zap {

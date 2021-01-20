@@ -1,5 +1,6 @@
 #include <zap/layouts/app.hpp>
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 #include <zap/file_utils.hpp>
 
 namespace zap::layouts {

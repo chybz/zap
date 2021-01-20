@@ -1,6 +1,7 @@
 #include <zap/resolvers/conan.hpp>
 #include <zap/file_utils.hpp>
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 #include <zap/types.hpp>
 #include <zap/graph.hpp>
 
@@ -166,7 +167,7 @@ conan::add_single(
 {
     zap::dep d{ cp.name };
 
-    d.headers.add(
+    d.headers.push_back(
         zap::find_files(
             inc_dir,
             zap::re(zap::re_type::hdr)

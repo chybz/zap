@@ -11,6 +11,7 @@
 #include <future>
 
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 #include <zap/executor.hpp>
 
 namespace zap {

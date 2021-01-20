@@ -1,5 +1,6 @@
 #include <zap/frameworks.hpp>
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 
 namespace zap {
 

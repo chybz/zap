@@ -35,7 +35,7 @@ lib_is_static(const std::string& lib);
 std::string
 link_name(const std::string& name);
 
-string_list_map
+string_vector_map
 link_names(const strings& libs);
 
 string_set

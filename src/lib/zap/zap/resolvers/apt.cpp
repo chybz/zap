@@ -4,6 +4,7 @@
 
 #include <zap/resolvers/apt.hpp>
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 #include <zap/archive_utils.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////

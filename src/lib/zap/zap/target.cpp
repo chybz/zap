@@ -30,7 +30,7 @@ target::has_public_headers() const
 
 bool
 target::has_public_header(const std::string& name) const
-{ return public_headers.has(name); }
+{ return public_headers.contains(name); }
 
 bool
 target::has_private_headers() const
@@ -38,7 +38,7 @@ target::has_private_headers() const
 
 bool
 target::has_private_header(const std::string& name) const
-{ return private_headers.has(name); }
+{ return private_headers.contains(name); }
 
 bool
 target::has_header(const std::string& name) const
@@ -46,7 +46,7 @@ target::has_header(const std::string& name) const
 
 bool
 target::has_source(const std::string& name) const
-{ return sources.has(name); }
+{ return sources.contains(name); }
 
 bool
 target::has_file(const std::string& name) const

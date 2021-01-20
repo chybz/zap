@@ -156,7 +156,7 @@ gcc::find_std_headers(zap::files& stdh, const string_views& hdirs) const
             continue;
         }
 
-        stdh.add(find_files(hdir));
+        stdh.push_back(find_files(hdir));
         seen.insert(hdir);
     }
 }

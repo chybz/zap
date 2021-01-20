@@ -1,6 +1,7 @@
 #include <zap/archiver.hpp>
 #include <zap/archivers/zip.hpp>
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 
 namespace zap {
 

@@ -4,6 +4,7 @@
 #include <zap/layouts/app.hpp>
 #include <zap/layouts/cbuild.hpp>
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 
 namespace zap {
 

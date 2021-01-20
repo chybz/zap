@@ -9,6 +9,7 @@
 #include <zap/toolchain.hpp>
 #include <zap/layout.hpp>
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 
 namespace zap::command {
 
@@ -71,7 +72,7 @@ scan::scan_target_files(
     zap::target& t,
     const std::string& dir,
     const zap::files& files,
-    zap::string_list_map& deps
+    zap::string_vector_map& deps
 )
 {
     zap::strings all_deps;
@@ -86,9 +87,9 @@ scan::scan_target_files(
         }
 
         if (is_project_dep(t, dep, lib)) {
-            t.project_lib_deps.add(lib);
+            t.project_lib_deps.push_back(lib);
         } else {
-            deps.add(dep);
+            deps.push_back(dep);
         }
     }
 }
@@ -126,8 +127,8 @@ scan::resolve_deps(
 void
 scan::resolve_header_deps(
     const zap::resolvers::apt& apt,
-    const zap::string_list_map& headers,
-    zap::string_list_map& pkgs,
+    const zap::string_vector_map& headers,
+    zap::string_vector_map& pkgs,
     zap::resolve_info& ri
 )
 {
@@ -144,7 +145,7 @@ scan::resolve_header_deps(
             ri.unresolved.insert(dep);
         } else if (di.found()) {
             if (di.has_pkg()) {
-                pkgs.add(di.pkg);
+                pkgs.push_back(di.pkg);
 
                 if (!apt.installed(di.pkg)) {
                     ri.to_install.insert(di.pkg);

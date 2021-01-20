@@ -30,6 +30,7 @@
 #include <re2/re2.h>
 
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 
 namespace zap {
 

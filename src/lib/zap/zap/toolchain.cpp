@@ -6,6 +6,7 @@
 #include <taskflow/taskflow.hpp>
 
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 #include <zap/toolchain.hpp>
 #include <zap/toolchains/gcc.hpp>
 #include <zap/toolchains/clang.hpp>
@@ -120,7 +121,7 @@ toolchain::std_headers() const
 
 bool
 toolchain::is_std_header(const std::string& name) const
-{ return std_headers_.has(name); }
+{ return std_headers_.contains(name); }
 
 strings
 toolchain::scan_files(
@@ -286,7 +287,7 @@ toolchain::find_libc_headers()
         };
 
         for (auto& hdr : map_lines(hfilter, lines)) {
-            std_headers_.add(std::string{hdr});
+            std_headers_.push_back(std::string{hdr});
         }
     }
 }

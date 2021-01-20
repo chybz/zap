@@ -4,6 +4,7 @@
 #include <zap/prog.hpp>
 #include <zap/types.hpp>
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 
 namespace zap {
 

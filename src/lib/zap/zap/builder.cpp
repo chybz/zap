@@ -2,6 +2,7 @@
 #include <zap/builders/cmake.hpp>
 #include <zap/builders/autotools.hpp>
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 
 namespace zap {
 

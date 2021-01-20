@@ -33,11 +33,11 @@ struct target
     files public_headers;
     files private_headers;
     files sources;
-    string_list_map public_header_deps;
-    string_list_map private_header_deps;
-    string_list_map project_lib_deps;
-    string_list_map public_pkg_deps;
-    string_list_map private_pkg_deps;
+    string_vector_map public_header_deps;
+    string_vector_map private_header_deps;
+    string_vector_map project_lib_deps;
+    string_vector_map public_pkg_deps;
+    string_vector_map private_pkg_deps;
 
     bool has_public_headers() const;
     bool has_public_header(const std::string& name) const;

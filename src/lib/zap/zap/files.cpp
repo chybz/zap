@@ -1,5 +1,6 @@
 #include <zap/files.hpp>
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 
 namespace zap {
 
@@ -11,7 +12,7 @@ add_files(files& f, const std::string& dir, const std::string& re)
     }
 
     for (auto&& lf : find_files(dir, re)) {
-        f.add(std::move(lf));
+        f.push_back(std::move(lf));
     }
 }
 
