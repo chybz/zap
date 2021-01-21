@@ -61,35 +61,16 @@ content_pkg_pat(const zap::toolchain& tc)
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// APT context
-//
-///////////////////////////////////////////////////////////////////////////////
-void
-apt_context::merge(apt_context& other)
-{
-    zap::merge_items(headers, other.headers);
-    zap::merge_items(pkg_config_names, other.pkg_config_names);
-    zap::merge_items(cmake_names, other.cmake_names);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//
 // APT resolver
 //
 ///////////////////////////////////////////////////////////////////////////////
 apt::apt(const zap::toolchain& tc)
-: resolver("apt"),
-tc_{ tc },
-pc_(tc_, "/usr"),
-cmc_(tc_, "/usr"),
-inc_re_(detail::content_inc_pat(tc_)),
-pc_re_(detail::content_pc_pat(tc_)),
-cmake_re_(detail::content_cmake_pat(tc_)),
-pkg_re_(detail::content_pkg_pat(tc_))
+: resolver(tc, "apt", "/usr"),
+inc_re_(detail::content_inc_pat(tc)),
+pc_re_(detail::content_pc_pat(tc)),
+cmake_re_(detail::content_cmake_pat(tc)),
+pkg_re_(detail::content_pkg_pat(tc))
 {
-    std_inc_dirs_.insert("/usr/include/");
-    std_inc_dirs_.insert("/usr/include/" + tc_.target_arch() + "/");
-
     load_installed();
     load_contents();
 }
@@ -97,82 +78,32 @@ pkg_re_(detail::content_pkg_pat(tc_))
 apt::~apt()
 {}
 
-zap::dep_info
-apt::resolve(const std::string& header) const
-{
-    const auto& c = ctxs_.front();
-
-    auto hit = c.header_to_dep.find(header);
-
-    if (hit != c.header_to_dep.end()) {
-        return hit->second;
-    }
-
-    zap::string_set candidates;
-    zap::dep_info ldi;
-    auto th = "/" + header;
-
-    // TODO: if too slow use some kind of suffix tree
-    for (const auto& di : c.file_headers) {
-        if (di.file.ends_with(th)) {
-            if (ldi.file.empty()) {
-                // First match
-                ldi = di;
-            } else {
-                candidates.insert(di.pkg);
-            }
-        }
-    }
-
-    if (candidates.size() > 1) {
-        ldi.status = zap::dep_status::ambiguous;
-        ldi.pkg_candidates = std::move(candidates);
-    }
-
-    return ldi;
-}
-
-bool
-apt::installed(const std::string& pkg) const
-{ return installed_.contains(pkg); }
-
 void
 apt::load_contents()
 {
     // TODO: backport to older dist where this was gzipped files
     std::string gpat{ "/var/lib/apt/lists/*Contents-*.lz4" };
 
-    ctxs_.resize(tc_.exec().num_workers());
-
     for (auto&& f : zap::glob(gpat)) {
         parse_contents(f);
     }
 
-    // TODO: replace this with executor auto contexts and fix parse_contents
-    // Merge all maps into first one
-    while (ctxs_.size() != 1) {
-        ctxs_.front().merge(ctxs_.back());
-        ctxs_.pop_back();
-    }
-
-    make_deps(ctxs_.front());
+    make_deps();
 }
 
 void
 apt::parse_contents(const std::string& file)
 {
-    archive_util au(file);
+    archive_util<zap::resolver_data> au(file, tc().exec());
 
     au.for_each_line_block(
-        tc_.exec(),
-        [&](std::size_t index, const auto& data) {
+        [&](auto& ctx, const auto& data) {
             std::string_view lines(data.begin(), data.end());
 
             re2::StringPiece inc_match;
             std::string item;
             std::string pkgs;
 
-            auto& ctx = ctxs_[index];
             auto& hm = ctx.headers;
             auto& pm = ctx.pkg_config_names;
             auto& cm = ctx.cmake_names;
@@ -191,7 +122,8 @@ apt::parse_contents(const std::string& file)
                     add_pkg_item(cm, item, pkgs);
                 }
             }
-        }
+        },
+        data()
     );
 }
 
@@ -213,107 +145,6 @@ apt::add_pkg_item(
 }
 
 void
-apt::make_deps(apt_context& ctx)
-{
-    for (const auto& hp : ctx.headers) {
-        const auto& pkg = hp.first;
-
-        if (ctx.cmake_names.contains(pkg)) {
-            process_pkg_headers(ctx, pkg, ctx.cmake_names, cmc_);
-        } else if (ctx.pkg_config_names.contains(pkg)) {
-            process_pkg_headers(ctx, pkg, ctx.pkg_config_names, pc_);
-        } else {
-            strip_pkg_headers(ctx, std_inc_dirs_, pkg);
-        }
-    }
-
-    ctx.headers.clear();
-    ctx.pkg_config_names.clear();
-    ctx.cmake_names.clear();
-
-    zap::normalize_deps(ctx.header_to_dep, installed_);
-}
-
-void
-apt::process_pkg_headers(
-    apt_context& ctx,
-    const std::string& pkg,
-    const zap::pkg_items_map& config_names,
-    const zap::package_configs& configs
-)
-{
-    const auto& names = config_names.at(pkg);
-
-    for (const auto& config_name : names) {
-        if (!configs.has(config_name)) {
-            // config file is not installed
-            continue;
-        }
-
-        if (configs.has_include_dirs(config_name)) {
-            // config file declares some include directories
-            strip_pkg_headers(
-                ctx,
-                configs.include_dirs(config_name),
-                pkg,
-                config_name,
-                configs.type()
-            );
-        } else {
-            strip_pkg_headers(ctx, std_inc_dirs_, pkg, config_name);
-        }
-    }
-}
-
-void
-apt::strip_pkg_headers(
-    apt_context& ctx,
-    const zap::inc_dir_set& inc_dirs,
-    const std::string& pkg,
-    const std::string& config_name,
-    zap::package_config_type config_type
-)
-{
-    for (auto& h : ctx.headers.at(pkg)) {
-        bool relative = false;
-
-        // Note: longest to shortest path
-        for (const auto& inc_dir : zap::reverse(inc_dirs)) {
-            if (h.starts_with(inc_dir)) {
-                // Only one directory should match
-                h.erase(0, inc_dir.size());
-                relative = true;
-                break;
-            }
-        }
-
-        if (relative) {
-            // Header was made relative to include directive
-            auto &di = ctx.header_to_dep[std::move(h)];
-
-            di.status = zap::dep_status::found;
-
-            if (!config_name.empty()) {
-                di.config_name = config_name;
-                di.config_type = config_type;
-            }
-
-            di.pkg_candidates.insert(pkg);
-        } else {
-            zap::dep_info di{
-                zap::dep_status::found,
-                pkg,
-                {},
-                package_config_type::unknown,
-                std::move(h)
-            };
-
-            ctx.file_headers.emplace_back(std::move(di));
-        }
-    }
-}
-
-void
 apt::load_installed()
 {
     zap::prog dpkg_query {
@@ -326,7 +157,7 @@ apt::load_installed()
             for (auto& line : lines) {
                 std::string pkg(line);
 
-                installed_.insert(std::move(pkg));
+                installed_set().insert(std::move(pkg));
             }
         }
     );

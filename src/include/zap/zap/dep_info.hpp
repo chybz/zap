@@ -6,7 +6,6 @@
 
 #include <zap/types.hpp>
 #include <zap/dep_status.hpp>
-#include <zap/dep_info.hpp>
 #include <zap/package_config_type.hpp>
 
 namespace zap {

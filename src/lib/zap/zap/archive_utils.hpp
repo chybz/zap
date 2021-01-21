@@ -16,19 +16,40 @@
 
 namespace zap {
 
+template <
+    typename Context = void
+>
 class archive_util
 {
 public:
-    archive_util(const std::string& file);
-    virtual ~archive_util();
+    archive_util(
+        const std::string& file,
+        executor& exec
+    )
+    : file_(file),
+    exec_(exec),
+    a_(archive_read_new())
+    {
+        archive_read_support_filter_all(a_);
+        archive_read_support_format_raw(a_);
+
+        check(
+            archive_read_open_filename(a_, file_.c_str(), buffer_size_),
+            "open archive"
+        );
+    }
+
+    virtual ~archive_util()
+    {
+        if (a_) {
+            archive_read_free(a_);
+            a_ = nullptr;
+        }
+    }
 
     template <typename Callable>
     void
-    for_each_line_block(
-        zap::executor& exec,
-        Callable&& cb,
-        std::size_t par_level = 0
-    )
+    for_each_line_block(Callable&& cb, Context& ctx)
     {
         // Only one header in raw mode
         check(
@@ -36,7 +57,7 @@ public:
             "read archive header"
         );
 
-        async_pool<Callable> ap(exec, cb, par_level);
+        async_pool<Callable, Context> ap(exec_, cb);
 
         remaining_.reserve(buffer_size_);
 
@@ -69,18 +90,46 @@ public:
             }
         }
 
-        ap.wait();
+        ctx.merge(ap.wait());
     }
 
 private:
     using buffer_type = std::vector<char>;
 
-    std::string_view make_line_block(const buffer_type& b);
+    std::string_view make_line_block(const buffer_type& b)
+    {
+        std::string_view lines(b.data(), b.size());
 
-    void check(int r, const char* what) const;
+        auto pos = lines.rfind('\n');
+
+        if (pos != lines.npos) {
+            lines.remove_suffix(lines.size() - pos);
+
+            if (lines.back() == '\r') {
+                lines.remove_suffix(1);
+            }
+
+            remaining_.clear();
+        } else {
+            lines = {};
+        }
+
+        remaining_.insert(remaining_.end(), b.begin() + lines.size(), b.end());
+
+        return lines;
+    }
+
+    void check(int r, const char* what) const
+    {
+        die_unless(
+            r == ARCHIVE_OK,
+            what, " failed: ", archive_error_string(a_)
+        );
+    }
 
     std::size_t buffer_size_ = 1024*1024;
     std::string file_;
+    executor& exec_;
     archive* a_ = nullptr;
     archive_entry* ae_ = nullptr;
     buffer_type remaining_;
