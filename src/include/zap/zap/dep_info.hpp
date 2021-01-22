@@ -10,11 +10,17 @@
 
 namespace zap {
 
+struct module_dep_info
+{
+    std::string name;
+    std::string component;
+};
+
 struct dep_info
 {
     dep_status status = dep_status::not_found;
     std::string pkg;
-    std::string config_name;
+    module_dep_info module;
     package_config_type config_type = package_config_type::unknown;
     std::string file;
     string_set pkg_candidates;

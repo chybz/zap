@@ -55,6 +55,14 @@ pkg_configs::include_dirs(const std::string& pc_name) const
 { return inc_dirs_.at(pc_name); }
 
 void
+pkg_configs::header_to_module(
+    const std::string& name,
+    const std::string& header,
+    module_dep_info& module
+) const
+{}
+
+void
 pkg_configs::load_configs()
 {
     // I promise I tried *very* hard to have this right, without too much

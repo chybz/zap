@@ -17,9 +17,15 @@ public:
     pkg_configs(const toolchain& tc, const std::string& root);
     virtual ~pkg_configs();
 
-    bool has(const std::string& pc_name) const;
-    bool has_include_dirs(const std::string& pc_name) const;
-    const inc_dir_set& include_dirs(const std::string& pc_name) const;
+    bool has(const std::string& pc_name) const final;
+    bool has_include_dirs(const std::string& pc_name) const final;
+    const inc_dir_set& include_dirs(const std::string& pc_name) const final;
+
+    void header_to_module(
+        const std::string& name,
+        const std::string& header,
+        module_dep_info& module
+    ) const final;
 
 private:
     void load_configs();

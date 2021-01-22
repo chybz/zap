@@ -26,7 +26,8 @@ root_(root),
 pc_(tc_, root_),
 cmc_(tc_, root_)
 {
-    for (auto& d : tc_.make_arch_dirs(root_, "include", "/")) {
+    for (auto& d : tc_.make_arch_dirs(root_, "include")) {
+        d.push_back('/');
         std_inc_dirs_.insert(std::move(d));
     }
 }
@@ -110,7 +111,7 @@ resolver::make_deps()
         } else if (data_.pkg_config_names.contains(pkg)) {
             process_pkg_headers(pkg, data_.pkg_config_names, pc_);
         } else {
-            strip_pkg_headers(std_inc_dirs_, pkg);
+            strip_pkg_headers(pkg, std_inc_dirs_);
         }
     }
 
@@ -142,65 +143,68 @@ resolver::process_pkg_headers(
 
         if (configs.has_include_dirs(config_name)) {
             // config file declares some include directories
-            strip_pkg_headers(
-                configs.include_dirs(config_name),
-                pkg,
-                config_name,
-                configs.type()
-            );
+            strip_pkg_headers(pkg, configs, config_name);
         } else {
-            strip_pkg_headers(std_inc_dirs_, pkg, config_name);
+            strip_pkg_headers(pkg, std_inc_dirs_);
+        }
+    }
+}
+
+void
+resolver::set_unresolved(
+    const std::string& pkg,
+    std::string& header
+)
+{
+    zap::dep_info di{
+        zap::dep_status::found,
+        pkg,
+        {},
+        package_config_type::unknown,
+        std::move(header)
+    };
+
+    data_.file_headers.emplace_back(std::move(di));
+}
+
+void
+resolver::strip_pkg_headers(
+    const std::string& pkg,
+    const package_configs& configs,
+    const std::string& config_name
+)
+{
+    for (auto& h : data_.headers.at(pkg)) {
+        module_dep_info m;
+
+        if (configs.strip_header(config_name, h)) {
+            // Header was made relative to include directive
+            auto& di = data_.header_to_dep[h];
+
+            di.module = std::move(m);
+            di.status = zap::dep_status::found;
+            di.config_type = configs.type();
+            di.pkg_candidates.insert(pkg);
+        } else {
+            set_unresolved(pkg, h);
         }
     }
 }
 
 void
 resolver::strip_pkg_headers(
-    const zap::inc_dir_set& inc_dirs,
     const std::string& pkg,
-    const std::string& config_name,
-    zap::package_config_type config_type
+    const zap::inc_dir_set& inc_dirs
 )
 {
     for (auto& h : data_.headers.at(pkg)) {
-        bool relative = false;
-
-        if (h.ends_with("karma_uint.hpp")) {
-            std::cout << "YALLAH" << std::endl;
-        }
-
-        // Note: longest to shortest path
-        for (const auto& inc_dir : zap::reverse(inc_dirs)) {
-            if (h.starts_with(inc_dir)) {
-                // Only one directory should match
-                h.erase(0, inc_dir.size());
-                relative = true;
-                break;
-            }
-        }
-
-        if (relative) {
-            // Header was made relative to include directive
+        if (strip_header(inc_dirs, h)) {
             auto &di = data_.header_to_dep[std::move(h)];
 
             di.status = zap::dep_status::found;
-
-            if (!config_name.empty()) {
-                di.config_name = config_name;
-                di.config_type = config_type;
-            }
-
             di.pkg_candidates.insert(pkg);
         } else {
-            zap::dep_info di{
-                zap::dep_status::found,
-                pkg,
-                {},
-                package_config_type::unknown,
-                std::move(h)
-            };
-
-            data_.file_headers.emplace_back(std::move(di));
+            set_unresolved(pkg, h);
         }
     }
 }

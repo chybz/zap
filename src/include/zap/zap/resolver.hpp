@@ -63,11 +63,17 @@ private:
         const package_configs& configs
     );
 
+    void set_unresolved(const std::string& pkg, std::string& header);
+
     void strip_pkg_headers(
-        const inc_dir_set& inc_dirs,
         const std::string& pkg,
-        const std::string& config_name = {},
-        package_config_type config_type = package_config_type::unknown
+        const package_configs& configs,
+        const std::string& config_name
+    );
+
+    void strip_pkg_headers(
+        const std::string& pkg,
+        const inc_dir_set& inc_dirs
     );
 
     const toolchain& tc_;
