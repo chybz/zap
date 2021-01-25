@@ -10,9 +10,29 @@ namespace zap {
 void
 resolver_data::merge(resolver_data& other)
 {
+    if (other.headers.contains("libboost1.74-dev")) {
+        auto& h = other.headers.at("libboost1.74-dev");
+        std::cout << "BO: " << h.size() << std::endl;
+    }
+
+    if (headers.contains("libboost1.74-dev")) {
+        auto& h = headers.at("libboost1.74-dev");
+        std::cout << "BM: " << h.size() << std::endl;
+    }
+
     zap::merge_items(headers, other.headers);
     zap::merge_items(pkg_config_names, other.pkg_config_names);
     zap::merge_items(cmake_names, other.cmake_names);
+
+    if (other.headers.contains("libboost1.74-dev")) {
+        auto& h = other.headers.at("libboost1.74-dev");
+        std::cout << "AO: " << h.size() << std::endl;
+    }
+
+    if (headers.contains("libboost1.74-dev")) {
+        auto& h = headers.at("libboost1.74-dev");
+        std::cout << "AM: " << h.size() << std::endl;
+    }
 }
 
 resolver::resolver(
@@ -51,8 +71,16 @@ const zap::pkg_configs&
 resolver::pkg_configs() const
 { return pc_; }
 
+zap::pkg_configs&
+resolver::pkg_configs()
+{ return pc_; }
+
 const zap::cmake_configs&
 resolver::cmake_configs() const
+{ return cmc_; }
+
+zap::cmake_configs&
+resolver::cmake_configs()
 { return cmc_; }
 
 zap::dep_info
@@ -174,7 +202,8 @@ resolver::strip_pkg_headers(
     const std::string& config_name
 )
 {
-    for (auto& h : data_.headers.at(pkg)) {
+    for (const auto& header : data_.headers.at(pkg)) {
+        auto h = header;
         module_dep_info m;
 
         if (configs.strip_header(config_name, h)) {

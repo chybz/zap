@@ -66,6 +66,36 @@ link_lib_pat()
 
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Parallel parsing context
+//
+///////////////////////////////////////////////////////////////////////////////
+void
+cmake_config_context::merge(cmake_config_context& other)
+{
+    component_modules.merge(other.component_modules);
+    names.merge(other.names);
+    target_names.merge(other.target_names);
+    targets.merge(other.targets);
+    target_inc_dirs.merge(other.target_inc_dirs);
+    libraries.merge(other.libraries);
+    inc_dirs.merge(other.inc_dirs);
+
+    for (auto& p : other.deps) {
+        deps[p.first].merge(p.second);
+    }
+
+    for (auto& p : other.revdeps) {
+        revdeps[p.first].merge(p.second);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// CMake module extractor
+//
+///////////////////////////////////////////////////////////////////////////////
 cmake_configs::cmake_configs(const zap::toolchain& tc, const std::string& root)
 : package_configs(tc, root, package_config_type::cmake),
 cmake_{ zap::find_cmd("cmake") },
@@ -299,25 +329,13 @@ cmake_configs::parse_target_dirs(
     const std::string& data
 )
 {
-    re2::StringPiece input(data);
-    re2::StringPiece t;
-    re2::StringPiece il;
-
-    while (re2::RE2::FindAndConsume(&input, inc_dirs_re_, &t, &il)) {
-        std::string target{ t.data(), t.size() };
-        std::string_view list{ il.data(), il.size() };
-        bool has_include = false;
-
-        if (list == "<NOTFOUND>") {
-            continue;
-        }
-
-        for (auto& dirv : split("\\s*;\\s*", list)) {
+    parse_target_list(
+        data,
+        inc_dirs_re_,
+        [&](auto& target, auto& dirv) {
             if (!clean_dir(dirv)) {
-                continue;
+                return;
             }
-
-            has_include = true;
 
             std::string cleaned(dirv.size() + 1, 0);
             cleaned.assign(dirv.begin(), dirv.end());
@@ -326,10 +344,10 @@ cmake_configs::parse_target_dirs(
             ctx.target_inc_dirs[target].insert(cleaned);
             ctx.inc_dirs[module].insert(std::move(cleaned));
         }
+    );
 
-        if (has_include) {
-            ctx.targets[module].insert(std::move(target));
-        }
+    for (const auto& p : ctx.target_inc_dirs) {
+        ctx.targets[module].insert(p.first);
     }
 }
 
@@ -340,20 +358,13 @@ cmake_configs::parse_target_location(
     const std::string& data
 )
 {
-    re2::StringPiece input(data);
-    re2::StringPiece t;
-    re2::StringPiece loc;
-
-    while (re2::RE2::FindAndConsume(&input, location_re_, &t, &loc)) {
-        std::string target{ t.data(), t.size() };
-        std::string_view location{ loc.data(), loc.size() };
-
-        if (location == "<NOTFOUND>") {
-            continue;
+    parse_target_var(
+        data,
+        location_re_,
+        [&](auto& target, auto& location) {
+            ctx.libraries.try_emplace(std::move(target), std::move(location));
         }
-
-        ctx.libraries.try_emplace(std::move(target), std::move(location));
-    }
+    );
 }
 
 void
@@ -363,25 +374,59 @@ cmake_configs::parse_target_libs(
     const std::string& data
 )
 {
-    re2::StringPiece input(data);
-    re2::StringPiece t;
-    re2::StringPiece il;
-
-    while (re2::RE2::FindAndConsume(&input, link_lib_re_, &t, &il)) {
-        std::string target{ t.data(), t.size() };
-        std::string_view list{ il.data(), il.size() };
-
-        if (list == "<NOTFOUND>") {
-            continue;
-        }
-
-        for (auto& libv : split("\\s*;\\s*", list)) {
+    parse_target_list(
+        data,
+        link_lib_re_,
+        [&](auto& target, auto& libv) {
             std::string lib{ libv.data(), libv.size() };
 
             ctx.deps[target].insert(lib);
             ctx.revdeps[lib].insert(target);
         }
+    );
+}
+
+template <typename Callable>
+void
+cmake_configs::parse_target_var(
+    const std::string& data,
+    const re2::RE2& re,
+    Callable&& cb
+)
+{
+    re2::StringPiece input(data);
+    re2::StringPiece t;
+    re2::StringPiece v;
+
+    while (re2::RE2::FindAndConsume(&input, re, &t, &v)) {
+        std::string target{ t.data(), t.size() };
+        std::string_view var{ v.data(), v.size() };
+
+        if (var == "<NOTFOUND>") {
+            continue;
+        }
+
+        cb(target, var);
     }
+}
+
+template <typename Callable>
+void
+cmake_configs::parse_target_list(
+    const std::string& data,
+    const re2::RE2& re,
+    Callable&& cb
+)
+{
+    parse_target_var(
+        data,
+        re,
+        [&](auto& target, auto& list) {
+            for (auto& item : split("\\s*;\\s*", list)) {
+                cb(target, item);
+            }
+        }
+    );
 }
 
 void

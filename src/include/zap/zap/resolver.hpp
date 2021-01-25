@@ -56,6 +56,9 @@ protected:
 
     resolver_data& data();
 
+    zap::pkg_configs& pkg_configs();
+    zap::cmake_configs& cmake_configs();
+
 private:
     void process_pkg_headers(
         const std::string& pkg,

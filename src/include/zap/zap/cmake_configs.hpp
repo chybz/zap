@@ -11,6 +11,7 @@
 #include <zap/types.hpp>
 #include <zap/inc_dirs.hpp>
 #include <zap/package_configs.hpp>
+#include <zap/frameworks.hpp>
 
 namespace zap {
 
@@ -26,24 +27,7 @@ struct cmake_config_context
     zap::string_set_map deps;
     zap::string_set_map revdeps;
 
-    void merge(cmake_config_context& other)
-    {
-        component_modules.merge(other.component_modules);
-        names.merge(other.names);
-        target_names.merge(other.target_names);
-        targets.merge(other.targets);
-        target_inc_dirs.merge(other.target_inc_dirs);
-        libraries.merge(other.libraries);
-        inc_dirs.merge(other.inc_dirs);
-
-        for (auto& p : other.deps) {
-            deps[p.first].merge(p.second);
-        }
-
-        for (auto& p : other.revdeps) {
-            revdeps[p.first].merge(p.second);
-        }
-    }
+    void merge(cmake_config_context& other);
 };
 
 struct cmake_module_info
@@ -125,6 +109,20 @@ private:
         const std::string& data
     );
 
+    template <typename Callable>
+    void parse_target_var(
+        const std::string& data,
+        const re2::RE2& re,
+        Callable&& cb
+    );
+
+    template <typename Callable>
+    void parse_target_list(
+        const std::string& data,
+        const re2::RE2& re,
+        Callable&& cb
+    );
+
     void process_modules(cmake_config_context& ctx);
 
     bool clean_dir(std::string_view& dir) const;
@@ -140,6 +138,7 @@ private:
     re2::RE2 location_re_;
     re2::RE2 link_lib_re_;
     re2::RE2 inc_dirs_re_;
+    frameworks fwks_;
 };
 
 }
