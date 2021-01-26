@@ -16,7 +16,7 @@ gcc::gcc(zap::toolchain_info&& ti, zap::executor& exec)
 : zap::toolchain(std::forward<zap::toolchain_info>(ti), exec),
 extract_line_re_("(?:ZAP_SOURCE:)?\\s+(.*)\\s+\\\\?\n")
 {
-    target_arch_ = cxx().get_line({ "-dumpmachine" });
+    set_target_arch(cxx().get_line({ "-dumpmachine" }));
 
     scanner() = cxx();
 

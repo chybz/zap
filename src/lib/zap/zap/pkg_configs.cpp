@@ -108,7 +108,7 @@ pkg_configs::load_configs()
 
     pool ap(tc().exec(), cb);
 
-    for (const auto& dir : tc().make_arch_dirs(root(), "lib", "pkg_configs")) {
+    for (const auto& dir : tc().make_arch_dirs(root(), "lib", "pkgconfig")) {
         for (auto& pc : find_files(dir, ".*\\.pc")) {
             ap.async(std::move(pc));
         }

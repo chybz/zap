@@ -7,9 +7,9 @@
 
 namespace zap {
 
-using pkg_items_map = std::unordered_map<std::string, zap::strings>;
+using pkg_items_map = strings_map;
 
 void
-merge_items(pkg_items_map& to, pkg_items_map& from);
+merge_pkg_items(pkg_items_map& to, pkg_items_map& from);
 
 }

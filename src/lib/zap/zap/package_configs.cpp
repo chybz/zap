@@ -43,7 +43,15 @@ package_configs::strip_header(
     const std::string& name,
     std::string& header
 ) const
-{ return zap::strip_header(include_dirs(name), header); }
+{
+    bool stripped = false;
+
+    if (has_include_dirs(name)) {
+        stripped = zap::strip_header(include_dirs(name), header);
+    }
+
+    return stripped;
+}
 
 const toolchain&
 package_configs::tc() const

@@ -82,6 +82,8 @@ public:
     const zap::os_info& os_info() const;
 
 protected:
+    void set_target_arch(const std::string& arch);
+
     prog& cxx();
     prog& cc();
     prog& nm();

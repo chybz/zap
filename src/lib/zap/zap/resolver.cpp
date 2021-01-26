@@ -10,29 +10,9 @@ namespace zap {
 void
 resolver_data::merge(resolver_data& other)
 {
-    if (other.headers.contains("libboost1.74-dev")) {
-        auto& h = other.headers.at("libboost1.74-dev");
-        std::cout << "BO: " << h.size() << std::endl;
-    }
-
-    if (headers.contains("libboost1.74-dev")) {
-        auto& h = headers.at("libboost1.74-dev");
-        std::cout << "BM: " << h.size() << std::endl;
-    }
-
-    zap::merge_items(headers, other.headers);
-    zap::merge_items(pkg_config_names, other.pkg_config_names);
-    zap::merge_items(cmake_names, other.cmake_names);
-
-    if (other.headers.contains("libboost1.74-dev")) {
-        auto& h = other.headers.at("libboost1.74-dev");
-        std::cout << "AO: " << h.size() << std::endl;
-    }
-
-    if (headers.contains("libboost1.74-dev")) {
-        auto& h = headers.at("libboost1.74-dev");
-        std::cout << "AM: " << h.size() << std::endl;
-    }
+    zap::merge_pkg_items(headers, other.headers);
+    zap::merge_pkg_items(pkg_config_names, other.pkg_config_names);
+    zap::merge_pkg_items(cmake_names, other.cmake_names);
 }
 
 resolver::resolver(
@@ -162,6 +142,7 @@ resolver::process_pkg_headers(
 )
 {
     const auto& names = config_names.at(pkg);
+    bool stripped = false;
 
     for (const auto& config_name : names) {
         if (!configs.has(config_name)) {
@@ -170,11 +151,14 @@ resolver::process_pkg_headers(
         }
 
         if (configs.has_include_dirs(config_name)) {
-            // config file declares some include directories
             strip_pkg_headers(pkg, configs, config_name);
-        } else {
-            strip_pkg_headers(pkg, std_inc_dirs_);
+            stripped = true;
         }
+    }
+
+    if (!stripped) {
+        // Strip with standard include directories
+        strip_pkg_headers(pkg, std_inc_dirs_);
     }
 }
 
@@ -202,8 +186,12 @@ resolver::strip_pkg_headers(
     const std::string& config_name
 )
 {
-    for (const auto& header : data_.headers.at(pkg)) {
-        auto h = header;
+    for (auto& h : data_.headers.at(pkg)) {
+        if (h.empty()) {
+            // Header already moved by other config of same package
+            continue;
+        }
+
         module_dep_info m;
 
         if (configs.strip_header(config_name, h)) {
@@ -214,8 +202,6 @@ resolver::strip_pkg_headers(
             di.status = zap::dep_status::found;
             di.config_type = configs.type();
             di.pkg_candidates.insert(pkg);
-        } else {
-            set_unresolved(pkg, h);
         }
     }
 }

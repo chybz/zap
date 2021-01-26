@@ -47,10 +47,7 @@ get_default_cmds()
 toolchain::toolchain(toolchain_info&& ti, executor& exec)
 : info_(std::move(ti)),
 executor_(exec)
-{
-    find_libc_headers();
-    make_fetcher();
-}
+{}
 
 toolchain::~toolchain()
 {}
@@ -81,6 +78,15 @@ toolchain::make_arch_dirs(
     }
 
     return dirs;
+}
+
+void
+toolchain::set_target_arch(const std::string& arch)
+{
+    target_arch_ = arch;
+
+    find_libc_headers();
+    make_fetcher();
 }
 
 const prog&

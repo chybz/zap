@@ -2,24 +2,21 @@
 
 namespace zap {
 
-using pkg_items_map = std::unordered_map<std::string, zap::strings>;
-
 void
-merge_items(pkg_items_map& to, pkg_items_map& from)
+merge_pkg_items(pkg_items_map& to, pkg_items_map& from)
 {
-    for (auto&& p : from) {
-        auto it = to.find(p.first);
+    for (auto it = from.begin(); it != from.end(); it = from.erase(it)) {
+        auto& from_list = it->second;
+        auto& to_list = to[it->first];
 
-        if (it != to.end()) {
-            it->second.insert(
-                it->second.end(),
-                std::make_move_iterator(p.second.begin()),
-                std::make_move_iterator(p.second.end())
-            );
-        } else {
-            to.insert(std::move(p));
-        }
+        to_list.insert(
+            to_list.end(),
+            std::make_move_iterator(from_list.begin()),
+            std::make_move_iterator(from_list.end())
+        );
     }
+
+    from.clear();
 }
 
 }

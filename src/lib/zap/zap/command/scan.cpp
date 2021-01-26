@@ -153,15 +153,6 @@ scan::resolve_header_deps(
             } else if (di.has_pkg_candidates()) {
                 ri.to_choose.merge(di.pkg_candidates);
             }
-
-            auto mmi = tc().frameworks().match(dep);
-
-            if (mmi.matched) {
-                std::cout
-                    << "Module: " << mmi.module << mmi.info.component
-                    << std::endl
-                    ;
-            }
         } else if (di.ambiguous()) {
             ri.ambiguous.try_emplace(dep, std::move(di.pkg_candidates));
         }
