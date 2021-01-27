@@ -12,7 +12,6 @@
 #include <zap/archive_info.hpp>
 #include <zap/os_info.hpp>
 #include <zap/executor.hpp>
-#include <zap/frameworks.hpp>
 
 namespace zap {
 
@@ -38,7 +37,6 @@ public:
     const prog& ldd() const;
     const prog& scanner() const;
     const zap::fetcher& fetcher() const;
-    const zap::frameworks& frameworks() const;
 
     const config& cfg() const;
 
@@ -102,7 +100,6 @@ private:
     fetcher_ptr fetcher_ptr_;
     zap::os_info os_info_;
     executor& executor_;
-    zap::frameworks frameworks_;
 };
 
 const toolchain&

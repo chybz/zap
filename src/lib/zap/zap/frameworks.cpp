@@ -9,17 +9,27 @@ namespace zap {
 // header to library detector
 //
 ///////////////////////////////////////////////////////////////////////////////
-void
-header_to_lib::match(const std::string& header, lib_info& li) const
+bool
+header_to_module::match(
+    const std::string& header,
+    const string_set_map config_targets,
+    module_match_info& info
+) const
 {
     re2::StringPiece input(header);
     re2::StringPiece match;
 
     if (re2::RE2::FullMatch(input, re, &match)) {
-        li.matched = true;
+        info.matched = true;
 
-        cb(std::string_view{ match.data(), match.size() }, li);
+        cb(
+            std::string_view{ match.data(), match.size() },
+            config_targets,
+            info
+        );
     }
+
+    return info.matched;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,25 +40,25 @@ header_to_lib::match(const std::string& header, lib_info& li) const
 void
 module::add(const std::string& pat, header_match_cb cb)
 {
-    auto dp = std::make_unique<header_to_lib>(pat, cb);
+    auto dp = std::make_unique<header_to_module>(pat, cb);
 
     detectors.emplace_back(std::move(dp));
 }
 
-lib_info
-module::match(const std::string& header) const
+bool
+module::match(
+    const std::string& header,
+    const string_set_map config_targets,
+    module_match_info& info
+) const
 {
-    lib_info li;
-
     for (const auto& dp : detectors) {
-        dp->match(header, li);
-
-        if (li.matched) {
-            break;
+        if (dp->match(header, config_targets, info)) {
+            return true;
         }
     }
 
-    return li;
+    return info.matched;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -59,43 +69,41 @@ module::match(const std::string& header) const
 frameworks::frameworks()
 {
     auto& b = add_module("Boost", "boost/");
-    auto bcb = [](const auto& m, auto& li) {
-        li.component.assign(m.data(), m.size());
-        li.lib_name = "libboost_";
-        li.lib_name.append(m.data(), m.size());
+    auto bcb = [](const auto& m, const auto& config_targets, auto& info) {
+        info.module = "Boost";
+        info.config = "boost_";
+        info.config.append(m.data(), m.size());
     };
 
     b.add("boost/(\\w+)\\.hpp", bcb);
-    b.add("boost/(\\w+)/\\w+\\.hpp", bcb);
+    b.add("boost/(\\w+)/.+\\.hpp", bcb);
 }
 
 frameworks::~frameworks()
 {}
 
 module_match_info
-frameworks::match(const std::string& header) const
+frameworks::match(
+    const std::string& header,
+    const string_set_map config_targets
+) const
 {
-    module_match_info mmi;
+    module_match_info info;
 
     for (const auto& p : modules_) {
         const auto& prefix = p.first;
         const auto& m = p.second;
 
-        if (header.starts_with(prefix)) {
-            mmi.info = m.match(header);
-
-            if (mmi.info.matched) {
-                mmi.matched = true;
-                mmi.module = m.name;
-            }
-        }
-
-        if (mmi.matched) {
+        if (
+            header.starts_with(prefix)
+            &&
+            m.match(header, config_targets, info)
+        ) {
             break;
         }
     }
 
-    return mmi;
+    return info;
 }
 
 module&

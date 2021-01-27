@@ -192,13 +192,11 @@ resolver::strip_pkg_headers(
             continue;
         }
 
-        module_dep_info m;
-
         if (configs.strip_header(config_name, h)) {
             // Header was made relative to include directive
             auto& di = data_.header_to_dep[h];
 
-            di.module = std::move(m);
+            configs.header_to_module(config_name, h, di.module);
             di.status = zap::dep_status::found;
             di.config_type = configs.type();
             di.pkg_candidates.insert(pkg);

@@ -76,8 +76,7 @@ cmake_config_context::merge(cmake_config_context& other)
 {
     component_modules.merge(other.component_modules);
     names.merge(other.names);
-    target_names.merge(other.target_names);
-    targets.merge(other.targets);
+    config_targets.merge(other.config_targets);
     target_inc_dirs.merge(other.target_inc_dirs);
     libraries.merge(other.libraries);
     inc_dirs.merge(other.inc_dirs);
@@ -89,6 +88,12 @@ cmake_config_context::merge(cmake_config_context& other)
     for (auto& p : other.revdeps) {
         revdeps[p.first].merge(p.second);
     }
+}
+
+void
+cmake_config_context::clear_locals()
+{
+    target_names.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -113,15 +118,15 @@ cmake_configs::~cmake_configs()
 
 bool
 cmake_configs::has(const std::string& module) const
-{ return names_.count(module) != 0; }
+{ return data_.names.count(module) != 0; }
 
 bool
 cmake_configs::has_include_dirs(const std::string& module) const
 {
     bool ret = false;
-    auto it = inc_dirs_.find(module);
+    auto it = data_.inc_dirs.find(module);
 
-    if (it != inc_dirs_.end()) {
+    if (it != data_.inc_dirs.end()) {
         ret = !it->second.empty();
     }
 
@@ -130,7 +135,7 @@ cmake_configs::has_include_dirs(const std::string& module) const
 
 const inc_dir_set&
 cmake_configs::include_dirs(const std::string& module) const
-{ return inc_dirs_.at(module); }
+{ return data_.inc_dirs.at(module); }
 
 void
 cmake_configs::header_to_module(
@@ -139,7 +144,29 @@ cmake_configs::header_to_module(
     module_dep_info& module
 ) const
 {
-    std::cout << "WHOAA" << std::endl;
+    if (header == "boost/spirit/include/karma_uint.hpp") {
+        std::cout << "WHOAA" << std::endl;
+    }
+
+    auto info = frameworks_.match(header);
+
+    if (info.matched) {
+        module.name = std::move(info.name);
+
+        if (data_.component_modules.contains(module.name)) {
+            module.component = std::move(info.component);
+        } else {
+            module.targets.emplace_back(std::move(info.component));
+        }
+    } else if (data_.config_targets.contains(name)) {
+        const auto& targets = data_.config_targets.at(name);
+        module.name = name;
+        module.targets.insert(
+            module.targets.end(),
+            targets.begin(),
+            targets.end()
+        );
+    }
 }
 
 void
@@ -186,9 +213,6 @@ cmake_configs::load_configs()
     auto& merged = ap.wait();
 
     process_modules(merged);
-
-    names_ = std::move(merged.names);
-    inc_dirs_ = std::move(merged.inc_dirs);
 }
 
 cmake_module_info
@@ -260,6 +284,7 @@ cmake_configs::find_targets(
     while (re2::RE2::FindAndConsume(&input, add_lib_re_, &match)) {
         std::string target{ match.data(), match.size() };
 
+        // Candidates
         ctx.target_names.insert(std::move(target));
     }
 }
@@ -319,7 +344,7 @@ cmake_configs::get_properties(
     parse_target_location(ctx, module, res.out);
     parse_target_libs(ctx, module, res.out);
 
-    ctx.target_names.clear();
+    ctx.clear_locals();
 }
 
 void
@@ -343,12 +368,9 @@ cmake_configs::parse_target_dirs(
 
             ctx.target_inc_dirs[target].insert(cleaned);
             ctx.inc_dirs[module].insert(std::move(cleaned));
+            ctx.config_targets[module].insert(target);
         }
     );
-
-    for (const auto& p : ctx.target_inc_dirs) {
-        ctx.targets[module].insert(p.first);
-    }
 }
 
 void
@@ -431,53 +453,7 @@ cmake_configs::parse_target_list(
 
 void
 cmake_configs::process_modules(cmake_config_context& ctx)
-{
-    string_set_map dir_groups;
-
-    for (const auto& p : ctx.target_inc_dirs) {
-        for (const auto& dir : p.second) {
-            dir_groups[dir].insert(p.first);
-        }
-    }
-
-    // Collect uniquely identifiable targets: those with a unique include
-    // directory
-    for (auto it = dir_groups.begin(); it != dir_groups.end(); ) {
-        const auto& dir = it->first;
-        const auto& targets = it->second;
-
-        if (targets.size() == 1) {
-            const auto& target = *targets.begin();
-            dir_to_target_.try_emplace(dir, target);
-            unique_targets_.insert(target);
-            it = dir_groups.erase(it);
-        } else {
-            ++it;
-        }
-    }
-
-    // Erase targets that are now unique
-    for (auto it = dir_groups.begin(); it != dir_groups.end(); ) {
-        auto& dir = it->first;
-        auto& targets = it->second;
-
-        for (auto tit = targets.begin(); tit != targets.end(); ) {
-            if (unique_targets_.contains(*tit)) {
-                tit = targets.erase(tit);
-            } else {
-                ++tit;
-            }
-        }
-
-        if (targets.empty()) {
-            it = dir_groups.erase(it);
-        } else {
-            ++it;
-        }
-    }
-
-    std::cout << "modules processed" << std::endl;
-}
+{ data_.merge(ctx); }
 
 bool
 cmake_configs::clean_dir(std::string_view& dir) const

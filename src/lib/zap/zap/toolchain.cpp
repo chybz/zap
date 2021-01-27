@@ -113,10 +113,6 @@ const zap::fetcher&
 toolchain::fetcher() const
 { return *fetcher_ptr_; }
 
-const zap::frameworks&
-toolchain::frameworks() const
-{ return frameworks_; }
-
 const config&
 toolchain::cfg() const
 { return info_.cfg; }

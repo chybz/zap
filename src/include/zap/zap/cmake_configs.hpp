@@ -20,7 +20,7 @@ struct cmake_config_context
     zap::string_set component_modules;
     zap::string_set names;
     zap::string_set target_names;
-    zap::string_set_map targets;
+    zap::string_set_map config_targets;
     zap::inc_dir_sets target_inc_dirs;
     zap::string_map libraries;
     zap::inc_dir_sets inc_dirs;
@@ -28,6 +28,7 @@ struct cmake_config_context
     zap::string_set_map revdeps;
 
     void merge(cmake_config_context& other);
+    void clear_locals();
 };
 
 struct cmake_module_info
@@ -62,6 +63,18 @@ public:
     ) const final;
 
 private:
+    bool header_to_module_specific(
+        const std::string& name,
+        const std::string& header,
+        module_dep_info& module
+    );
+
+    bool boost_header_to_module(
+        const std::string& name,
+        const std::string& header,
+        module_dep_info& module
+    );
+
     void load_configs();
 
     cmake_module_info module_info(const std::string& path) const;
@@ -129,16 +142,13 @@ private:
 
     prog cmake_;
     zap::string_set names_;
-    inc_dir_sets inc_dirs_;
-    cmake_modules modules_;
-    string_map dir_to_target_;
-    string_set unique_targets_;
+    cmake_config_context data_;
     re2::RE2 add_lib_re_;
     re2::RE2 target_name_re_;
     re2::RE2 location_re_;
     re2::RE2 link_lib_re_;
     re2::RE2 inc_dirs_re_;
-    frameworks fwks_;
+    frameworks frameworks_;
 };
 
 }
