@@ -16,14 +16,14 @@ struct module_match_info
 {
     bool matched = false;
     std::string module;
-    std::string config;
     std::string component;
+    std::string config;
 };
 
 using header_match_cb = std::function<
     void(
         const std::string_view&,
-        const string_set_map config_targets,
+        const string_set_map& config_targets,
         module_match_info& info
     )
 >;
@@ -35,7 +35,7 @@ struct header_to_module
 
     bool match(
         const std::string& header,
-        const string_set_map config_targets,
+        const string_set_map& config_targets,
         module_match_info& info
     ) const;
 };
@@ -52,7 +52,7 @@ struct module
 
     bool match(
         const std::string& header,
-        const string_set_map config_targets,
+        const string_set_map& config_targets,
         module_match_info& info
     ) const;
 };
@@ -67,7 +67,7 @@ public:
 
     module_match_info match(
         const std::string& header,
-        const string_set_map config_targets
+        const string_set_map& config_targets
     ) const;
 
 private:

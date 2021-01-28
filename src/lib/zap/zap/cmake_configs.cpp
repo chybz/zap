@@ -144,23 +144,21 @@ cmake_configs::header_to_module(
     module_dep_info& module
 ) const
 {
-    if (header == "boost/spirit/include/karma_uint.hpp") {
-        std::cout << "WHOAA" << std::endl;
-    }
-
-    auto info = frameworks_.match(header);
+    auto info = frameworks_.match(header, data_.config_targets);
 
     if (info.matched) {
-        module.name = std::move(info.name);
+        module.name = std::move(info.module);
 
         if (data_.component_modules.contains(module.name)) {
             module.component = std::move(info.component);
-        } else {
-            module.targets.emplace_back(std::move(info.component));
         }
-    } else if (data_.config_targets.contains(name)) {
-        const auto& targets = data_.config_targets.at(name);
+    } else {
         module.name = name;
+    }
+
+    if (data_.config_targets.contains(name)) {
+        const auto& targets = data_.config_targets.at(name);
+
         module.targets.insert(
             module.targets.end(),
             targets.begin(),

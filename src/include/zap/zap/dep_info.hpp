@@ -32,6 +32,10 @@ struct dep_info
 
     bool has_pkg() const;
     bool has_pkg_candidates() const;
+
+    bool is_cmake() const;
+    bool is_cmake_component() const;
+    bool is_pkg_config() const;
 };
 
 using dep_infos = std::vector<dep_info>;

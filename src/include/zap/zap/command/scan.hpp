@@ -46,8 +46,11 @@ private:
         const zap::resolvers::apt& apt,
         const zap::string_vector_map& headers,
         zap::string_vector_map& pkgs,
+        zap::string_set& libs,
         zap::resolve_info& ri
     );
+
+    void add_project_module(const zap::dep_info& info);
 
     const zap::toolchain& tc() const;
 

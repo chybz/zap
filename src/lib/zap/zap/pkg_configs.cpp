@@ -60,7 +60,10 @@ pkg_configs::header_to_module(
     const std::string& header,
     module_dep_info& module
 ) const
-{}
+{
+    module.name = name;
+    module.targets.push_back("PkgConfig::" + name);
+}
 
 void
 pkg_configs::load_configs()

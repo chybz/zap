@@ -22,6 +22,24 @@ bool
 dep_info::has_pkg_candidates() const
 { return !pkg_candidates.empty(); }
 
+bool
+dep_info::is_cmake() const
+{ return config_type == package_config_type::cmake; }
+
+bool
+dep_info::is_cmake_component() const
+{
+    return
+        is_cmake()
+        &&
+        !module.component.empty()
+        ;
+}
+
+bool
+dep_info::is_pkg_config() const
+{ return config_type == package_config_type::pkg_config; }
+
 void
 normalize_deps(dep_info_map& m, const string_set& installed)
 {

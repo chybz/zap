@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <set>
 #include <ostream>
 
 #include <zap/files.hpp>
@@ -38,6 +39,8 @@ struct target
     string_vector_map project_lib_deps;
     string_vector_map public_pkg_deps;
     string_vector_map private_pkg_deps;
+    string_set public_lib_deps;
+    string_set private_lib_deps;
 
     bool has_public_headers() const;
     bool has_public_header(const std::string& name) const;

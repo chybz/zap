@@ -120,8 +120,21 @@ scan::resolve_deps(
     zap::resolve_info& ri
 )
 {
-    resolve_header_deps(apt, t.public_header_deps, t.public_pkg_deps, ri);
-    resolve_header_deps(apt, t.private_header_deps, t.private_pkg_deps, ri);
+    resolve_header_deps(
+        apt,
+        t.public_header_deps,
+        t.public_pkg_deps,
+        t.public_lib_deps,
+        ri
+    );
+
+    resolve_header_deps(
+        apt,
+        t.private_header_deps,
+        t.private_pkg_deps,
+        t.private_lib_deps,
+        ri
+    );
 }
 
 void
@@ -129,6 +142,7 @@ scan::resolve_header_deps(
     const zap::resolvers::apt& apt,
     const zap::string_vector_map& headers,
     zap::string_vector_map& pkgs,
+    zap::string_set& libs,
     zap::resolve_info& ri
 )
 {
@@ -149,6 +163,13 @@ scan::resolve_header_deps(
 
                 if (!apt.installed(di.pkg)) {
                     ri.to_install.insert(di.pkg);
+                } else {
+                    add_project_module(di);
+
+                    libs.insert(
+                        di.module.targets.begin(),
+                        di.module.targets.end()
+                    );
                 }
             } else if (di.has_pkg_candidates()) {
                 ri.to_choose.merge(di.pkg_candidates);
@@ -156,6 +177,18 @@ scan::resolve_header_deps(
         } else if (di.ambiguous()) {
             ri.ambiguous.try_emplace(dep, std::move(di.pkg_candidates));
         }
+    }
+}
+
+void
+scan::add_project_module(const zap::dep_info& info)
+{
+    if (info.is_cmake_component()) {
+        p_.cmake_components[info.module.name].insert(info.module.component);
+    } else if (info.is_cmake()) {
+        p_.cmake_modules.insert(info.module.name);
+    } else if (info.is_pkg_config()) {
+        p_.pkg_configs.insert(info.module.name);
     }
 }
 

@@ -12,7 +12,7 @@ namespace zap {
 bool
 header_to_module::match(
     const std::string& header,
-    const string_set_map config_targets,
+    const string_set_map& config_targets,
     module_match_info& info
 ) const
 {
@@ -48,7 +48,7 @@ module::add(const std::string& pat, header_match_cb cb)
 bool
 module::match(
     const std::string& header,
-    const string_set_map config_targets,
+    const string_set_map& config_targets,
     module_match_info& info
 ) const
 {
@@ -73,6 +73,13 @@ frameworks::frameworks()
         info.module = "Boost";
         info.config = "boost_";
         info.config.append(m.data(), m.size());
+
+        if (!config_targets.contains(info.config)) {
+            info.component = "headers";
+            info.config = "boost_headers";
+        } else {
+            info.component.assign(m.data(), m.size());
+        }
     };
 
     b.add("boost/(\\w+)\\.hpp", bcb);
@@ -85,7 +92,7 @@ frameworks::~frameworks()
 module_match_info
 frameworks::match(
     const std::string& header,
-    const string_set_map config_targets
+    const string_set_map& config_targets
 ) const
 {
     module_match_info info;
