@@ -156,7 +156,13 @@ gcc::find_std_headers(zap::files& stdh, const string_views& hdirs) const
             continue;
         }
 
-        stdh.push_back(find_files(hdir));
+        auto files = find_files(hdir);
+
+        stdh.insert(
+            std::make_move_iterator(files.begin()),
+            std::make_move_iterator(files.end())
+        );
+
         seen.insert(hdir);
     }
 }

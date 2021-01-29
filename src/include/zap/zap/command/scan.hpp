@@ -27,7 +27,7 @@ private:
         zap::target& t,
         const std::string& dir,
         const zap::files& files,
-        zap::string_vector_map& deps
+        zap::string_set& deps
     );
 
     bool is_project_dep(
@@ -44,8 +44,8 @@ private:
 
     void resolve_header_deps(
         const zap::resolvers::apt& apt,
-        const zap::string_vector_map& headers,
-        zap::string_vector_map& pkgs,
+        const zap::string_set& headers,
+        zap::string_set& pkgs,
         zap::string_set& libs,
         zap::resolve_info& ri
     );

@@ -2,11 +2,11 @@
 
 #include <string>
 
-#include <zap/vector_map.hpp>
+#include <zap/types.hpp>
 
 namespace zap {
 
-using files = vector_map<std::string>;
+using files = string_set;
 
 void
 add_files(files& f, const std::string& dir, const std::string& re);

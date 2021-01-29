@@ -289,7 +289,7 @@ toolchain::find_libc_headers()
         };
 
         for (auto& hdr : map_lines(hfilter, lines)) {
-            std_headers_.push_back(std::string{hdr});
+            std_headers_.insert(std::string{hdr});
         }
     }
 }

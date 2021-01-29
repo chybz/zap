@@ -60,13 +60,13 @@ link_name(const std::string& name)
     return name;
 }
 
-string_vector_map
+string_map
 link_names(const strings& libs)
 {
-    string_vector_map link_names;
+    string_map link_names;
 
     for (const auto& l : libs) {
-        link_names.push_back(link_name(l), l);
+        link_names.try_emplace(link_name(l), l);
     }
 
     return link_names;

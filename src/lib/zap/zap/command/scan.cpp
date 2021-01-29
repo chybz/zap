@@ -72,7 +72,7 @@ scan::scan_target_files(
     zap::target& t,
     const std::string& dir,
     const zap::files& files,
-    zap::string_vector_map& deps
+    zap::string_set& deps
 )
 {
     zap::strings all_deps;
@@ -87,9 +87,9 @@ scan::scan_target_files(
         }
 
         if (is_project_dep(t, dep, lib)) {
-            t.project_lib_deps.push_back(lib);
+            t.project_lib_deps.insert(lib);
         } else {
-            deps.push_back(dep);
+            deps.insert(dep);
         }
     }
 }
@@ -140,8 +140,8 @@ scan::resolve_deps(
 void
 scan::resolve_header_deps(
     const zap::resolvers::apt& apt,
-    const zap::string_vector_map& headers,
-    zap::string_vector_map& pkgs,
+    const zap::string_set& headers,
+    zap::string_set& pkgs,
     zap::string_set& libs,
     zap::resolve_info& ri
 )
@@ -159,7 +159,7 @@ scan::resolve_header_deps(
             ri.unresolved.insert(dep);
         } else if (di.found()) {
             if (di.has_pkg()) {
-                pkgs.push_back(di.pkg);
+                pkgs.insert(di.pkg);
 
                 if (!apt.installed(di.pkg)) {
                     ri.to_install.insert(di.pkg);
