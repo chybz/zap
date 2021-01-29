@@ -32,6 +32,12 @@ scan::operator()(const toolchain& tc)
 }
 
 void
+scan::project_info(const zap::resolve_info& ri) const
+{
+
+}
+
+void
 scan::find_targets()
 {
     p_.root_dir = std::filesystem::current_path();
@@ -123,7 +129,7 @@ scan::resolve_deps(
     resolve_header_deps(
         apt,
         t.public_header_deps,
-        t.public_pkg_deps,
+        t.pkg_deps,
         t.public_lib_deps,
         ri
     );
@@ -131,7 +137,7 @@ scan::resolve_deps(
     resolve_header_deps(
         apt,
         t.private_header_deps,
-        t.private_pkg_deps,
+        t.pkg_deps,
         t.private_lib_deps,
         ri
     );
@@ -147,12 +153,6 @@ scan::resolve_header_deps(
 )
 {
     for (const auto& dep : headers) {
-        if (seen_deps_.contains(dep)) {
-            continue;
-        } else {
-            seen_deps_.insert(dep);
-        }
-
         auto di = apt.resolve(dep);
 
         if (di.not_found()) {

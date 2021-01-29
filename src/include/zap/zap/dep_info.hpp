@@ -14,6 +14,7 @@ struct module_dep_info
 {
     std::string name;
     std::string component;
+    std::string config;
     strings targets;
 };
 

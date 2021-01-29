@@ -75,7 +75,6 @@ void
 cmake_config_context::merge(cmake_config_context& other)
 {
     component_modules.merge(other.component_modules);
-    names.merge(other.names);
     config_targets.merge(other.config_targets);
     target_inc_dirs.merge(other.target_inc_dirs);
     libraries.merge(other.libraries);
@@ -118,7 +117,7 @@ cmake_configs::~cmake_configs()
 
 bool
 cmake_configs::has(const std::string& module) const
-{ return data_.names.count(module) != 0; }
+{ return data_.config_targets.contains(module); }
 
 bool
 cmake_configs::has_include_dirs(const std::string& module) const
@@ -148,16 +147,18 @@ cmake_configs::header_to_module(
 
     if (info.matched) {
         module.name = std::move(info.module);
+        module.config = std::move(info.config);
 
         if (data_.component_modules.contains(module.name)) {
             module.component = std::move(info.component);
         }
     } else {
         module.name = name;
+        module.config = name;
     }
 
-    if (data_.config_targets.contains(name)) {
-        const auto& targets = data_.config_targets.at(name);
+    if (data_.config_targets.contains(module.config)) {
+        const auto& targets = data_.config_targets.at(module.config);
 
         module.targets.insert(
             module.targets.end(),
@@ -247,8 +248,6 @@ cmake_configs::scan_config(
     bool main_config
 )
 {
-    ctx.names.insert(module);
-
     auto data = slurp(f);
 
     if (main_config) {

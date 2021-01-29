@@ -37,8 +37,7 @@ struct target
     string_set public_header_deps;
     string_set private_header_deps;
     string_set project_lib_deps;
-    string_set public_pkg_deps;
-    string_set private_pkg_deps;
+    string_set pkg_deps;
     string_set public_lib_deps;
     string_set private_lib_deps;
 

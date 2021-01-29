@@ -57,7 +57,6 @@ private:
     const zap::toolchain* tc_ptr_ = nullptr;
     project p_;
     resolver_ptrs rps_;
-    zap::string_view_set seen_deps_;
 };
 
 }

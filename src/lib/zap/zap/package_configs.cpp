@@ -38,19 +38,18 @@ package_config_type
 package_configs::type() const
 { return type_; }
 
-bool
+void
 package_configs::strip_header(
+    const inc_dir_set& default_dirs,
     const std::string& name,
     std::string& header
 ) const
 {
-    bool stripped = false;
-
     if (has_include_dirs(name)) {
-        stripped = zap::strip_header(include_dirs(name), header);
+        zap::strip_header(include_dirs(name), header);
+    } else {
+        zap::strip_header(default_dirs, header);
     }
-
-    return stripped;
 }
 
 const toolchain&

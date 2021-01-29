@@ -118,8 +118,6 @@ resolver::make_deps()
             process_pkg_headers(pkg, data_.cmake_names, cmc_);
         } else if (data_.pkg_config_names.contains(pkg)) {
             process_pkg_headers(pkg, data_.pkg_config_names, pc_);
-        } else {
-            strip_pkg_headers(pkg, std_inc_dirs_);
         }
     }
 
@@ -142,7 +140,6 @@ resolver::process_pkg_headers(
 )
 {
     const auto& names = config_names.at(pkg);
-    bool stripped = false;
 
     for (const auto& config_name : names) {
         if (!configs.has(config_name)) {
@@ -150,15 +147,7 @@ resolver::process_pkg_headers(
             continue;
         }
 
-        if (configs.has_include_dirs(config_name)) {
-            strip_pkg_headers(pkg, configs, config_name);
-            stripped = true;
-        }
-    }
-
-    if (!stripped) {
-        // Strip with standard include directories
-        strip_pkg_headers(pkg, std_inc_dirs_);
+        strip_pkg_headers(pkg, configs, config_name);
     }
 }
 
@@ -192,15 +181,15 @@ resolver::strip_pkg_headers(
             continue;
         }
 
-        if (configs.strip_header(config_name, h)) {
-            // Header was made relative to include directive
-            auto& di = data_.header_to_dep[h];
+        configs.strip_header(std_inc_dirs_, config_name, h);
 
-            configs.header_to_module(config_name, h, di.module);
-            di.status = zap::dep_status::found;
-            di.config_type = configs.type();
-            di.pkg_candidates.insert(pkg);
-        }
+        // Header was made relative to include directive
+        auto& di = data_.header_to_dep[h];
+
+        configs.header_to_module(config_name, h, di.module);
+        di.status = zap::dep_status::found;
+        di.config_type = configs.type();
+        di.pkg_candidates.insert(pkg);
     }
 }
 

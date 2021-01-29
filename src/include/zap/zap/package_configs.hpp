@@ -28,7 +28,11 @@ public:
 
     package_config_type type() const;
 
-    bool strip_header(const std::string& name, std::string& header) const;
+    void strip_header(
+        const inc_dir_set& default_dirs,
+        const std::string& name,
+        std::string& header
+    ) const;
 
     virtual bool has(const std::string& name) const = 0;
     virtual bool has_include_dirs(const std::string& name) const = 0;
