@@ -8,6 +8,7 @@ namespace zap {
 
 struct resolve_info
 {
+    string_set used;
     string_set to_install;
     string_set to_choose;
     string_set unresolved_headers;

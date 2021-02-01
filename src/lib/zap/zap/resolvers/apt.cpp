@@ -118,7 +118,9 @@ apt::parse_contents(const std::string& file)
 
             auto& hm = ctx.headers;
             auto& pm = ctx.pkg_config_names;
-            auto& cm = ctx.cmake_names;
+            auto& p2p = ctx.pkg_config_to_pkg;
+            auto& cm = ctx.cmake_config_names;
+            auto& c2p = ctx.cmake_config_to_pkg;
             auto& lm = ctx.lib_names;
 
             for (const auto& l : zap::split_lines(lines)) {
@@ -130,9 +132,9 @@ apt::parse_contents(const std::string& file)
 
                     add_pkg_item(hm, item, pkgs);
                 } else if (re2::RE2::FullMatch(l, pc_re_, &item, &pkgs)) {
-                    add_pkg_item(pm, item, pkgs);
+                    add_pkg_item(pm, item, pkgs, &p2p);
                 } else if (re2::RE2::FullMatch(l, cmake_re_, &item, &pkgs)) {
-                    add_pkg_item(cm, item, pkgs);
+                    add_pkg_item(cm, item, pkgs, &c2p);
                 } else if (re2::RE2::FullMatch(l, lib_re_, &item, &pkgs)) {
                     add_pkg_item(lm, item, pkgs);
                 }
@@ -146,7 +148,8 @@ void
 apt::add_pkg_item(
     zap::pkg_items_map& m,
     const std::string& item,
-    const std::string& pkgs
+    const std::string& pkgs,
+    string_set_map* rev
 )
 {
     re2::StringPiece input(pkgs);
@@ -156,6 +159,10 @@ apt::add_pkg_item(
         std::string pkg(match.begin(), match.end());
 
         m[pkg].emplace_back(item);
+
+        if (rev) {
+            (*rev)[item].insert(pkg);
+        }
     }
 }
 

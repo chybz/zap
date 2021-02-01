@@ -11,9 +11,6 @@ namespace zap {
 
 struct project
 {
-    using mods_set = std::set<std::string>;
-    using comps_map = std::map<std::string, mods_set>;
-
     std::string name;
     std::string version;
 
@@ -22,10 +19,10 @@ struct project
     targets mods;
     targets tsts;
 
-    comps_map cmake_components;
-    mods_set cmake_modules;
-    mods_set pkg_configs;
-    mods_set raw_libs;
+    string_set_map cmake_components;
+    string_set cmake_modules;
+    string_set pkg_configs;
+    string_set raw_libs;
 
     std::string root_dir;
     strings inc_dirs;

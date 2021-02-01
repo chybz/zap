@@ -18,12 +18,15 @@ struct resolver_data
 {
     pkg_items_map headers;
     pkg_items_map pkg_config_names;
-    pkg_items_map cmake_names;
+    string_set_map pkg_config_to_pkg;
+    pkg_items_map cmake_config_names;
+    string_set_map cmake_config_to_pkg;
     pkg_items_map lib_names;
     dep_info_map header_to_dep;
     dep_infos file_headers;
 
     void merge(resolver_data& other);
+    void clear_temporaries();
 };
 
 class resolver
@@ -64,6 +67,7 @@ private:
     void process_pkg_headers(
         const std::string& pkg,
         const pkg_items_map& config_names,
+        const string_set_map& config_to_pkg,
         const package_configs& configs
     );
 
@@ -72,6 +76,7 @@ private:
     void strip_pkg_headers(
         const std::string& pkg,
         const package_configs& configs,
+        const string_set_map& config_to_pkg,
         const std::string& config_name
     );
 

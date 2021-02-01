@@ -21,7 +21,7 @@ struct module_dep_info
 struct dep_info
 {
     dep_status status = dep_status::not_found;
-    std::string pkg;
+    string_set pkgs;
     module_dep_info module;
     package_config_type config_type = package_config_type::unknown;
     std::string file;
@@ -32,7 +32,7 @@ struct dep_info
     bool found() const;
     bool ambiguous() const;
 
-    bool has_pkg() const;
+    bool has_pkgs() const;
     bool has_pkg_candidates() const;
 
     bool is_cmake() const;

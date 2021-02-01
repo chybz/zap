@@ -155,7 +155,7 @@ public:
         auto index = s_.wait_avail();
 
         exec_.silent_async(
-            [&, index, ...args = std::forward<Args>(args)] {
+            [&, index, ...args = std::forward<Args>(args)]() mutable {
                 actxs_.call(index, cb_, args...);
             }
         );

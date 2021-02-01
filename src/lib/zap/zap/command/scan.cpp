@@ -46,6 +46,7 @@ scan::project_info(
 
     os << "Package info from " << res.name() << ":\n\n";
 
+    project_pkg_info(os, "used", ri.used);
     project_pkg_info(os, "to install", ri.to_install);
     project_pkg_info(os, "to choose", ri.to_choose);
     project_pkg_info(os, "unresolved headers", ri.unresolved_headers);
@@ -95,6 +96,12 @@ scan::scan_targets()
 void
 scan::scan_targets(zap::targets& ts)
 {
+    auto cb = [&](auto index, auto& target) {
+        scan_target(target);
+    };
+
+    zap::async_pool<decltype(cb), cmake_config_context> ap(tc().exec(), cb);
+
     for (auto& t : ts) {
         scan_target(t);
     }
@@ -177,6 +184,18 @@ scan::resolve_deps(
         t.private_lib_deps,
         ri
     );
+
+    // Remove private libs already present in public libs
+    for (
+        auto it = t.private_lib_deps.begin();
+        it != t.private_lib_deps.end();
+    ) {
+        if (t.public_lib_deps.contains(*it)) {
+            it = t.private_lib_deps.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void
@@ -194,20 +213,28 @@ scan::resolve_header_deps(
         if (di.not_found()) {
             ri.unresolved_headers.insert(dep);
         } else if (di.found()) {
-            if (di.has_pkg()) {
-                pkgs.insert(di.pkg);
+            if (di.has_pkgs()) {
+                pkgs.insert(di.pkgs.begin(), di.pkgs.end());
+                ri.used.insert(di.pkgs.begin(), di.pkgs.end());
+                std::size_t installed_count = 0;
 
-                if (!apt.installed(di.pkg)) {
-                    ri.to_install.insert(di.pkg);
-                } else {
+                for (const auto& p : di.pkgs) {
+                    if (!apt.installed(p)) {
+                        ri.to_install.insert(p);
+                    } else {
+                        ++installed_count;
+                    }
+                }
+
+                if (installed_count == di.pkgs.size()) {
                     add_project_module(di);
 
                     libs.insert(
                         di.module.targets.begin(),
                         di.module.targets.end()
-                    );
+                        );
 
-                    libs.insert(di.raw_libs.begin, di.raw_libs.end());
+                    libs.insert(di.raw_libs.begin(), di.raw_libs.end());
                 }
             } else if (di.has_pkg_candidates()) {
                 ri.to_choose.merge(di.pkg_candidates);

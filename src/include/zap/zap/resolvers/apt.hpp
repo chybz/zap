@@ -27,7 +27,8 @@ private:
     void add_pkg_item(
         zap::pkg_items_map& m,
         const std::string& item,
-        const std::string& pkgs
+        const std::string& pkgs,
+        string_set_map* rev = nullptr
     );
 
     void load_installed();

@@ -7,15 +7,38 @@
 
 namespace zap {
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Resolver context
+//
+///////////////////////////////////////////////////////////////////////////////
 void
 resolver_data::merge(resolver_data& other)
 {
     zap::merge_pkg_items(headers, other.headers);
     zap::merge_pkg_items(pkg_config_names, other.pkg_config_names);
-    zap::merge_pkg_items(cmake_names, other.cmake_names);
+    pkg_config_to_pkg.merge(other.pkg_config_to_pkg);
+    zap::merge_pkg_items(cmake_config_names, other.cmake_config_names);
+    cmake_config_to_pkg.merge(other.cmake_config_to_pkg);
     zap::merge_pkg_items(lib_names, other.lib_names);
 }
 
+void
+resolver_data::clear_temporaries()
+{
+    headers.clear();
+    pkg_config_names.clear();
+    pkg_config_to_pkg.clear();
+    cmake_config_names.clear();
+    cmake_config_to_pkg.clear();
+    lib_names.clear();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Resolver
+//
+///////////////////////////////////////////////////////////////////////////////
 resolver::resolver(
     const toolchain& tc,
     const std::string& name,
@@ -84,7 +107,7 @@ resolver::resolve(const std::string& header) const
                 // First match
                 ldi = di;
             } else {
-                candidates.insert(di.pkg);
+                candidates.insert(di.pkgs.begin(), di.pkgs.begin());
             }
         }
     }
@@ -115,19 +138,26 @@ resolver::make_deps()
     for (const auto& hp : data_.headers) {
         const auto& pkg = hp.first;
 
-        if (data_.cmake_names.contains(pkg)) {
-            process_pkg_headers(pkg, data_.cmake_names, cmc_);
+        if (data_.cmake_config_names.contains(pkg)) {
+            process_pkg_headers(
+                pkg,
+                data_.cmake_config_names,
+                data_.cmake_config_to_pkg,
+                cmc_
+            );
         } else if (data_.pkg_config_names.contains(pkg)) {
-            process_pkg_headers(pkg, data_.pkg_config_names, pc_);
+            process_pkg_headers(
+                pkg,
+                data_.pkg_config_names,
+                data_.pkg_config_to_pkg,
+                pc_
+            );
         } else {
             strip_pkg_headers(pkg, std_inc_dirs_);
         }
     }
 
-    data_.headers.clear();
-    data_.pkg_config_names.clear();
-    data_.cmake_names.clear();
-    data_.lib_names.clear();
+    data_.clear_temporaries();
 
     zap::normalize_deps(data_.header_to_dep, installed_);
 }
@@ -140,6 +170,7 @@ void
 resolver::process_pkg_headers(
     const std::string& pkg,
     const zap::pkg_items_map& config_names,
+    const string_set_map& config_to_pkg,
     const zap::package_configs& configs
 )
 {
@@ -151,7 +182,12 @@ resolver::process_pkg_headers(
             continue;
         }
 
-        strip_pkg_headers(pkg, configs, config_name);
+        strip_pkg_headers(
+            pkg,
+            configs,
+            config_to_pkg,
+            config_name
+        );
     }
 }
 
@@ -163,7 +199,7 @@ resolver::set_unresolved(
 {
     zap::dep_info di{
         zap::dep_status::found,
-        pkg,
+        { pkg },
         {},
         package_config_type::unknown,
         std::move(header)
@@ -176,6 +212,7 @@ void
 resolver::strip_pkg_headers(
     const std::string& pkg,
     const package_configs& configs,
+    const string_set_map& config_to_pkg,
     const std::string& config_name
 )
 {
@@ -194,6 +231,16 @@ resolver::strip_pkg_headers(
         di.status = zap::dep_status::found;
         di.config_type = configs.type();
         di.pkg_candidates.insert(pkg);
+
+        if (
+            di.module.config != config_name
+            &&
+            config_to_pkg.contains(di.module.config)
+        ) {
+            const auto& pkgs = config_to_pkg.at(di.module.config);
+
+            di.pkg_candidates.insert(pkgs.begin(), pkgs.end());
+        }
     }
 }
 
