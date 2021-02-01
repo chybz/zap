@@ -18,6 +18,18 @@ struct scan
     void operator()(const zap::toolchain& tc);
 
 private:
+    void project_info(
+        std::ostream& os,
+        const zap::resolver& res,
+        const zap::resolve_info& ri
+    ) const;
+
+    void project_pkg_info(
+        std::ostream& os,
+        const std::string& label,
+        const zap::string_set& pkgs
+    ) const;
+
     void find_targets();
     void scan_targets();
     void scan_targets(zap::targets& ts);

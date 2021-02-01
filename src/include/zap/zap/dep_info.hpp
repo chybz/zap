@@ -26,6 +26,7 @@ struct dep_info
     package_config_type config_type = package_config_type::unknown;
     std::string file;
     string_set pkg_candidates;
+    string_set raw_libs;
 
     bool not_found() const;
     bool found() const;
@@ -37,6 +38,7 @@ struct dep_info
     bool is_cmake() const;
     bool is_cmake_component() const;
     bool is_pkg_config() const;
+    bool is_raw() const;
 };
 
 using dep_infos = std::vector<dep_info>;

@@ -25,6 +25,7 @@ struct project
     comps_map cmake_components;
     mods_set cmake_modules;
     mods_set pkg_configs;
+    mods_set raw_libs;
 
     std::string root_dir;
     strings inc_dirs;

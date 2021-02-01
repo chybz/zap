@@ -40,6 +40,10 @@ bool
 dep_info::is_pkg_config() const
 { return config_type == package_config_type::pkg_config; }
 
+bool
+dep_info::is_raw() const
+{ return config_type == package_config_type::raw; }
+
 void
 normalize_deps(dep_info_map& m, const string_set& installed)
 {

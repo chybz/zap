@@ -57,6 +57,17 @@ std::string
 content_pkg_pat(const zap::toolchain& tc)
 { return "/([^\\s/]+)(?:,|$)"; }
 
+std::string
+content_lib_pat(const zap::toolchain& tc)
+{
+    std::string lib_pat = "usr/(?:local/)?lib/";
+    lib_pat += "(?:" + tc.target_arch() + "/)?";
+    lib_pat += "lib(\\S+)\\.(?:so|a)";
+    lib_pat += "\\s+(.+)";
+
+    return lib_pat;
+}
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,7 +80,8 @@ apt::apt(const zap::toolchain& tc)
 inc_re_(detail::content_inc_pat(tc)),
 pc_re_(detail::content_pc_pat(tc)),
 cmake_re_(detail::content_cmake_pat(tc)),
-pkg_re_(detail::content_pkg_pat(tc))
+pkg_re_(detail::content_pkg_pat(tc)),
+lib_re_(detail::content_lib_pat(tc))
 {
     load_installed();
     load_contents();
@@ -107,6 +119,7 @@ apt::parse_contents(const std::string& file)
             auto& hm = ctx.headers;
             auto& pm = ctx.pkg_config_names;
             auto& cm = ctx.cmake_names;
+            auto& lm = ctx.lib_names;
 
             for (const auto& l : zap::split_lines(lines)) {
                 if (re2::RE2::FullMatch(l, inc_re_, &inc_match, &pkgs)) {
@@ -120,6 +133,8 @@ apt::parse_contents(const std::string& file)
                     add_pkg_item(pm, item, pkgs);
                 } else if (re2::RE2::FullMatch(l, cmake_re_, &item, &pkgs)) {
                     add_pkg_item(cm, item, pkgs);
+                } else if (re2::RE2::FullMatch(l, lib_re_, &item, &pkgs)) {
+                    add_pkg_item(lm, item, pkgs);
                 }
             }
         },

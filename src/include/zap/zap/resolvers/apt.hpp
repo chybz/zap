@@ -36,6 +36,7 @@ private:
     re2::RE2 pc_re_;
     re2::RE2 cmake_re_;
     re2::RE2 pkg_re_;
+    re2::RE2 lib_re_;
 };
 
 }

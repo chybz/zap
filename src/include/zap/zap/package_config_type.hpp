@@ -6,7 +6,8 @@ enum class package_config_type
 {
     unknown,
     cmake,
-    pkg_config
+    pkg_config,
+    raw
 };
 
 }

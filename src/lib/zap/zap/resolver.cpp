@@ -13,6 +13,7 @@ resolver_data::merge(resolver_data& other)
     zap::merge_pkg_items(headers, other.headers);
     zap::merge_pkg_items(pkg_config_names, other.pkg_config_names);
     zap::merge_pkg_items(cmake_names, other.cmake_names);
+    zap::merge_pkg_items(lib_names, other.lib_names);
 }
 
 resolver::resolver(
@@ -118,12 +119,15 @@ resolver::make_deps()
             process_pkg_headers(pkg, data_.cmake_names, cmc_);
         } else if (data_.pkg_config_names.contains(pkg)) {
             process_pkg_headers(pkg, data_.pkg_config_names, pc_);
+        } else {
+            strip_pkg_headers(pkg, std_inc_dirs_);
         }
     }
 
     data_.headers.clear();
     data_.pkg_config_names.clear();
     data_.cmake_names.clear();
+    data_.lib_names.clear();
 
     zap::normalize_deps(data_.header_to_dep, installed_);
 }
@@ -204,7 +208,14 @@ resolver::strip_pkg_headers(
             auto &di = data_.header_to_dep[std::move(h)];
 
             di.status = zap::dep_status::found;
+            di.config_type = package_config_type::raw;
             di.pkg_candidates.insert(pkg);
+
+            if (data_.lib_names.contains(pkg)) {
+                const auto& libs = data_.lib_names[pkg];
+
+                di.raw_libs.insert(libs.begin(), libs.end());
+            }
         } else {
             set_unresolved(pkg, h);
         }

@@ -19,6 +19,7 @@ struct resolver_data
     pkg_items_map headers;
     pkg_items_map pkg_config_names;
     pkg_items_map cmake_names;
+    pkg_items_map lib_names;
     dep_info_map header_to_dep;
     dep_infos file_headers;
 
