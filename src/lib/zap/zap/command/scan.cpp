@@ -206,6 +206,8 @@ scan::resolve_header_deps(
                         di.module.targets.begin(),
                         di.module.targets.end()
                     );
+
+                    libs.insert(di.raw_libs.begin, di.raw_libs.end());
                 }
             } else if (di.has_pkg_candidates()) {
                 ri.to_choose.merge(di.pkg_candidates);
