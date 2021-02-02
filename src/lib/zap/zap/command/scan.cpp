@@ -29,47 +29,6 @@ scan::operator()(const toolchain& tc)
 }
 
 void
-scan::project_info(
-    std::ostream& os,
-    const zap::resolver& res,
-    const zap::resolve_info& ri
-) const
-{
-    if (ri.empty()) {
-        return;
-    }
-
-    os << "Package info from " << res.name() << ":\n\n";
-
-    project_pkg_info(os, "used", ri.used);
-    project_pkg_info(os, "to install", ri.to_install);
-    project_pkg_info(os, "to choose", ri.to_choose);
-    project_pkg_info(os, "unresolved headers", ri.unresolved_headers);
-}
-
-void
-scan::project_pkg_info(
-    std::ostream& os,
-    const std::string& label,
-    const zap::string_set& pkgs
-) const
-{
-    if (pkgs.empty()) {
-        return;
-    }
-
-    os << label << ": ";
-
-    zap::string_views names;
-
-    for (const auto& p : pkgs) {
-        names.emplace_back(p);
-    }
-
-    os << zap::join(", ", names) << "\n";
-}
-
-void
 scan::find_targets()
 {
     p_.root_dir = std::filesystem::current_path();
@@ -99,9 +58,7 @@ scan::resolve_targets()
     resolve_targets(apt, p_.bins, ri);
     resolve_targets(apt, p_.tsts, ri);
 
-    for (auto& t : p_.libs) {
-        resolve_deps(apt, t, ri);
-    }
+    project_info(std::cout, apt, ri);
 }
 
 void
@@ -163,9 +120,14 @@ scan::is_project_dep(
 {
     lib.clear();
 
-    for (const auto& other : p_.libs) {
-        if (t.name != other.name && other.has_public_header(dep)) {
-            lib = other.name;
+    for (const auto& l : p_.libs) {
+        if (t == l) {
+            // That's me
+            continue;
+        }
+
+        if (l.has_public_header(dep)) {
+            lib = l.name;
             return true;
         }
     }
@@ -282,6 +244,47 @@ scan::add_project_module(const zap::dep_info& info)
     } else if (info.is_raw()) {
         p_.raw_libs.insert(info.raw_libs.begin(), info.raw_libs.end());
     }
+}
+
+void
+scan::project_info(
+    std::ostream& os,
+    const zap::resolver& res,
+    const zap::resolve_info& ri
+) const
+{
+    if (ri.empty()) {
+        return;
+    }
+
+    os << "Package info from " << res.name() << ":\n\n";
+
+    project_pkg_info(os, "used", ri.used);
+    project_pkg_info(os, "to install", ri.to_install);
+    project_pkg_info(os, "to choose", ri.to_choose);
+    project_pkg_info(os, "unresolved headers", ri.unresolved_headers);
+}
+
+void
+scan::project_pkg_info(
+    std::ostream& os,
+    const std::string& label,
+    const zap::string_set& pkgs
+) const
+{
+    if (pkgs.empty()) {
+        return;
+    }
+
+    os << label << ": ";
+
+    zap::string_views names;
+
+    for (const auto& p : pkgs) {
+        names.emplace_back(p);
+    }
+
+    os << zap::join(", ", names) << "\n";
 }
 
 const zap::toolchain&

@@ -1,8 +1,15 @@
+#include <sstream>
+
 #include <zap/target.hpp>
 #include <zap/file_utils.hpp>
 
 namespace zap {
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Target type
+//
+///////////////////////////////////////////////////////////////////////////////
 const std::string&
 to_string(target_type t)
 {
@@ -22,6 +29,18 @@ operator<<(std::ostream& os, target_type t)
     os << to_string(t);
 
     return os;
+}
+
+std::string
+target::to_string() const
+{
+    std::ostringstream os;
+
+    os
+        << "name : " << name
+        << "type : " << type
+
+    return os.str();
 }
 
 bool
@@ -59,5 +78,17 @@ target::has_sources() const
 target_type_dir
 target_src_dir(const string_map& sub_dirs, target_type t)
 { return { t, cat_src_dir(sub_dirs, to_string(t)) }; }
+
+std::ostream&
+operator<<(std::ostream& os, const target& t)
+{
+    os << t.to_string();
+
+    return os;
+}
+
+bool
+operator==(const target& a, const target& b)
+{ return a.name == b.name && a.type == b.type; }
 
 }

@@ -25,6 +25,12 @@ to_string(target_type t);
 std::ostream&
 operator<<(std::ostream& os, target_type t);
 
+struct target_deps
+{
+    string_set headers;
+    string_set project_libs;
+};
+
 struct target
 {
     std::string name;
@@ -41,6 +47,8 @@ struct target
     string_set public_lib_deps;
     string_set private_lib_deps;
 
+    std::string to_string() const;
+
     bool has_public_headers() const;
     bool has_public_header(const std::string& name) const;
     bool has_private_headers() const;
@@ -50,6 +58,12 @@ struct target
     bool has_file(const std::string& name) const;
     bool has_sources() const;
 };
+
+std::ostream&
+operator<<(std::ostream& os, const target& t);
+
+bool
+operator==(const target& a, const target& b);
 
 using targets = std::vector<target>;
 using target_type_dirs = std::unordered_map<target_type, std::string>;
