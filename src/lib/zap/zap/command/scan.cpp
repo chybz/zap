@@ -10,6 +10,7 @@
 #include <zap/layout.hpp>
 #include <zap/utils.hpp>
 #include <zap/log.hpp>
+#include <zap/resolvers/apt.hpp>
 
 namespace zap::command {
 
@@ -17,20 +18,14 @@ void
 scan::operator()(const toolchain& tc)
 {
     tc_ptr_ = std::addressof(tc);
+
     //zap::make_resolvers(tc, rps_);
+
     find_targets();
     scan_targets();
-
-    zap::resolvers::apt apt(tc);
-    zap::resolve_info ri;
-
-    for (auto& t : p_.libs) {
-        resolve_deps(apt, t, ri);
-    }
+    resolve_targets();
 
     std::cout << "scan done." << std::endl;
-
-    project_info(std::cout, apt, ri);
 }
 
 void
@@ -91,6 +86,22 @@ scan::scan_targets()
     scan_targets(p_.mods);
     scan_targets(p_.bins);
     scan_targets(p_.tsts);
+}
+
+void
+scan::resolve_targets()
+{
+    zap::resolvers::apt apt(tc());
+    zap::resolve_info ri;
+
+    resolve_targets(apt, p_.libs, ri);
+    resolve_targets(apt, p_.mods, ri);
+    resolve_targets(apt, p_.bins, ri);
+    resolve_targets(apt, p_.tsts, ri);
+
+    for (auto& t : p_.libs) {
+        resolve_deps(apt, t, ri);
+    }
 }
 
 void
@@ -163,14 +174,26 @@ scan::is_project_dep(
 }
 
 void
+scan::resolve_targets(
+    const zap::resolver& res,
+    zap::targets& ts,
+    zap::resolve_info& ri
+)
+{
+    for (auto& t : ts) {
+        resolve_deps(res, t, ri);
+    }
+}
+
+void
 scan::resolve_deps(
-    const zap::resolvers::apt& apt,
+    const zap::resolver& res,
     zap::target& t,
     zap::resolve_info& ri
 )
 {
     resolve_header_deps(
-        apt,
+        res,
         t.public_header_deps,
         t.pkg_deps,
         t.public_lib_deps,
@@ -178,7 +201,7 @@ scan::resolve_deps(
     );
 
     resolve_header_deps(
-        apt,
+        res,
         t.private_header_deps,
         t.pkg_deps,
         t.private_lib_deps,
@@ -200,7 +223,7 @@ scan::resolve_deps(
 
 void
 scan::resolve_header_deps(
-    const zap::resolvers::apt& apt,
+    const zap::resolver& res,
     const zap::string_set& headers,
     zap::string_set& pkgs,
     zap::string_set& libs,
@@ -208,7 +231,7 @@ scan::resolve_header_deps(
 )
 {
     for (const auto& dep : headers) {
-        auto di = apt.resolve(dep);
+        auto di = res.resolve(dep);
 
         if (di.not_found()) {
             ri.unresolved_headers.insert(dep);
@@ -219,7 +242,7 @@ scan::resolve_header_deps(
                 std::size_t installed_count = 0;
 
                 for (const auto& p : di.pkgs) {
-                    if (!apt.installed(p)) {
+                    if (!res.installed(p)) {
                         ri.to_install.insert(p);
                     } else {
                         ++installed_count;

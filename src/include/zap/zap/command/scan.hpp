@@ -5,7 +5,6 @@
 #include <zap/types.hpp>
 #include <zap/project.hpp>
 #include <zap/resolver.hpp>
-#include <zap/resolvers/apt.hpp>
 #include <zap/resolve_info.hpp>
 
 namespace zap::command {
@@ -32,6 +31,8 @@ private:
 
     void find_targets();
     void scan_targets();
+    void resolve_targets();
+
     void scan_targets(zap::targets& ts);
     void scan_target(zap::target& t);
 
@@ -48,14 +49,20 @@ private:
         std::string& lib
     ) const;
 
+    void resolve_targets(
+        const zap::resolver& res,
+        zap::targets& ts,
+        zap::resolve_info& ri
+    );
+
     void resolve_deps(
-        const zap::resolvers::apt& apt,
+        const zap::resolver& res,
         zap::target& t,
         zap::resolve_info& ri
     );
 
     void resolve_header_deps(
-        const zap::resolvers::apt& apt,
+        const zap::resolver& res,
         const zap::string_set& headers,
         zap::string_set& pkgs,
         zap::string_set& libs,
