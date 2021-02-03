@@ -79,9 +79,9 @@ void
 scan::scan_target(zap::target& t)
 {
     zap::log("scanning ", t.type, " ", t.name);
-    scan_target_files(t, t.inc_dir, t.public_headers, t.public_header_deps);
-    scan_target_files(t, t.src_dir, t.private_headers, t.private_header_deps);
-    scan_target_files(t, t.src_dir, t.sources, t.private_header_deps);
+    scan_target_files(t, t.inc_dir, t.public_headers, t.public_deps);
+    scan_target_files(t, t.src_dir, t.private_headers, t.private_deps);
+    scan_target_files(t, t.src_dir, t.sources, t.private_deps);
 }
 
 void
@@ -89,7 +89,7 @@ scan::scan_target_files(
     zap::target& t,
     const std::string& dir,
     const zap::files& files,
-    zap::string_set& deps
+    zap::target_deps& deps
 )
 {
     zap::strings all_deps;
@@ -104,9 +104,9 @@ scan::scan_target_files(
         }
 
         if (is_project_dep(t, dep, lib)) {
-            t.project_lib_deps.insert(lib);
+            deps.project_libs.insert(lib);
         } else {
-            deps.insert(dep);
+            deps.headers.insert(dep);
         }
     }
 }
@@ -154,45 +154,21 @@ scan::resolve_deps(
     zap::resolve_info& ri
 )
 {
-    resolve_header_deps(
-        res,
-        t.public_header_deps,
-        t.pkg_deps,
-        t.public_lib_deps,
-        ri
-    );
+    resolve_header_deps(res, t.public_deps, t.pkg_deps, ri);
+    resolve_header_deps(res, t.private_deps, t.pkg_deps, ri);
 
-    resolve_header_deps(
-        res,
-        t.private_header_deps,
-        t.pkg_deps,
-        t.private_lib_deps,
-        ri
-    );
-
-    // Remove private libs already present in public libs
-    for (
-        auto it = t.private_lib_deps.begin();
-        it != t.private_lib_deps.end();
-    ) {
-        if (t.public_lib_deps.contains(*it)) {
-            it = t.private_lib_deps.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    t.normalize_libs();
 }
 
 void
 scan::resolve_header_deps(
     const zap::resolver& res,
-    const zap::string_set& headers,
+    zap::target_deps& deps,
     zap::string_set& pkgs,
-    zap::string_set& libs,
     zap::resolve_info& ri
 )
 {
-    for (const auto& dep : headers) {
+    for (const auto& dep : deps.headers) {
         auto di = res.resolve(dep);
 
         if (di.not_found()) {
@@ -214,12 +190,8 @@ scan::resolve_header_deps(
                 if (installed_count == di.pkgs.size()) {
                     add_project_module(di);
 
-                    libs.insert(
-                        di.module.targets.begin(),
-                        di.module.targets.end()
-                        );
-
-                    libs.insert(di.raw_libs.begin(), di.raw_libs.end());
+                    deps.add_libs(di.module.targets);
+                    deps.add_libs(di.raw_libs);
                 }
             } else if (di.has_pkg_candidates()) {
                 ri.to_choose.merge(di.pkg_candidates);
@@ -263,6 +235,11 @@ scan::project_info(
     project_pkg_info(os, "to install", ri.to_install);
     project_pkg_info(os, "to choose", ri.to_choose);
     project_pkg_info(os, "unresolved headers", ri.unresolved_headers);
+
+    project_targets_info(os, "", p_.libs);
+    project_targets_info(os, "", p_.bins);
+    project_targets_info(os, "", p_.mods);
+    project_targets_info(os, "", p_.tsts);
 }
 
 void
@@ -285,6 +262,18 @@ scan::project_pkg_info(
     }
 
     os << zap::join(", ", names) << "\n";
+}
+
+void
+scan::project_targets_info(
+    std::ostream& os,
+    const std::string& label,
+    const zap::targets& ts
+) const
+{
+    for (const auto& t : ts) {
+        os << t << "\n\n";
+    }
 }
 
 const zap::toolchain&

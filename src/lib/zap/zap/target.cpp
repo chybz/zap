@@ -2,6 +2,7 @@
 
 #include <zap/target.hpp>
 #include <zap/file_utils.hpp>
+#include <zap/utils.hpp>
 
 namespace zap {
 
@@ -31,16 +32,52 @@ operator<<(std::ostream& os, target_type t)
     return os;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Target deps
+//
+///////////////////////////////////////////////////////////////////////////////
+std::string
+target_deps::to_string() const
+{
+    std::ostringstream os;
+
+    os
+        << "project libs: " << join(", ", project_libs) << "\n"
+        << "libs: " << join(", ", libs)
+        ;
+
+    return os.str();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Target
+//
+///////////////////////////////////////////////////////////////////////////////
 std::string
 target::to_string() const
 {
     std::ostringstream os;
 
     os
-        << "name : " << name
-        << "type : " << type
+        << "name: " << name << "\n"
+        << "type: " << type << "\n"
+        << "public deps:\n" << indent(public_deps.to_string()) << "\n"
+        << "private deps:\n" << indent(private_deps.to_string()) << "\n"
+        ;
 
     return os.str();
+}
+
+bool
+target::has_public_dep(const std::string& dep) const
+{
+    return
+        public_deps.project_libs.contains(dep)
+        ||
+        public_deps.libs.contains(dep)
+        ;
 }
 
 bool
@@ -75,6 +112,31 @@ bool
 target::has_sources() const
 { return !sources.empty(); }
 
+void
+target::normalize_libs()
+{
+    normalize_libs(public_deps.libs, private_deps.libs);
+    normalize_libs(public_deps.project_libs, private_deps.project_libs);
+}
+
+void
+target::normalize_libs(const string_set& pub, string_set& priv)
+{
+    // Remove private libs already present in public libs
+    for (auto it = priv.begin(); it != priv.end(); ) {
+        if (pub.contains(*it)) {
+            it = priv.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Utilities
+//
+///////////////////////////////////////////////////////////////////////////////
 target_type_dir
 target_src_dir(const string_map& sub_dirs, target_type t)
 { return { t, cat_src_dir(sub_dirs, to_string(t)) }; }

@@ -28,7 +28,14 @@ operator<<(std::ostream& os, target_type t);
 struct target_deps
 {
     string_set headers;
+    string_set libs;
     string_set project_libs;
+
+    template <typename Container>
+    void add_libs(const Container& c)
+    { libs.insert(c.begin(), c.end()); }
+
+    std::string to_string() const;
 };
 
 struct target
@@ -40,15 +47,13 @@ struct target
     files public_headers;
     files private_headers;
     files sources;
-    string_set public_header_deps;
-    string_set private_header_deps;
-    string_set project_lib_deps;
+    target_deps public_deps;
+    target_deps private_deps;
     string_set pkg_deps;
-    string_set public_lib_deps;
-    string_set private_lib_deps;
 
     std::string to_string() const;
 
+    bool has_public_dep(const std::string& dep) const;
     bool has_public_headers() const;
     bool has_public_header(const std::string& name) const;
     bool has_private_headers() const;
@@ -57,6 +62,9 @@ struct target
     bool has_source(const std::string& name) const;
     bool has_file(const std::string& name) const;
     bool has_sources() const;
+
+    void normalize_libs();
+    void normalize_libs(const string_set& pub, string_set& priv);
 };
 
 std::ostream&

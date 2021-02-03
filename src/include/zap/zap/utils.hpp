@@ -194,23 +194,43 @@ split(const std::string_view& re, const std::string_view& expr)
 }
 
 template <typename T>
+struct is_vector : public std::false_type{};
+
+template <typename T, typename A>
+struct is_vector<std::vector<T, A>> : public std::true_type{};
+
+
+template <typename Container>
 std::string
-join(const std::string& sep, const std::vector<T>& v)
+join_container(const std::string& sep, const Container& c)
 {
     std::ostringstream oss;
 
-    if (!v.empty()) {
-        auto it = v.begin();
+    if (!c.empty()) {
+        auto it = c.begin();
 
         oss << *it;
 
-        while (++it != v.end()) {
+        while (++it != c.end()) {
             oss << sep << *it;
         }
     }
 
     return oss.str();
 }
+
+template <typename T, typename C>
+std::string
+join(const std::string& sep, const C<T>& c)
+{
+    if constexpr (std::is_same_v<C<T>, >)
+}
+
+
+template <typename Container>
+std::string
+join(const std::string& sep, const Container& c)
+
 
 template <typename Tuple, std::size_t... Is>
 void

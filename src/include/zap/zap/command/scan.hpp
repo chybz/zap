@@ -28,7 +28,7 @@ private:
         zap::target& t,
         const std::string& dir,
         const zap::files& files,
-        zap::string_set& deps
+        zap::target_deps& deps
     );
 
     bool is_project_dep(
@@ -51,9 +51,8 @@ private:
 
     void resolve_header_deps(
         const zap::resolver& res,
-        const zap::string_set& headers,
+        zap::target_deps& deps,
         zap::string_set& pkgs,
-        zap::string_set& libs,
         zap::resolve_info& ri
     );
 
@@ -69,6 +68,12 @@ private:
         std::ostream& os,
         const std::string& label,
         const zap::string_set& pkgs
+    ) const;
+
+    void project_targets_info(
+        std::ostream& os,
+        const std::string& label,
+        const zap::targets& ts
     ) const;
 
     const zap::toolchain& tc() const;
