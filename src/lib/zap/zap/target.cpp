@@ -42,10 +42,7 @@ target_deps::to_string() const
 {
     std::ostringstream os;
 
-    os
-        << "project libs: " << join(", ", project_libs) << "\n"
-        << "libs: " << join(", ", libs)
-        ;
+    os << join(", ", project_libs, libs);
 
     return os.str();
 }
@@ -63,8 +60,8 @@ target::to_string() const
     os
         << "name: " << name << "\n"
         << "type: " << type << "\n"
-        << "public deps:\n" << indent(public_deps.to_string()) << "\n"
-        << "private deps:\n" << indent(private_deps.to_string()) << "\n"
+        << "public deps: " << public_deps.to_string() << "\n"
+        << "private deps: " << private_deps.to_string()
         ;
 
     return os.str();

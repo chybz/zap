@@ -18,6 +18,7 @@
 #include <filesystem>
 
 #include <zap/types.hpp>
+#include <zap/join_utils.hpp>
 
 namespace zap {
 
@@ -191,91 +192,6 @@ split(const std::string_view& re, const std::string_view& expr)
     split(re, expr, list);
 
     return list;
-}
-
-template <typename T>
-struct is_vector : public std::false_type{};
-
-template <typename T, typename A>
-struct is_vector<std::vector<T, A>> : public std::true_type{};
-
-
-template <typename Container>
-std::string
-join_container(const std::string& sep, const Container& c)
-{
-    std::ostringstream oss;
-
-    if (!c.empty()) {
-        auto it = c.begin();
-
-        oss << *it;
-
-        while (++it != c.end()) {
-            oss << sep << *it;
-        }
-    }
-
-    return oss.str();
-}
-
-template <typename T, typename C>
-std::string
-join(const std::string& sep, const C<T>& c)
-{
-    if constexpr (std::is_same_v<C<T>, >)
-}
-
-
-template <typename Container>
-std::string
-join(const std::string& sep, const Container& c)
-
-
-template <typename Tuple, std::size_t... Is>
-void
-join_tuple_impl(
-    std::ostringstream& oss,
-    const std::string& sep,
-    const Tuple& t,
-    std::index_sequence<Is...>
-)
-{
-    // (from http://stackoverflow.com/a/6245777/273767)
-    using swallow = int[]; // guarantees left to right order
-
-    (void) swallow{
-        0,
-        (
-            void(
-                oss << (Is == 0 ? "" : sep) << std::get<Is>(t)
-            ),
-            0
-        )...
-    };
-}
-
-template <typename... Args>
-void
-join_tuple(
-    std::ostringstream& oss,
-    const std::string& sep,
-    const std::tuple<Args...>& t
-)
-{ join_tuple_impl(oss, sep, t, std::index_sequence_for<Args...>{}); }
-
-template <
-    typename... Args,
-    typename Enable = std::enable_if_t<(sizeof...(Args) > 1)>
->
-std::string
-join(const std::string& sep, Args&&... args)
-{
-    std::ostringstream oss;
-
-    join_tuple(oss, sep, std::make_tuple(std::forward<Args>(args)...));
-
-    return oss.str();
 }
 
 inline
