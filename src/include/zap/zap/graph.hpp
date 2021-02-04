@@ -23,11 +23,13 @@ public:
 
     virtual ~graph();
 
-    void add_node(const std::string& name);
-    void add_nodes(const strings& names);
-    void add_nodes(const string_set& names);
+    void add_node(const std::string& name, const std::string& from = {});
+    void add_nodes(const strings& names, const std::string& from = {});
+    void add_nodes(const string_set& names, const std::string& from = {});
 
     void add_edge(const std::string& from, const std::string& to);
+
+    void clear();
 
     strings ordered();
     bool is_tree() const;

@@ -52,6 +52,22 @@ target_deps::to_string() const
 // Target
 //
 ///////////////////////////////////////////////////////////////////////////////
+bool
+target::is_bin() const
+{ return type == target_type::bin; }
+
+bool
+target::is_lib() const
+{ return type == target_type::lib; }
+
+bool
+target::is_mod() const
+{ return type == target_type::mod; }
+
+bool
+target::is_tst() const
+{ return type == target_type::tst; }
+
 std::string
 target::to_string() const
 {

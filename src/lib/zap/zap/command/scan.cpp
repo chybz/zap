@@ -58,6 +58,8 @@ scan::resolve_targets()
     resolve_targets(apt, p_.bins, ri);
     resolve_targets(apt, p_.tsts, ri);
 
+    p_.finalize();
+
     project_info(std::cout, apt, ri);
 }
 
@@ -70,8 +72,8 @@ scan::scan_targets(zap::targets& ts)
 
     zap::async_pool<decltype(cb), cmake_config_context> ap(tc().exec(), cb);
 
-    for (auto& t : ts) {
-        scan_target(t);
+    for (auto& p : ts) {
+        scan_target(p.second);
     }
 }
 
@@ -120,14 +122,16 @@ scan::is_project_dep(
 {
     lib.clear();
 
-    for (const auto& l : p_.libs) {
-        if (t == l) {
+    for (const auto& p : p_.libs) {
+        const auto& other = p.second;
+
+        if (t == other) {
             // That's me
             continue;
         }
 
-        if (l.has_public_header(dep)) {
-            lib = l.name;
+        if (other.has_public_header(dep)) {
+            lib = other.name;
             return true;
         }
     }
@@ -142,8 +146,8 @@ scan::resolve_targets(
     zap::resolve_info& ri
 )
 {
-    for (auto& t : ts) {
-        resolve_deps(res, t, ri);
+    for (auto& p : ts) {
+        resolve_deps(res, p.second, ri);
     }
 }
 
@@ -271,8 +275,8 @@ scan::project_targets_info(
     const zap::targets& ts
 ) const
 {
-    for (const auto& t : ts) {
-        os << t << "\n\n";
+    for (const auto& p : ts) {
+        os << p.second << "\n\n";
     }
 }
 

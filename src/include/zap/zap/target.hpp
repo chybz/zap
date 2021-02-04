@@ -31,6 +31,8 @@ struct target_deps
     string_set libs;
     string_set project_libs;
 
+    strings ordered_libs;
+
     template <typename Container>
     void add_libs(const Container& c)
     { libs.insert(c.begin(), c.end()); }
@@ -53,6 +55,11 @@ struct target
 
     std::string to_string() const;
 
+    bool is_bin() const;
+    bool is_lib() const;
+    bool is_mod() const;
+    bool is_tst() const;
+
     bool has_public_dep(const std::string& dep) const;
     bool has_public_headers() const;
     bool has_public_header(const std::string& name) const;
@@ -73,7 +80,7 @@ operator<<(std::ostream& os, const target& t);
 bool
 operator==(const target& a, const target& b);
 
-using targets = std::vector<target>;
+using targets = std::unordered_map<std::string, target>;
 using target_type_dirs = std::unordered_map<target_type, std::string>;
 using target_type_dir = target_type_dirs::value_type;
 

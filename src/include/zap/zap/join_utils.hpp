@@ -61,22 +61,26 @@ join_item_impl(
 {
     std::size_t prev_count = 0;
 
-    auto process = [&](auto&& arg) {
+    auto join_arg = [&](auto&& arg) {
         using type = std::decay_t<decltype(arg)>;
 
-        if (prev_count) {
-            os << sep;
-        }
-
         if constexpr (is_joinable_container_v<type>) {
+            if (prev_count && !arg.empty()) {
+                os << sep;
+            }
+
             prev_count += detail::join_container_impl(os, sep, arg);
         } else {
+            if (prev_count) {
+                os << sep;
+            }
+
             os << arg;
             ++prev_count;
         }
     };
 
-    (process(std::forward<Args>(args)), ...);
+    (join_arg(std::forward<Args>(args)), ...);
 }
 
 template <typename... Args>

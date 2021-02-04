@@ -127,7 +127,7 @@ app::find_libs(zap::project& p)
     const auto& hdr = zap::re(zap::re_type::hdr);
     const auto& src = zap::re(zap::re_type::src);
 
-    for (const auto& lib : candidates) {
+    for (auto& lib : candidates) {
         zap::target t{
             lib,
             zap::target_type::lib,
@@ -145,7 +145,7 @@ app::find_libs(zap::project& p)
         }
 
         p.inc_dirs.push_back(zap::cat_dir(project_dir_, t.inc_dir));
-        p.libs.emplace_back(std::move(t));
+        p.libs.try_emplace(std::move(lib), std::move(t));
     }
 }
 
@@ -156,7 +156,7 @@ app::find_targets(zap::target_type type, zap::targets& targets)
     const auto& hdr = zap::re(zap::re_type::hdr);
     const auto& src = zap::re(zap::re_type::src);
 
-    for (const auto& d : zap::find_dirs(src_dir)) {
+    for (auto& d : zap::find_dirs(src_dir)) {
         zap::target t{ d, type, zap::cat_dir(src_dir, d) };
 
         zap::add_files(t.private_headers, t.src_dir, hdr);
@@ -167,7 +167,7 @@ app::find_targets(zap::target_type type, zap::targets& targets)
             continue;
         }
 
-        targets.emplace_back(std::move(t));
+        targets.try_emplace(std::move(d), std::move(t));
     }
 }
 

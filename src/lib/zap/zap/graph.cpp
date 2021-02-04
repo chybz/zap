@@ -14,22 +14,32 @@ graph::~graph()
 {}
 
 void
-graph::add_node(const std::string& name)
-{ nodes_[name] = node{ name }; }
-
-void
-graph::add_nodes(const strings& names)
+graph::add_node(const std::string& name, const std::string& from)
 {
-    for (const auto& n : names) {
-        add_node(n);
+    if (nodes_.contains(name)) {
+        return;
+    }
+
+    nodes_[name] = node{ name };
+
+    if (!from.empty()) {
+        add_edge(from, name);
     }
 }
 
 void
-graph::add_nodes(const string_set& names)
+graph::add_nodes(const strings& names, const std::string& from)
 {
     for (const auto& n : names) {
-        add_node(n);
+        add_node(n, from);
+    }
+}
+
+void
+graph::add_nodes(const string_set& names, const std::string& from)
+{
+    for (const auto& n : names) {
+        add_node(n, from);
     }
 }
 
@@ -39,6 +49,10 @@ graph::add_edge(const std::string& from, const std::string& to)
     nodes_.at(from).edges.insert(to);
     nodes_.at(to).dep_count++;
 }
+
+void
+graph::clear()
+{ nodes_.clear(); }
 
 strings
 graph::ordered()
