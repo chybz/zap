@@ -9,4 +9,8 @@ generator::generator(const project& p)
 generator::~generator()
 {}
 
+const project&
+generator::p() const
+{ return p_; }
+
 }

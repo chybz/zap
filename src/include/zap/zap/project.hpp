@@ -28,6 +28,8 @@ struct project
 
     graph g;
 
+    bool has_pkg_configs() const;
+
     void finalize();
 
     void build_deps_graph();

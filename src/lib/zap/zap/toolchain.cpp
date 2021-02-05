@@ -338,8 +338,8 @@ make_toolchain(toolchain_ptr& tcp, tf::Executor& exec)
     mkpath(cfg.empty_dir);
     touch_file(cfg.empty_source_file);
 
-    cfg.meta_file = (curp / "cppmeta.yml").string();
-    cfg.load_meta();
+    cfg.package_file = (curp / "package.toml").string();
+    cfg.load_package_conf();
 
     auto dcs = get_default_cmds();
 

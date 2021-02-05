@@ -4,6 +4,10 @@
 
 namespace zap {
 
+bool
+project::has_pkg_configs() const
+{ return !pkg_configs.empty(); }
+
 void
 project::finalize()
 {

@@ -13,24 +13,20 @@ config::config()
 config::~config()
 {}
 
-bool
-config::has_meta() const
-{ return file_exists(meta_file); }
-
 void
-config::load_meta()
+config::load_package_conf()
 {
-    if (!has_meta()) {
+    if (file_exists(package_file)) {
         return;
     }
 
-    meta = toml::parse_file(meta_file);
+    package_conf = toml::parse_file(package_file);
 }
 
 bool
 config::has(const std::string& name) const
 {
-    if (meta.contains(name)) {
+    if (package_conf.contains(name)) {
         return true;
     }
 
@@ -39,6 +35,6 @@ config::has(const std::string& name) const
 
 std::string
 config::str(const std::string& name) const
-{ return meta[name].value_or<std::string>({}); }
+{ return package_conf[name].value_or<std::string>({}); }
 
 }
