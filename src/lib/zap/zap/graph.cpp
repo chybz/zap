@@ -16,11 +16,9 @@ graph::~graph()
 void
 graph::add_node(const std::string& name, const std::string& from)
 {
-    if (nodes_.contains(name)) {
-        return;
+    if (!nodes_.contains(name)) {
+        nodes_[name] = node{ name };
     }
-
-    nodes_[name] = node{ name };
 
     if (!from.empty()) {
         add_edge(from, name);
@@ -51,18 +49,16 @@ graph::add_edge(const std::string& from, const std::string& to)
 }
 
 void
-graph::clear()
-{ nodes_.clear(); }
-
-strings
-graph::ordered()
+graph::build()
 {
     // Please see:
     //
     // Tarjan's strongly connected components algorithm
     //
     // https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
-    strings ordered;
+    reversed_.clear();
+    ordered_.clear();
+
     node_stack st;
     int index = 0;
 
@@ -72,14 +68,30 @@ graph::ordered()
         auto& v = vp.second;
 
         if (v.index == -1) {
-            order_func(v, ordered, st, index);
+            order_func(v, reversed_, st, index);
         }
     }
 
-    std::reverse(std::begin(ordered), std::end(ordered));
+    ordered_.resize(reversed_.size());
 
-    return ordered;
+    std::reverse_copy(
+        std::begin(reversed_),
+        std::end(reversed_),
+        std::begin(ordered_)
+    );
 }
+
+void
+graph::clear()
+{ nodes_.clear(); }
+
+const strings&
+graph::ordered() const
+{ return ordered_; }
+
+const strings&
+graph::reversed() const
+{ return reversed_; }
 
 bool
 graph::is_tree() const

@@ -29,9 +29,15 @@ public:
 
     void add_edge(const std::string& from, const std::string& to);
 
+    void build();
     void clear();
 
-    strings ordered();
+    // From least to most dependent
+    const strings& ordered() const;
+
+    // From most to least dependent
+    const strings& reversed() const;
+
     bool is_tree() const;
 
 private:
@@ -66,6 +72,8 @@ private:
     );
 
     node_map nodes_;
+    strings ordered_;
+    strings reversed_;
 };
 
 }

@@ -1,8 +1,6 @@
 #pragma once
 
 #include <string>
-#include <map>
-#include <set>
 
 #include <zap/target.hpp>
 #include <zap/types.hpp>
@@ -29,23 +27,17 @@ struct project
     strings inc_dirs;
 
     graph g;
-    strings ordered_deps;
 
     void finalize();
 
+    void build_deps_graph();
     void build_deps_graph(const targets& ts);
     void build_deps_graph(const target& t);
     void build_deps_graph(const target& t, const target_deps& deps);
 
     void order_deps();
     void order_deps(targets& ts);
-    void order_deps(target& t, target_deps& libs);
-
-    void normalize_deps();
-    void normalize_deps(targets& ts);
-    void normalize_deps(target& t, string_set& libs);
-
-    bool dep_has_dep(const target& t, const std::string& dep) const;
+    void order_deps(target& t, target_deps& deps);
 };
 
 }

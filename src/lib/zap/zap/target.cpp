@@ -42,7 +42,7 @@ target_deps::to_string() const
 {
     std::ostringstream os;
 
-    os << join(", ", project_libs, libs);
+    os << join(", ", ordered_libs);
 
     return os.str();
 }
