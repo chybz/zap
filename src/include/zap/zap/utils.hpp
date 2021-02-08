@@ -210,12 +210,14 @@ indent(Args&&... args)
         using type = std::decay_t<decltype(arg)>;
 
         if (prev_count) {
-            oss << pad;
+            oss << sep;
         }
+
+        oss << pad;
 
         if constexpr (is_indentable_container_v<type>) {
             oss << join(sep_pad, arg);
-        } else if constexpr (std::is_same_v<type, std::string>) {
+        } else {
             oss << join(sep_pad, split(sep, arg));
         }
 

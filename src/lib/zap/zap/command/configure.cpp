@@ -11,6 +11,7 @@
 #include <zap/utils.hpp>
 #include <zap/log.hpp>
 #include <zap/resolvers/apt.hpp>
+#include <zap/generators/cmake.hpp>
 
 namespace zap::command {
 
@@ -25,7 +26,9 @@ configure::operator()(const toolchain& tc)
     scan_targets();
     resolve_targets();
 
-    std::cout << "scan done." << std::endl;
+    zap::generators::cmake cm(tc, p_);
+
+    cm.generate();
 }
 
 void

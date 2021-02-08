@@ -10,7 +10,7 @@ cmake::cmake(const toolchain& tc, const zap::project& p)
 {}
 
 cmake::~cmake()
-{}
+{ close_list(); }
 
 void
 cmake::generate()
@@ -97,7 +97,19 @@ cmake::generate_cmake_components()
                 "COMPONENTS",
                 zap::indent(p.second)
             )
-            << ")\n"
+            << "\n)\n"
+            ;
+    }
+}
+
+void
+cmake::generate_cmake_modules()
+{
+    ofs_ << "\n";
+
+    for (const auto& m : p().cmake_modules) {
+        ofs_
+            << "find_package(" << m << " CONFIG REQUIRED)\n"
             ;
     }
 }

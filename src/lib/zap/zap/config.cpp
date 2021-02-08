@@ -16,7 +16,7 @@ config::~config()
 void
 config::load_package_conf()
 {
-    if (file_exists(package_file)) {
+    if (!file_exists(package_file)) {
         return;
     }
 
