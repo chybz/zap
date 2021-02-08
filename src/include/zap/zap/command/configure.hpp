@@ -9,7 +9,7 @@
 
 namespace zap::command {
 
-struct scan
+struct configure
 {
     bool asan = false;
     bool debug = false;

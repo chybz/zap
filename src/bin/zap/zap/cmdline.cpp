@@ -38,21 +38,21 @@ assign_command(
     }
 }
 
-struct scan_cmd
+struct configure_cmd
 {
-    command::scan c;
+    command::configure c;
     bool show_help = false;
 
-    scan_cmd(lyra::cli& cli, cmdline& cl)
+    configure_cmd(lyra::cli& cli, cmdline& cl)
     {
         cli.add_argument(
             lyra::command(
-                "scan",
+                "configure",
                 [&](const lyra::group& g) {
                     assign_command(g, cl, c, show_help);
                 }
             )
-            .help("scans local project")
+            .help("configures local project")
             .add_argument(lyra::help(show_help))
         );
     }
@@ -93,7 +93,7 @@ parse(int ac, char** av)
 
     cli.add_argument(lyra::help(show_help));
 
-    scan_cmd sc(cli, cl);
+    configure_cmd cc(cli, cl);
     install_cmd ic(cli, cl);
 
     auto result = cli.parse({ ac, av });

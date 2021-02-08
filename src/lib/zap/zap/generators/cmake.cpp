@@ -1,6 +1,7 @@
 #include <zap/generators/cmake.hpp>
 
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 
 namespace zap::generators {
 
@@ -39,19 +40,19 @@ cmake::generate_main()
     generate_cmake_modules();
 
 
-"find_package(reproc++ REQUIRED)
-find_package(tomlplusplus REQUIRED)
-find_package(re2 REQUIRED)
-find_package(Taskflow REQUIRED)
+// "find_package(reproc++ REQUIRED)
+// find_package(tomlplusplus REQUIRED)
+// find_package(re2 REQUIRED)
+// find_package(Taskflow REQUIRED)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+// set(CMAKE_CXX_STANDARD 20)
+// set(CMAKE_CXX_STANDARD_REQUIRED ON)
+// set(CMAKE_CXX_EXTENSIONS OFF)
+// set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-add_subdirectory(lib/zap)
-add_subdirectory(bin/zap)
-        "
+// add_subdirectory(lib/zap)
+// add_subdirectory(bin/zap)
+//         "
 }
 
 void
@@ -87,7 +88,17 @@ cmake::generate_cmake_components()
     ofs_ << "\n";
 
     for (const auto& p : p().cmake_components) {
-
+        ofs_
+            << "find_package(\n"
+            << "    " << p.first << "\n"
+            << zap::indent(
+                "CONFIG",
+                "REQUIRED",
+                "COMPONENTS",
+                zap::indent(p.second)
+            )
+            << ")\n"
+            ;
     }
 }
 
@@ -106,19 +117,25 @@ cmake::generate_target(const zap::target& t)
 void
 cmake::open_list(const std::string& dir)
 {
-    if (ofs_.is_open()) {
-        ofs_.close();
-        ofs_.clear();
-    }
+    close_list();
 
     auto list = zap::cat_file(dir, "CMakeLists.txt");
 
     ofs_.open(list);
 
-    die_unless(
+    zap::die_unless(
         ofs_.is_open(),
         "failed to open ", list
     );
+}
+
+void
+cmake::close_list()
+{
+    if (ofs_.is_open()) {
+        ofs_.close();
+        ofs_.clear();
+    }
 }
 
 }

@@ -5,7 +5,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include <zap/command/scan.hpp>
+#include <zap/command/configure.hpp>
 #include <zap/toolchain.hpp>
 #include <zap/layout.hpp>
 #include <zap/utils.hpp>
@@ -15,7 +15,7 @@
 namespace zap::command {
 
 void
-scan::operator()(const toolchain& tc)
+configure::operator()(const toolchain& tc)
 {
     tc_ptr_ = std::addressof(tc);
 
@@ -29,7 +29,7 @@ scan::operator()(const toolchain& tc)
 }
 
 void
-scan::find_targets()
+configure::find_targets()
 {
     p_.root_dir = std::filesystem::current_path();
 
@@ -39,7 +39,7 @@ scan::find_targets()
 }
 
 void
-scan::scan_targets()
+configure::scan_targets()
 {
     scan_targets(p_.libs);
     scan_targets(p_.mods);
@@ -48,7 +48,7 @@ scan::scan_targets()
 }
 
 void
-scan::resolve_targets()
+configure::resolve_targets()
 {
     zap::resolvers::apt apt(tc());
     zap::resolve_info ri;
@@ -64,7 +64,7 @@ scan::resolve_targets()
 }
 
 void
-scan::scan_targets(zap::targets& ts)
+configure::scan_targets(zap::targets& ts)
 {
     auto cb = [&](auto index, auto& target) {
         scan_target(target);
@@ -78,7 +78,7 @@ scan::scan_targets(zap::targets& ts)
 }
 
 void
-scan::scan_target(zap::target& t)
+configure::scan_target(zap::target& t)
 {
     zap::log("scanning ", t.type, " ", t.name);
     scan_target_files(t, t.inc_dir, t.public_headers, t.public_deps);
@@ -87,7 +87,7 @@ scan::scan_target(zap::target& t)
 }
 
 void
-scan::scan_target_files(
+configure::scan_target_files(
     zap::target& t,
     const std::string& dir,
     const zap::files& files,
@@ -114,7 +114,7 @@ scan::scan_target_files(
 }
 
 bool
-scan::is_project_dep(
+configure::is_project_dep(
     const target& t,
     const std::string& dep,
     std::string& lib
@@ -140,7 +140,7 @@ scan::is_project_dep(
 }
 
 void
-scan::resolve_targets(
+configure::resolve_targets(
     const zap::resolver& res,
     zap::targets& ts,
     zap::resolve_info& ri
@@ -152,7 +152,7 @@ scan::resolve_targets(
 }
 
 void
-scan::resolve_deps(
+configure::resolve_deps(
     const zap::resolver& res,
     zap::target& t,
     zap::resolve_info& ri
@@ -165,7 +165,7 @@ scan::resolve_deps(
 }
 
 void
-scan::resolve_header_deps(
+configure::resolve_header_deps(
     const zap::resolver& res,
     zap::target_deps& deps,
     zap::string_set& pkgs,
@@ -209,7 +209,7 @@ scan::resolve_header_deps(
 }
 
 void
-scan::add_project_module(const zap::dep_info& info)
+configure::add_project_module(const zap::dep_info& info)
 {
     if (info.is_cmake_component()) {
         p_.cmake_components[info.module.name].insert(info.module.component);
@@ -223,7 +223,7 @@ scan::add_project_module(const zap::dep_info& info)
 }
 
 void
-scan::project_info(
+configure::project_info(
     std::ostream& os,
     const zap::resolver& res,
     const zap::resolve_info& ri
@@ -247,7 +247,7 @@ scan::project_info(
 }
 
 void
-scan::project_pkg_info(
+configure::project_pkg_info(
     std::ostream& os,
     const std::string& label,
     const zap::string_set& pkgs
@@ -269,7 +269,7 @@ scan::project_pkg_info(
 }
 
 void
-scan::project_targets_info(
+configure::project_targets_info(
     std::ostream& os,
     const std::string& label,
     const zap::targets& ts
@@ -281,7 +281,7 @@ scan::project_targets_info(
 }
 
 const zap::toolchain&
-scan::tc() const
+configure::tc() const
 { return *tc_ptr_; }
 
 }

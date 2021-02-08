@@ -2,8 +2,12 @@
 
 namespace zap {
 
-generator::generator(const project& p)
-: p_(p)
+generator::generator(
+    const toolchain& tc,
+    const project& p
+)
+: tc_(tc),
+p_(p)
 {}
 
 generator::~generator()

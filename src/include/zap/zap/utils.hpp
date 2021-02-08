@@ -19,6 +19,7 @@
 
 #include <zap/types.hpp>
 #include <zap/join_utils.hpp>
+#include <zap/indent_utils.hpp>
 
 namespace zap {
 
@@ -194,18 +195,36 @@ split(const std::string_view& re, const std::string_view& expr)
     return list;
 }
 
-inline
+template <typename... Args>
 std::string
-indent(const std::string& what, const std::string& pad = "    ")
+indent(Args&&... args)
 {
+    std::ostringstream oss;
     std::string sep = "\n";
-    std::string s;
+    std::string pad = "    ";
+    auto sep_pad = sep + pad;
 
-    if (what.size() > 0) {
-        s = pad + join(sep + pad, split(sep, what));
-    }
+    std::size_t prev_count = 0;
 
-    return s;
+    auto indent_arg = [&](auto&& arg) {
+        using type = std::decay_t<decltype(arg)>;
+
+        if (prev_count) {
+            oss << pad;
+        }
+
+        if constexpr (is_indentable_container_v<type>) {
+            oss << join(sep_pad, arg);
+        } else if constexpr (std::is_same_v<type, std::string>) {
+            oss << join(sep_pad, split(sep, arg));
+        }
+
+        ++prev_count;
+    };
+
+    (indent_arg(std::forward<Args>(args)), ...);
+
+    return oss.str();
 }
 
 template <typename T>
