@@ -8,10 +8,20 @@
 
 namespace zap {
 
+struct project_langs
+{
+    bool c = true;
+    bool cpp = true;
+};
+
 struct project
 {
     std::string name;
     std::string version;
+
+    project_langs langs;
+
+    bool sub_targets = false;
 
     targets bins;
     targets libs;
@@ -28,7 +38,12 @@ struct project
 
     graph g;
 
+    void add_target(targets& ts, const std::string& tname, target& t);
+
     bool has_pkg_configs() const;
+    bool has_cmake_components() const;
+    bool has_cmake_modules() const;
+    bool has_raw_libs() const;
 
     void finalize();
 

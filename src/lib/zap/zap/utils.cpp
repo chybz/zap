@@ -801,6 +801,21 @@ plural(
         ;
 }
 
+std::string
+toupper(const std::string& s)
+{
+    auto upper(s);
+
+    std::transform(
+        upper.begin(),
+        upper.end(),
+        upper.begin(),
+        ::toupper
+    );
+
+    return upper;
+}
+
 bool
 has_spaces(const std::string& s)
 {

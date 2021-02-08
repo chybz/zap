@@ -31,7 +31,19 @@ cmake::generate_main()
         << "cmake_minimum_required(VERSION 3.12 FATAL_ERROR)\n"
         << "\nproject(" << p().name
         << " VERSION " << p().version
-        << " LANGUAGES C CXX)\n"
+        << " LANGUAGES"
+        ;
+
+    if (p().langs.c) {
+        ofs_ << " C";
+    }
+
+    if (p().langs.cpp) {
+        ofs_ << " CXX";
+    }
+
+    ofs_
+        << ")\n"
         ;
 
     generate_includes();
@@ -76,7 +88,7 @@ cmake::generate_pkg_configs()
 
     for (const auto& pc : p().pkg_configs) {
         ofs_
-            << "pkg_check_modules(" << pc
+            << "pkg_check_modules(" << zap::toupper(pc)
             << " REQUIRED IMPORTED_TARGET GLOBAL " << pc << ")\n"
             ;
     }
@@ -85,6 +97,10 @@ cmake::generate_pkg_configs()
 void
 cmake::generate_cmake_components()
 {
+    if (p().has_cmake_components()) {
+        return;
+    }
+
     ofs_ << "\n";
 
     for (const auto& p : p().cmake_components) {
@@ -105,6 +121,10 @@ cmake::generate_cmake_components()
 void
 cmake::generate_cmake_modules()
 {
+    if (p().has_cmake_modules()) {
+        return;
+    }
+
     ofs_ << "\n";
 
     for (const auto& m : p().cmake_modules) {
@@ -117,6 +137,8 @@ cmake::generate_cmake_modules()
 void
 cmake::generate_targets(const zap::targets& ts)
 {
+    ofs_ << "\n";
+
     for (const auto& p : ts) {
         generate_target(p.second);
     }
@@ -124,7 +146,65 @@ cmake::generate_targets(const zap::targets& ts)
 
 void
 cmake::generate_target(const zap::target& t)
-{}
+{
+    //open_list(t.src_dir);
+
+    if (t.is_bin() || t.is_tst()) {
+        generate_exe_target(t);
+    } else if (t.is_lib() || t.is_mod()) {
+        generate_lib_target(t);
+    }
+}
+
+void
+cmake::generate_exe_target(const zap::target& t)
+{
+    auto tname = zap::join("_", zap::to_string(t.type), t.name);
+
+    ofs_
+        << "add_executable(\n"
+        << "    " << tname << "\n"
+        ;
+
+    generate_target_sources(t);
+
+    ofs_ << ")\n";
+}
+
+void
+cmake::generate_lib_target(const zap::target& t)
+{
+    auto tname = zap::join("_", zap::to_string(t.type), t.name);
+
+
+    ofs_
+        << "add_library(\n"
+        << "    " << tname << "\n"
+        ;
+
+    generate_target_sources(t);
+
+    ofs_ << ")\n";
+}
+
+void
+cmake::generate_target_sources(const zap::target& t)
+{
+    if (t.has_public_headers()) {
+        auto rel_header_dir = zap::cat_dir("..", "..", "include", t.name);
+        auto pad = "    " + rel_header_dir + "/";
+
+        ofs_ << zap::indent_with(pad, t.public_headers) << "\n";
+    }
+
+    if (t.has_private_headers()) {
+        ofs_ << zap::indent(t.private_headers) << "\n";
+    }
+
+    if (t.has_sources()) {
+        ofs_ << zap::indent(t.sources) << "\n";
+    }
+}
 
 void
 cmake::open_list(const std::string& dir)

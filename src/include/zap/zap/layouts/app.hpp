@@ -27,7 +27,12 @@ private:
     bool detect_self_contained(zap::target_type type) const;
 
     void find_libs(zap::project& p);
-    void find_targets(zap::target_type type, zap::targets& targets);
+
+    void find_targets(
+        zap::project& p,
+        zap::target_type type,
+        zap::targets& targets
+    );
 
     zap::string_map sub_dirs_;
 };

@@ -87,6 +87,9 @@ plural(
     std::size_t count
 );
 
+std::string
+toupper(const std::string& s);
+
 bool has_spaces(const std::string& s);
 bool has_spaces(const char* s);
 
@@ -195,14 +198,18 @@ split(const std::string_view& re, const std::string_view& expr)
     return list;
 }
 
+struct indent_info
+{
+    std::string pad = "    ";
+    std::string sep = "\n";
+};
+
 template <typename... Args>
 std::string
-indent(Args&&... args)
+indent_with(const indent_info& ii, Args&&... args)
 {
     std::ostringstream oss;
-    std::string sep = "\n";
-    std::string pad = "    ";
-    auto sep_pad = sep + pad;
+    auto sep_pad = ii.sep + ii.pad;
 
     std::size_t prev_count = 0;
 
@@ -210,15 +217,15 @@ indent(Args&&... args)
         using type = std::decay_t<decltype(arg)>;
 
         if (prev_count) {
-            oss << sep;
+            oss << ii.sep;
         }
 
-        oss << pad;
+        oss << ii.pad;
 
         if constexpr (is_indentable_container_v<type>) {
             oss << join(sep_pad, arg);
         } else {
-            oss << join(sep_pad, split(sep, arg));
+            oss << join(sep_pad, split(ii.sep, arg));
         }
 
         ++prev_count;
@@ -228,6 +235,22 @@ indent(Args&&... args)
 
     return oss.str();
 }
+
+template <typename... Args>
+std::string
+indent_with(const std::string& pad, Args&&... args)
+{
+    return
+        indent_with(
+            indent_info{ pad },
+            std::forward<Args>(args)...
+        );
+}
+
+template <typename... Args>
+std::string
+indent(Args&&... args)
+{ return indent_with(indent_info{}, std::forward<Args>(args)...); }
 
 template <typename T>
 class reverse

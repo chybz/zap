@@ -4,9 +4,25 @@
 
 namespace zap {
 
+void
+project::add_target(targets& ts, const std::string& tname, target& t)
+{ ts.try_emplace(tname, std::move(t)); }
+
 bool
 project::has_pkg_configs() const
 { return !pkg_configs.empty(); }
+
+bool
+project::has_cmake_components() const
+{ return !cmake_components.empty(); }
+
+bool
+project::has_cmake_modules() const
+{ return !cmake_modules.empty(); }
+
+bool
+project::has_raw_libs() const
+{ return !raw_libs.empty(); }
 
 void
 project::finalize()

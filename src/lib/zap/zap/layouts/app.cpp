@@ -99,14 +99,16 @@ app::detect_self_contained(zap::target_type type) const
 void
 app::find_targets(zap::project& p)
 {
+    p.sub_targets = true;
+
     // We want paths to be relative to project root
     zap::call_in_directory(
         project_dir_,
         [&] {
             find_libs(p);
-            find_targets(zap::target_type::mod, p.mods);
-            find_targets(zap::target_type::bin, p.bins);
-            find_targets(zap::target_type::tst, p.tsts);
+            find_targets(p, zap::target_type::mod, p.mods);
+            find_targets(p, zap::target_type::bin, p.bins);
+            find_targets(p, zap::target_type::tst, p.tsts);
         }
     );
 }
@@ -145,12 +147,16 @@ app::find_libs(zap::project& p)
         }
 
         p.inc_dirs.push_back(zap::cat_dir(project_dir_, t.inc_dir));
-        p.libs.try_emplace(std::move(lib), std::move(t));
+        p.add_target(p.libs, lib, t);
     }
 }
 
 void
-app::find_targets(zap::target_type type, zap::targets& targets)
+app::find_targets(
+    zap::project& p,
+    zap::target_type type,
+    zap::targets& targets
+)
 {
     const auto& src_dir = dirs_.at(type);
     const auto& hdr = zap::re(zap::re_type::hdr);
@@ -167,7 +173,7 @@ app::find_targets(zap::target_type type, zap::targets& targets)
             continue;
         }
 
-        targets.try_emplace(std::move(d), std::move(t));
+        p.add_target(targets, d, t);
     }
 }
 
