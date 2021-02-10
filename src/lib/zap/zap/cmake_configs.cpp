@@ -102,6 +102,7 @@ cmake_config_context::clear_locals()
 ///////////////////////////////////////////////////////////////////////////////
 cmake_configs::cmake_configs(const zap::toolchain& tc, const std::string& root)
 : package_configs(tc, root, package_config_type::cmake),
+root_(root),
 cmake_{ zap::find_cmd("cmake") },
 add_lib_re_(detail::add_lib_pat()),
 target_name_re_(detail::target_name_pat()),
@@ -172,6 +173,7 @@ void
 cmake_configs::load_configs()
 {
     cmake_.push_args({
+        "-DCMAKE_PREFIX_PATH=" + root_,
         "-DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON"
     });
 

@@ -140,6 +140,7 @@ private:
 
     bool clean_dir(std::string_view& dir) const;
 
+    std::string root_;
     prog cmake_;
     zap::string_set names_;
     cmake_config_context data_;
