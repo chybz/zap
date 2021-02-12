@@ -1,4 +1,5 @@
 #include <zap/fetchers/curl.hpp>
+#include <zap/prog.hpp>
 #include <zap/utils.hpp>
 
 namespace zap::fetchers {
@@ -6,9 +7,8 @@ namespace zap::fetchers {
 curl::curl(const zap::config& cfg)
 : fetcher(cfg)
 {
-    prog_.cmd = zap::find_cmd("curl");
-
-    prog_.push_args({ "-LJO", "--progress-bar" });
+    prog_ = zap::find_prog("curl");
+    prog_.args = { "-LJO", "--progress-bar" };
 }
 
 curl::~curl()

@@ -4,13 +4,14 @@
 
 #include <zap/toolchain_info.hpp>
 #include <zap/utils.hpp>
+#include <zap/types.hpp>
 
 namespace zap {
 
 struct toolchain_detect
 {
     toolchain_type type;
-    args version_args;
+    strings version_args;
     std::string re;
 };
 
@@ -72,7 +73,13 @@ detect_toolchain(toolchain_info& ti)
     };
 
     for (const auto& d : detectors) {
-        auto r = ti.cxx.run_silent_no_fail(d.version_args);
+        auto r = ti.cxx.run({
+            .args = d.version_args,
+            .opts = {
+                .mode = run_mode::no_fail,
+                .redirect = false
+            }
+        });
 
         if (identify(d, r, ti)) {
             break;

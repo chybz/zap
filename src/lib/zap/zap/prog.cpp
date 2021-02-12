@@ -8,24 +8,57 @@
 
 namespace zap {
 
-args&
-cat_args(args& to, const args& from)
+strings&
+cat_args(strings& to, const strings& from)
 {
     to.insert(to.end(), from.begin(), from.end());
 
     return to;
 }
 
-args
-make_args(const std::string& cmd, const args& argv, const args& a)
+strings
+cat_args(const strings& a, const strings& b)
 {
-    args all;
+    strings all;
 
-    all.reserve(argv.size() + a.size() + 1);
-    all.push_back(cmd);
-    cat_args(cat_args(all, argv), a);
+    all.reserve(a.size() + b.size());
+    all.insert(all.end(), a.begin(), a.end());
+    all.insert(all.end(), b.begin(), b.end());
 
     return all;
+}
+
+strings
+make_args(const std::string& cmd, const strings& args)
+{
+    strings all;
+
+    all.reserve(args.size() + 1);
+    all.push_back(cmd);
+    cat_args(all, args);
+
+    return all;
+}
+
+string_map&
+merge_env(string_map& to, const string_map& from)
+{
+    for (const auto& p : from) {
+        to.try_emplace(p.first, p.second);
+    }
+
+    return to;
+}
+
+string_map
+merge_env(const string_map& a, const string_map& b)
+{
+    string_map m;
+
+    merge_env(m, a);
+    merge_env(m, b);
+
+    return m;
 }
 
 void
@@ -143,74 +176,87 @@ prog::empty() const
 { return cmd.empty(); }
 
 std::string
-prog::to_string(const args& a) const
-{ return join(" ", make_args(cmd, argv, a)); }
+prog::to_string(const strings& a) const
+{ return join(" ", make_args(cmd, cat_args(args, a))); }
 
 void
 prog::push_arg(const std::string& arg)
-{ argv.push_back(arg); }
+{ args.push_back(arg); }
 
 void
-prog::push_args(const args& a)
-{ cat_args(argv, a); }
+prog::push_args(const strings& a)
+{ cat_args(args, a); }
 
 void
 prog::clear_args()
-{ argv.clear(); }
+{ args.clear(); }
 
 prog_result
-prog::run(const args& a, const run_opts& opts) const
+prog::run(const prog_opts& po) const
 {
     reproc::process p;
-    reproc::options options;
+    reproc::options options{ { .extra = merge_env(env, po.env) } };
 
-    if (opts.redirect) {
+    if (po.opts.redirect) {
         options.redirect.parent = true;
     } else {
         options.redirect.err.type = reproc::redirect::pipe;
     }
 
-    auto complete_cmd = make_args(cmd, argv, a);
+    auto complete_cmd = make_args(cmd, cat_args(args, po.args));
     auto complete_line = join(" ", complete_cmd);
     auto sec = p.start(complete_cmd, options);
 
-    handle_error(complete_line, opts, sec);
+    handle_error(complete_line, po.opts, sec);
 
     prog_result r;
 
-    if (!opts.redirect) {
+    if (!po.opts.redirect) {
         drain(p, r.out, r.err);
     }
 
     auto [ status, ec ] = p.stop(options.stop);
 
-    handle_error(complete_line, opts, ec, status);
+    handle_error(complete_line, po.opts, ec, status);
 
     return r;
 }
 
 prog_result
-prog::run(const args& a) const
-{ return run(a, {}); }
+prog::run(const strings& args) const
+{ return run({ .args = args }); }
+
+prog_result
+prog::run(const strings& args, const string_map& env) const
+{ return run({ .args = args, .env = env }); }
 
 prog_result
 prog::run(const run_opts& opts) const
-{ return run({}, opts); }
+{ return run({ .opts = opts }); }
 
 prog_result
-prog::run_silent(const args& a) const
-{ return run(a, { .redirect = false }); }
+prog::run_silent(const strings& args) const
+{ return run({ .args = args, .opts = { .redirect = false } }); }
 
 prog_result
-prog::run_no_fail(const args& a) const
-{ return run(a, { .mode = run_mode::no_fail }); }
+prog::run_no_fail(const strings& args) const
+{ return run({ .args = args, .opts = { .mode = run_mode::no_fail } }); }
 
 prog_result
-prog::run_silent_no_fail(const args& a) const
-{ return run(a, { .mode = run_mode::no_fail, .redirect = false }); }
+prog::run_silent_no_fail(const strings& args) const
+{
+    return
+        run({
+            .args = args,
+            .opts = {
+                .mode = run_mode::no_fail,
+                .redirect = false
+            }
+        });
+}
 
 std::string
-prog::get_line(const args& a) const
+prog::get_line(const strings& a) const
 {
     auto res = run_silent_no_fail(a);
 
@@ -218,7 +264,7 @@ prog::get_line(const args& a) const
 }
 
 void
-prog::read_lines(prog_lines_cb cb, const args& a)
+prog::read_lines(prog_lines_cb cb, const strings& a)
 {
     reproc::process p;
     reproc::options options;
@@ -226,7 +272,7 @@ prog::read_lines(prog_lines_cb cb, const args& a)
     options.redirect.err.type = reproc::redirect::pipe;
 
     run_opts opts{ run_mode::no_fail };
-    auto complete_cmd = make_args(cmd, argv, a);
+    auto complete_cmd = make_args(cmd, cat_args(args, a));
     auto complete_line = join(" ", complete_cmd);
     auto sec = p.start(complete_cmd, options);
 
@@ -283,11 +329,11 @@ find_prog(const std::string& name)
 { return { find_cmd(name) }; }
 
 prog_result
-run(const std::string& cmd, const args& a)
-{ return find_prog(cmd).run_silent_no_fail(a); }
+run(const std::string& cmd, const strings& args)
+{ return find_prog(cmd).run_silent_no_fail(args); }
 
 std::string
-get_line(const std::string& cmd, const args& a)
-{ return find_prog(cmd).get_line(a); }
+get_line(const std::string& cmd, const strings& args)
+{ return find_prog(cmd).get_line(args); }
 
 }

@@ -10,13 +10,20 @@
 
 namespace zap {
 
-using args = std::vector<std::string>;
+strings&
+cat_args(strings& to, const strings& from);
 
-args&
-cat_args(args& to, const args& from);
+strings
+cat_args(const strings& a, const strings& b);
 
-args
-make_args(const std::string& cmd, const args& argv, const args& a);
+strings
+make_args(const std::string& cmd, const strings& args);
+
+string_map&
+merge_env(string_map& to, const string_map& from);
+
+string_map
+merge_env(const string_map& a, const string_map& b);
 
 struct prog_result
 {
@@ -48,31 +55,41 @@ struct run_opts
     std::unordered_map<std::string, std::string> env;
 };
 
+struct prog_opts
+{
+    strings args;
+    string_map env;
+    run_opts opts;
+};
+
 using prog_lines_cb = std::function<void(string_views&)>;
 
 struct prog
 {
     std::string cmd;
-    args argv;
+    strings args;
+    string_map env;
 
     bool empty() const;
 
-    std::string to_string(const args& a = {}) const;
+    std::string to_string(const strings& a = {}) const;
 
     void push_arg(const std::string& arg);
-    void push_args(const args& a);
+    void push_args(const strings& a);
     void clear_args();
 
-    prog_result run(const args& a, const run_opts& opts) const;
-    prog_result run(const args& a) const;
+    prog_result run(const prog_opts& po) const;
+
+    prog_result run(const strings& args) const;
+    prog_result run(const strings& args, const string_map& env) const;
     prog_result run(const run_opts& opts = {}) const;
-    prog_result run_silent(const args& a = {}) const;
-    prog_result run_no_fail(const args& a = {}) const;
-    prog_result run_silent_no_fail(const args& a = {}) const;
+    prog_result run_silent(const strings& args = {}) const;
+    prog_result run_no_fail(const strings& args = {}) const;
+    prog_result run_silent_no_fail(const strings& args = {}) const;
 
-    std::string get_line(const args& a = {}) const;
+    std::string get_line(const strings& a = {}) const;
 
-    void read_lines(prog_lines_cb cb, const args& a = {});
+    void read_lines(prog_lines_cb cb, const strings& a = {});
 
 private:
     void handle_error(
@@ -87,9 +104,9 @@ zap::prog
 find_prog(const std::string& name);
 
 prog_result
-run(const std::string& cmd, const args& a = {});
+run(const std::string& cmd, const strings& args = {});
 
 std::string
-get_line(const std::string& cmd, const args& a = {});
+get_line(const std::string& cmd, const strings& args = {});
 
 }

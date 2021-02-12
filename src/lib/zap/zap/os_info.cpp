@@ -28,13 +28,14 @@ os_info::os_info()
     if (sys_name_ == "Linux") {
         is_linux_ = true;
 
-        auto id = get_line("lsb_release", { "-is" });
+        auto id = get_line("lsb_release", { .args = { "-is" } });
 
         if (id == "Debian" || id == "Ubuntu") {
             is_debian_ = true;
 
             host_arch_ = get_line(
-                "dpkg-architecture", { "-qDEB_HOST_MULTIARCH" }
+                "dpkg-architecture",
+                { .args = { "-qDEB_HOST_MULTIARCH" } }
             );
 
         } else {
