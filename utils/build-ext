@@ -71,6 +71,7 @@ if [ -f $SRCDIR/CMakeLists.txt ]; then
         -DCMAKE_PREFIX_PATH=$BUILDROOT \
         -DCMAKE_INSTALL_PREFIX=$BUILDROOT \
         -DCMAKE_TOOLCHAIN_FILE=$MYDIR/toolchains/ext.cmake \
+        -DBUILD_SHARED_LIBS=ON \
         -S $SRCDIR -B $BUILDDIR \
         "$@"
     cmake --build $BUILDDIR $CMAKEARGS
@@ -87,7 +88,14 @@ elif [ -f $SRCDIR/meson.build ]; then
 elif [ -f $SRCDIR/autogen.sh ]; then
     (cd $SRCDIR && autoreconf -fvi)
     cd $BUILDDIR
-    $SRCDIR/configure --prefix=$BUILDROOT
+    $SRCDIR/configure \
+        --prefix=$BUILDROOT \
+        --enable-shared
+    make $MAKEARGS
+    make install
+elif [ -x $SRCDIR/config ]; then
+    cd $BUILDDIR
+    $SRCDIR/config --prefix=$BUILDROOT
     make $MAKEARGS
     make install
 elif [ -f $SRCDIR/Makefile ]; then
@@ -95,6 +103,6 @@ elif [ -f $SRCDIR/Makefile ]; then
     make $MAKEARGS
     make prefix=$BUILDROOT install
 else
-    echo "$ME: don't know how to build"
+    echo "$ME: don't know how to build $SRCDIR"
     exit 1
 fi

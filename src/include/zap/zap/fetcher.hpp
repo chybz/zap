@@ -4,7 +4,6 @@
 #include <memory>
 
 #include <zap/config.hpp>
-#include <zap/prog.hpp>
 
 namespace zap {
 
@@ -21,7 +20,6 @@ public:
 
 protected:
     const config& cfg_;
-    prog prog_;
 };
 
 using fetcher_ptr = std::unique_ptr<fetcher>;

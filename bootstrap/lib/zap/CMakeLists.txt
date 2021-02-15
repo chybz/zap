@@ -19,6 +19,7 @@ target_include_directories(
 target_link_libraries(
     lib_zap
     PUBLIC
+        CURL::libcurl
         Taskflow::Taskflow
         re2::re2
         tomlplusplus::tomlplusplus
