@@ -38,15 +38,6 @@ set_curl_opt(curl_context& ctx, CURLoption o, A&& a, const char* what)
     );
 }
 
-template <typename A>
-void
-set_curl_cb_opt(curl_context& ctx, CURLoption o, A&& a, const char* what)
-{
-    auto p = static_cast<void*>(std::addressof(a));
-
-    set_curl_opt(ctx, o, p, what);
-}
-
 size_t
 curl_header_cb(void* ptr, size_t size, size_t nitems, void *userdata)
 {
@@ -73,10 +64,31 @@ curl_write_cb(void* ptr, size_t size, size_t nitems, void *userdata)
 
     if (ctx.filename.empty()) {
         // No filename from headers, use url
-        auto pos = ctx.url.
+        auto pos = ctx.url.rfind('/');
+
+        if (pos == std::string::npos) {
+            ctx.error = "failed to extract a valid filename from: " + ctx.url;
+        } else {
+            ctx.filename.assign(ctx.url.begin() + pos + 1, ctx.url.end());
+        }
     }
 
-    return sz;
+    if (ctx.error.empty()) {
+        if (!ctx.os.is_open()) {
+            ctx.os.open(
+                zap::cat_file(ctx.dir, ctx.filename),
+                std::ios::binary
+            );
+
+            if (!ctx.os) {
+                ctx.error = "failed to open file: " + ctx.filename;
+            }
+        }
+
+        ctx.os << data;
+    }
+
+    return ctx.error.empty() ? sz : 0;
 }
 
 std::string
@@ -133,12 +145,19 @@ curl::download(curl_context& ctx) const
     zap::mkpath(ctx.dir);
 
     set_curl_opt(ctx, CURLOPT_URL, ctx.url.c_str(), "URL");
+    set_curl_opt(ctx, CURLOPT_FOLLOWLOCATION, 1L, "FOLLOW LOCATION");
+    set_curl_opt(ctx, CURLOPT_MAXREDIRS, 50L, "MAX REDIRS");
     set_curl_opt(ctx, CURLOPT_HEADERFUNCTION, curl_header_cb, "HEADER");
-    set_curl_cb_opt(ctx, CURLOPT_HEADERDATA, ctx, "HEADER DATA");
+    set_curl_opt(ctx, CURLOPT_HEADERDATA, &ctx, "HEADER DATA");
     set_curl_opt(ctx, CURLOPT_WRITEFUNCTION, curl_write_cb, "WRITE");
-    set_curl_cb_opt(ctx, CURLOPT_WRITEDATA, ctx, "WRITE DATA");
+    set_curl_opt(ctx, CURLOPT_WRITEDATA, &ctx, "WRITE DATA");
 
     auto cerr = curl_easy_perform(ctx.get());
+
+    die_if(
+        cerr != CURLE_OK,
+        "failed to download ", ctx.url, ": ", cerr
+    );
 }
 
 }

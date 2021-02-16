@@ -19,6 +19,7 @@ struct curl_context
     std::string dir;
     re2::RE2 filename_re;
     std::string filename;
+    std::string error;
     std::ofstream os;
 
     CURL* get() const;
