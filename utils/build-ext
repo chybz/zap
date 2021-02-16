@@ -106,3 +106,5 @@ else
     echo "$ME: don't know how to build $SRCDIR"
     exit 1
 fi
+
+rm -rf $BUILDDIR
