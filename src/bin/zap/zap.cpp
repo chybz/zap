@@ -3,20 +3,23 @@
 #include <zap/cmdline.hpp>
 #include <zap/utils.hpp>
 #include <zap/toolchain.hpp>
+#include <zap/cmake/trace_parser.hpp>
 
 int main(int ac, char** av)
 {
-    int rc = 0;
+    zap::cmake::trace_parser tp(av[1]);
 
-    const auto& tc = zap::get_toolchain();
+    // int rc = 0;
 
-    auto cl = zap::parse(ac, av);
+    // auto cl = zap::parse(ac, av);
 
-    if (cl.exit) {
-        rc = 1;
-    } else {
-        cl.run();
-    }
+    // if (cl.exit) {
+    //     rc = 1;
+    // } else {
+    //     cl.run();
+    // }
+    //
+    // return rc;
 
-    return rc;
+    return 0;
 }

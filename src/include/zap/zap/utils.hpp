@@ -93,6 +93,11 @@ toupper(const std::string& s);
 bool has_spaces(const std::string& s);
 bool has_spaces(const char* s);
 
+template <typename What>
+bool
+contains(const std::string& s, What&& w)
+{ return s.find(w) != std::string::npos; }
+
 void
 split(
     const std::string_view& re,

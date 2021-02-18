@@ -3,8 +3,6 @@
 #include <unordered_set>
 #include <filesystem>
 
-#include <yaml-cpp/yaml.h>
-
 #include <zap/command/configure.hpp>
 #include <zap/toolchain.hpp>
 #include <zap/layout.hpp>
