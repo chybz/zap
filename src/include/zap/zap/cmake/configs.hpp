@@ -13,9 +13,9 @@
 #include <zap/package_configs.hpp>
 #include <zap/frameworks.hpp>
 
-namespace zap {
+namespace zap::cmake {
 
-struct cmake_config_context
+struct config_context
 {
     zap::string_set component_modules;
     zap::string_set names;
@@ -27,97 +27,97 @@ struct cmake_config_context
     zap::string_set_map deps;
     zap::string_set_map revdeps;
 
-    void merge(cmake_config_context& other);
+    void merge(config_context& other);
     void clear_locals();
 };
 
-struct cmake_module_info
+struct module_info
 {
     std::string config;
     std::string name;
 };
 
-struct cmake_module
+struct module
 {
     bool has_components = false;
-    string_map targets;
-    inc_dir_set inc_dirs;
+    zap::string_map targets;
+    zap::inc_dir_set inc_dirs;
 };
 
-using cmake_modules = std::unordered_map<std::string, cmake_module>;
+using modules = std::unordered_map<std::string, module>;
 
-class cmake_configs : public package_configs
+class configs : public zap::package_configs
 {
 public:
-    cmake_configs(const toolchain& tc, const std::string& root);
-    virtual ~cmake_configs();
+    configs(const toolchain& tc, const std::string& root);
+    virtual ~configs();
 
     bool has(const std::string& module) const final;
     bool has_include_dirs(const std::string& module) const final;
-    const inc_dir_set& include_dirs(const std::string& module) const final;
+    const zap::inc_dir_set& include_dirs(const std::string& module) const final;
 
     void header_to_module(
         const std::string& name,
         const std::string& header,
-        module_dep_info& module
+        zap::module_dep_info& module
     ) const final;
 
 private:
     bool header_to_module_specific(
         const std::string& name,
         const std::string& header,
-        module_dep_info& module
+        zap::module_dep_info& module
     );
 
     bool boost_header_to_module(
         const std::string& name,
         const std::string& header,
-        module_dep_info& module
+        zap::module_dep_info& module
     );
 
     void load_configs();
 
-    cmake_module_info module_info(const std::string& path) const;
+    zap::cmake::module_info module_info(const std::string& path) const;
 
     void scan_config(
-        cmake_config_context& ctx,
+        config_context& ctx,
         const std::string& module,
         const std::string& f,
         bool main_config = false
     );
 
     void find_targets(
-        cmake_config_context& ctx,
+        config_context& ctx,
         const std::string& module,
         const std::string& data
     );
 
-    void write_cmake_file(
-        cmake_config_context& ctx,
+    void write_file(
+        config_context& ctx,
         const std::string& module,
         const std::string& file
     );
 
     void get_properties(
-        cmake_config_context& ctx,
+        config_context& ctx,
         const std::string& module,
         const std::string& dir
     );
 
     void parse_target_dirs(
-        cmake_config_context& ctx,
+        config_context& ctx,
         const std::string& module,
         const std::string& data
     );
 
     void parse_target_location(
-        cmake_config_context& ctx,
+        config_context& ctx,
         const std::string& module,
         const std::string& data
     );
 
     void parse_target_libs(
-        cmake_config_context& ctx,
+        config_context& ctx,
         const std::string& module,
         const std::string& data
     );
@@ -136,20 +136,20 @@ private:
         Callable&& cb
     );
 
-    void process_modules(cmake_config_context& ctx);
+    void process_modules(config_context& ctx);
 
     bool clean_dir(std::string_view& dir) const;
 
     std::string root_;
     prog cmake_;
     zap::string_set names_;
-    cmake_config_context data_;
+    config_context data_;
     re2::RE2 add_lib_re_;
     re2::RE2 target_name_re_;
     re2::RE2 location_re_;
     re2::RE2 link_lib_re_;
     re2::RE2 inc_dirs_re_;
-    frameworks frameworks_;
+    zap::frameworks frameworks_;
 };
 
 }

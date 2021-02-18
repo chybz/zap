@@ -3,7 +3,6 @@
 #include <zap/cmdline.hpp>
 #include <zap/utils.hpp>
 #include <zap/toolchain.hpp>
-#include <zap/cmake_configs.hpp>
 
 int main(int ac, char** av)
 {

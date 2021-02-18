@@ -1,20 +1,20 @@
 #include <re2/re2.h>
 
-#include <zap/pkg_configs.hpp>
+#include <zap/pkg_config/configs.hpp>
 #include <zap/utils.hpp>
 #include <zap/executor.hpp>
 #include <zap/inc_dirs.hpp>
 
-namespace zap {
+namespace zap::pkg_config {
 
 namespace detail {
 
-struct pkg_config_context
+struct config_context
 {
     zap::string_set names;
     zap::inc_dir_sets inc_dirs;
 
-    void merge(pkg_config_context& other)
+    void merge(config_context& other)
     {
         names.merge(other.names);
         inc_dirs.merge(other.inc_dirs);
@@ -23,22 +23,22 @@ struct pkg_config_context
 
 }
 
-pkg_configs::pkg_configs(const zap::toolchain& tc, const std::string& root)
-: package_configs(tc, root, package_config_type::pkg_config),
+configs::configs(const zap::toolchain& tc, const std::string& root)
+: package_configs(tc, root, zap::package_config_type::pkg_config),
 pc_{ zap::find_cmd("pkg-config") }
 {
     load_configs();
 }
 
-pkg_configs::~pkg_configs()
+configs::~configs()
 {}
 
 bool
-pkg_configs::has(const std::string& pc_name) const
+configs::has(const std::string& pc_name) const
 { return names_.count(pc_name) != 0; }
 
 bool
-pkg_configs::has_include_dirs(const std::string& pc_name) const
+configs::has_include_dirs(const std::string& pc_name) const
 {
     bool ret = false;
     auto it = inc_dirs_.find(pc_name);
@@ -50,15 +50,15 @@ pkg_configs::has_include_dirs(const std::string& pc_name) const
     return ret;
 }
 
-const inc_dir_set&
-pkg_configs::include_dirs(const std::string& pc_name) const
+const zap::inc_dir_set&
+configs::include_dirs(const std::string& pc_name) const
 { return inc_dirs_.at(pc_name); }
 
 void
-pkg_configs::header_to_module(
+configs::header_to_module(
     const std::string& name,
     const std::string& header,
-    module_dep_info& module
+    zap::module_dep_info& module
 ) const
 {
     module.name = name;
@@ -66,7 +66,7 @@ pkg_configs::header_to_module(
 }
 
 void
-pkg_configs::load_configs()
+configs::load_configs()
 {
     // I promise I tried *very* hard to have this right, without too much
     // kludge.
@@ -107,7 +107,7 @@ pkg_configs::load_configs()
         ctx.inc_dirs.try_emplace(std::move(pc_name), std::move(idirs));
     };
 
-    using pool = zap::async_pool<decltype(cb), detail::pkg_config_context>;
+    using pool = zap::async_pool<decltype(cb), detail::config_context>;
 
     pool ap(tc().exec(), cb);
 
@@ -124,7 +124,7 @@ pkg_configs::load_configs()
 }
 
 bool
-pkg_configs::clean_dir(std::string_view& dir) const
+configs::clean_dir(std::string_view& dir) const
 {
     if (dir.ends_with('/')) {
         dir.remove_suffix(1);

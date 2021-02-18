@@ -6,8 +6,8 @@
 
 #include <zap/toolchain.hpp>
 #include <zap/dep_info.hpp>
-#include <zap/pkg_configs.hpp>
-#include <zap/cmake_configs.hpp>
+#include <zap/pkg_config/configs.hpp>
+#include <zap/cmake/configs.hpp>
 #include <zap/inc_dirs.hpp>
 #include <zap/pkg_items.hpp>
 #include <zap/types.hpp>
@@ -45,8 +45,8 @@ public:
     const std::string& name() const;
     const std::string& root() const;
 
-    const zap::pkg_configs& pkg_configs() const;
-    const zap::cmake_configs& cmake_configs() const;
+    const zap::pkg_config::configs& pkg_configs() const;
+    const zap::cmake::configs& cmake_configs() const;
 
     dep_info resolve(const std::string& header) const;
 
@@ -60,8 +60,8 @@ protected:
 
     resolver_data& data();
 
-    zap::pkg_configs& pkg_configs();
-    zap::cmake_configs& cmake_configs();
+    zap::pkg_config::configs& pkg_configs();
+    zap::cmake::configs& cmake_configs();
 
 private:
     void process_pkg_headers(
@@ -88,8 +88,8 @@ private:
     const toolchain& tc_;
     std::string name_;
     std::string root_;
-    zap::pkg_configs pc_;
-    zap::cmake_configs cmc_;
+    zap::pkg_config::configs pc_;
+    zap::cmake::configs cmc_;
     inc_dir_set std_inc_dirs_;
     zap::string_set installed_;
     resolver_data data_;

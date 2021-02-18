@@ -52,7 +52,7 @@ struct run_opts
 {
     run_mode mode = run_mode::std;
     bool redirect = true;
-    std::unordered_map<std::string, std::string> env;
+    string_map env;
 };
 
 struct prog_opts

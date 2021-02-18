@@ -9,22 +9,22 @@
 #include <zap/inc_dirs.hpp>
 #include <zap/package_configs.hpp>
 
-namespace zap {
+namespace zap::pkg_config {
 
-class pkg_configs : public package_configs
+class configs : public zap::package_configs
 {
 public:
-    pkg_configs(const toolchain& tc, const std::string& root);
-    virtual ~pkg_configs();
+    configs(const toolchain& tc, const std::string& root);
+    virtual ~configs();
 
     bool has(const std::string& pc_name) const final;
     bool has_include_dirs(const std::string& pc_name) const final;
-    const inc_dir_set& include_dirs(const std::string& pc_name) const final;
+    const zap::inc_dir_set& include_dirs(const std::string& pc_name) const final;
 
     void header_to_module(
         const std::string& name,
         const std::string& header,
-        module_dep_info& module
+        zap::module_dep_info& module
     ) const final;
 
 private:
@@ -34,7 +34,7 @@ private:
 
     prog pc_;
     zap::string_set names_;
-    inc_dir_sets inc_dirs_;
+    zap::inc_dir_sets inc_dirs_;
 };
 
 }

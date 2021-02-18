@@ -71,19 +71,19 @@ const std::string&
 resolver::root() const
 { return root_; }
 
-const zap::pkg_configs&
+const zap::pkg_config::configs&
 resolver::pkg_configs() const
 { return pc_; }
 
-zap::pkg_configs&
+zap::pkg_config::configs&
 resolver::pkg_configs()
 { return pc_; }
 
-const zap::cmake_configs&
+const zap::cmake::configs&
 resolver::cmake_configs() const
 { return cmc_; }
 
-zap::cmake_configs&
+zap::cmake::configs&
 resolver::cmake_configs()
 { return cmc_; }
 

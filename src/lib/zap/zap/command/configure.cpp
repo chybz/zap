@@ -73,7 +73,7 @@ configure::scan_targets(zap::targets& ts)
         scan_target(target);
     };
 
-    zap::async_pool<decltype(cb), cmake_config_context> ap(tc().exec(), cb);
+    zap::async_pool<decltype(cb), cmake::config_context> ap(tc().exec(), cb);
 
     for (auto& p : ts) {
         scan_target(p.second);

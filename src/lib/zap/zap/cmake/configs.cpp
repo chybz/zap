@@ -1,11 +1,11 @@
 #include <re2/re2.h>
 
-#include <zap/cmake_configs.hpp>
+#include <zap/cmake/configs.hpp>
 #include <zap/utils.hpp>
 #include <zap/log.hpp>
 #include <zap/executor.hpp>
 
-namespace zap {
+namespace zap::cmake {
 
 namespace detail {
 
@@ -72,7 +72,7 @@ link_lib_pat()
 //
 ///////////////////////////////////////////////////////////////////////////////
 void
-cmake_config_context::merge(cmake_config_context& other)
+config_context::merge(config_context& other)
 {
     component_modules.merge(other.component_modules);
     config_targets.merge(other.config_targets);
@@ -90,7 +90,7 @@ cmake_config_context::merge(cmake_config_context& other)
 }
 
 void
-cmake_config_context::clear_locals()
+config_context::clear_locals()
 {
     target_names.clear();
 }
@@ -100,8 +100,8 @@ cmake_config_context::clear_locals()
 // CMake module extractor
 //
 ///////////////////////////////////////////////////////////////////////////////
-cmake_configs::cmake_configs(const zap::toolchain& tc, const std::string& root)
-: package_configs(tc, root, package_config_type::cmake),
+configs::configs(const zap::toolchain& tc, const std::string& root)
+: package_configs(tc, root, zap::package_config_type::cmake),
 root_(root),
 cmake_{ zap::find_cmd("cmake") },
 add_lib_re_(detail::add_lib_pat()),
@@ -113,15 +113,15 @@ inc_dirs_re_(detail::inc_dirs_pat())
     load_configs();
 }
 
-cmake_configs::~cmake_configs()
+configs::~configs()
 {}
 
 bool
-cmake_configs::has(const std::string& module) const
+configs::has(const std::string& module) const
 { return data_.config_targets.contains(module); }
 
 bool
-cmake_configs::has_include_dirs(const std::string& module) const
+configs::has_include_dirs(const std::string& module) const
 {
     bool ret = false;
     auto it = data_.inc_dirs.find(module);
@@ -134,14 +134,14 @@ cmake_configs::has_include_dirs(const std::string& module) const
 }
 
 const inc_dir_set&
-cmake_configs::include_dirs(const std::string& module) const
+configs::include_dirs(const std::string& module) const
 { return data_.inc_dirs.at(module); }
 
 void
-cmake_configs::header_to_module(
+configs::header_to_module(
     const std::string& name,
     const std::string& header,
-    module_dep_info& module
+    zap::module_dep_info& module
 ) const
 {
     auto info = frameworks_.match(header, data_.config_targets);
@@ -170,7 +170,7 @@ cmake_configs::header_to_module(
 }
 
 void
-cmake_configs::load_configs()
+configs::load_configs()
 {
     cmake_.push_args({
         "-DCMAKE_PREFIX_PATH=" + root_,
@@ -202,7 +202,7 @@ cmake_configs::load_configs()
         rmpath(tdir);
     };
 
-    zap::async_pool<decltype(cb), cmake_config_context> ap(tc().exec(), cb);
+    zap::async_pool<decltype(cb), config_context> ap(tc().exec(), cb);
 
     for (const auto& dir : tc().make_arch_dirs(root(), "lib", "cmake")) {
         for (const auto& mdir : find_dirs(dir)) {
@@ -216,10 +216,10 @@ cmake_configs::load_configs()
     process_modules(merged);
 }
 
-cmake_module_info
-cmake_configs::module_info(const std::string& path) const
+zap::cmake::module_info
+configs::module_info(const std::string& path) const
 {
-    cmake_module_info cmi;
+    zap::cmake::module_info cmi;
 
     for (const auto& s : detail::config_suffixes) {
         auto configs = glob(path + "/*" + s);
@@ -243,8 +243,8 @@ cmake_configs::module_info(const std::string& path) const
 }
 
 void
-cmake_configs::scan_config(
-    cmake_config_context& ctx,
+configs::scan_config(
+    config_context& ctx,
     const std::string& module,
     const std::string& f,
     bool main_config
@@ -269,8 +269,8 @@ cmake_configs::scan_config(
 }
 
 void
-cmake_configs::find_targets(
-    cmake_config_context& ctx,
+configs::find_targets(
+    config_context& ctx,
     const std::string& module,
     const std::string& data
 )
@@ -289,8 +289,8 @@ cmake_configs::find_targets(
 }
 
 void
-cmake_configs::write_cmake_file(
-    cmake_config_context& ctx,
+configs::write_file(
+    config_context& ctx,
     const std::string& module,
     const std::string& file
 )
@@ -300,11 +300,11 @@ cmake_configs::write_cmake_file(
     std::ofstream os(file);
 
     os
-        << "cmake_minimum_required(VERSION 3.12)\n"
+        << "minimum_required(VERSION 3.12)\n"
         << "project(detect_deps VERSION 1.0.0)\n"
         << "include(CMakePrintHelpers)\n"
         << "find_package(" << module << " CONFIG REQUIRED)\n"
-        << "cmake_print_properties(\n"
+        << "print_properties(\n"
         << "    TARGETS\n"
         ;
 
@@ -323,8 +323,8 @@ cmake_configs::write_cmake_file(
 }
 
 void
-cmake_configs::get_properties(
-    cmake_config_context& ctx,
+configs::get_properties(
+    config_context& ctx,
     const std::string& module,
     const std::string& dir
 )
@@ -335,7 +335,7 @@ cmake_configs::get_properties(
 
     auto cml = cat_file(dir, "CMakeLists.txt");
 
-    write_cmake_file(ctx, module, cml);
+    write_file(ctx, module, cml);
 
     auto res = cmake_.run_silent_no_fail({ "-S", dir, "-B", dir });
 
@@ -347,8 +347,8 @@ cmake_configs::get_properties(
 }
 
 void
-cmake_configs::parse_target_dirs(
-    cmake_config_context& ctx,
+configs::parse_target_dirs(
+    config_context& ctx,
     const std::string& module,
     const std::string& data
 )
@@ -373,8 +373,8 @@ cmake_configs::parse_target_dirs(
 }
 
 void
-cmake_configs::parse_target_location(
-    cmake_config_context& ctx,
+configs::parse_target_location(
+    config_context& ctx,
     const std::string& module,
     const std::string& data
 )
@@ -389,8 +389,8 @@ cmake_configs::parse_target_location(
 }
 
 void
-cmake_configs::parse_target_libs(
-    cmake_config_context& ctx,
+configs::parse_target_libs(
+    config_context& ctx,
     const std::string& module,
     const std::string& data
 )
@@ -409,7 +409,7 @@ cmake_configs::parse_target_libs(
 
 template <typename Callable>
 void
-cmake_configs::parse_target_var(
+configs::parse_target_var(
     const std::string& data,
     const re2::RE2& re,
     Callable&& cb
@@ -433,7 +433,7 @@ cmake_configs::parse_target_var(
 
 template <typename Callable>
 void
-cmake_configs::parse_target_list(
+configs::parse_target_list(
     const std::string& data,
     const re2::RE2& re,
     Callable&& cb
@@ -451,11 +451,11 @@ cmake_configs::parse_target_list(
 }
 
 void
-cmake_configs::process_modules(cmake_config_context& ctx)
+configs::process_modules(config_context& ctx)
 { data_.merge(ctx); }
 
 bool
-cmake_configs::clean_dir(std::string_view& dir) const
+configs::clean_dir(std::string_view& dir) const
 {
     if (dir.ends_with('/')) {
         dir.remove_suffix(1);
