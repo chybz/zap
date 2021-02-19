@@ -7,7 +7,9 @@
 
 int main(int ac, char** av)
 {
-    zap::cmake::trace_parser tp(av[1]);
+    zap::cmake::trace_parser tp;
+
+    auto p = tp.parse(av[1], av[2]);
 
     // int rc = 0;
 
