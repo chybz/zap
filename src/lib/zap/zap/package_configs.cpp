@@ -22,11 +22,11 @@ strip_header(const inc_dir_set& inc_dirs, std::string& header)
 }
 
 package_configs::package_configs(
-    const toolchain& tc,
+    const zap::env& e,
     const std::string& root,
     package_config_type type
 )
-: tc_{tc},
+: e_{e},
 root_(root),
 type_(type)
 {}
@@ -52,9 +52,9 @@ package_configs::strip_header(
     }
 }
 
-const toolchain&
-package_configs::tc() const
-{ return tc_; }
+const zap::env&
+package_configs::env() const
+{ return e_; }
 
 const std::string&
 package_configs::root() const

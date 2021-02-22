@@ -23,8 +23,8 @@ struct config_context
 
 }
 
-configs::configs(const zap::toolchain& tc, const std::string& root)
-: package_configs(tc, root, zap::package_config_type::pkg_config),
+configs::configs(const zap::env& e, const std::string& root)
+: package_configs(e, root, zap::package_config_type::pkg_config),
 pc_{ zap::find_cmd("pkg-config") }
 {
     load_configs();
@@ -109,9 +109,10 @@ configs::load_configs()
 
     using pool = zap::async_pool<decltype(cb), detail::config_context>;
 
-    pool ap(tc().exec(), cb);
+    pool ap(env().executor(), cb);
+    const auto& tc = env().toolchain();
 
-    for (const auto& dir : tc().make_arch_dirs(root(), "lib", "pkgconfig")) {
+    for (const auto& dir : tc.make_arch_dirs(root(), "lib", "pkgconfig")) {
         for (auto& pc : find_files(dir, ".*\\.pc")) {
             ap.async(std::move(pc));
         }

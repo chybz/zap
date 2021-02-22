@@ -8,7 +8,7 @@ namespace zap::builders {
 class autotools : public zap::builder_base
 {
 public:
-    autotools(const zap::toolchain& tc, const zap::archive_info& ai);
+    autotools(const zap::env& e, const zap::archive_info& ai);
     virtual ~autotools();
 
     void configure() const final;

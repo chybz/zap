@@ -3,7 +3,7 @@
 #include <set>
 #include <unordered_map>
 
-#include <zap/toolchain.hpp>
+#include <zap/env.hpp>
 #include <zap/prog.hpp>
 #include <zap/types.hpp>
 #include <zap/inc_dirs.hpp>
@@ -19,7 +19,7 @@ class package_configs
 {
 public:
     package_configs(
-        const toolchain& tc,
+        const zap::env& e,
         const std::string& root,
         package_config_type type
     );
@@ -45,11 +45,11 @@ public:
     ) const = 0;
 
 protected:
-    const toolchain& tc() const;
+    const zap::env& env() const;
     const std::string& root() const;
 
 private:
-    const toolchain& tc_;
+    const zap::env& e_;
     std::string root_;
     package_config_type type_;
 };

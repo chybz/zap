@@ -100,8 +100,8 @@ config_context::clear_locals()
 // CMake module extractor
 //
 ///////////////////////////////////////////////////////////////////////////////
-configs::configs(const zap::toolchain& tc, const std::string& root)
-: package_configs(tc, root, zap::package_config_type::cmake),
+configs::configs(const zap::env& e, const std::string& root)
+: package_configs(e, root, zap::package_config_type::cmake),
 root_(root),
 cmake_{ zap::find_cmd("cmake") },
 add_lib_re_(detail::add_lib_pat()),
@@ -202,9 +202,10 @@ configs::load_configs()
         rmpath(tdir);
     };
 
-    zap::async_pool<decltype(cb), config_context> ap(tc().exec(), cb);
+    zap::async_pool<decltype(cb), config_context> ap(env().executor(), cb);
+    const auto& tc = env().toolchain();
 
-    for (const auto& dir : tc().make_arch_dirs(root(), "lib", "cmake")) {
+    for (const auto& dir : tc.make_arch_dirs(root(), "lib", "cmake")) {
         for (const auto& mdir : find_dirs(dir)) {
             auto adir = cat_dir(dir, mdir);
             ap.async(std::move(adir));

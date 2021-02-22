@@ -6,7 +6,7 @@
 
 #include <re2/re2.h>
 
-#include <zap/toolchain.hpp>
+#include <zap/env.hpp>
 #include <zap/prog.hpp>
 #include <zap/types.hpp>
 #include <zap/inc_dirs.hpp>
@@ -49,7 +49,7 @@ using modules = std::unordered_map<std::string, module>;
 class configs : public zap::package_configs
 {
 public:
-    configs(const toolchain& tc, const std::string& root);
+    configs(const zap::env& e, const std::string& root);
     virtual ~configs();
 
     bool has(const std::string& module) const final;

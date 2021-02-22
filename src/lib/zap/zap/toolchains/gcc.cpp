@@ -23,15 +23,15 @@ extract_line_re_("(?:ZAP_SOURCE:)?\\s+(.*)\\s+\\\\?\n")
     scanner().push_args({
         "-x", "c++",
         "-M", "-MG", "-MT", "ZAP_SOURCE",
-        zap::cat("-I", cfg().empty_dir),
+        zap::cat("-I", env().cfg().empty_dir),
         "-nostdinc", "-nostdinc++"
     });
 
     nm().push_args({ "-u", "-g" });
 
     std::string std =
-        cfg().has("std")
-        ? cfg().str("std")
+        env().cfg().has("std")
+        ? env().cfg().str("std")
         : "c++20"
         ;
 
@@ -74,7 +74,7 @@ gcc::scan_files(
         extract_deps(header_re, res, ctx.deps);
     };
 
-    zap::async_pool<decltype(cb), zap::scan_context> ap(exec(), cb);
+    zap::async_pool<decltype(cb), zap::scan_context> ap(env().executor(), cb);
 
     for (const auto& file : f) {
         ap.async(dir, file);
@@ -135,7 +135,7 @@ gcc::find_std_headers()
         "-x", "c++",
         "-Wp,-v",
         "-fsyntax-only",
-        cfg().empty_source_file
+        env().cfg().empty_source_file
     });
 
     configure_std_header_finder(cxx_finder);

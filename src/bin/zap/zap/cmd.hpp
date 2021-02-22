@@ -2,18 +2,18 @@
 
 #include <variant>
 
-#include <zap/command/empty.hpp>
-#include <zap/command/configure.hpp>
-#include <zap/command/build.hpp>
-#include <zap/command/install.hpp>
+#include <zap/commands/empty.hpp>
+#include <zap/commands/configure.hpp>
+#include <zap/commands/build.hpp>
+#include <zap/commands/install.hpp>
 
 namespace zap {
 
 using cmd = std::variant<
-    command::empty,
-    command::configure,
-    command::build,
-    command::install
+    commands::empty,
+    commands::configure,
+    commands::build,
+    commands::install
 >;
 
 } // namespace zap

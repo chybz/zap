@@ -21,10 +21,10 @@ namespace zap::resolvers {
 namespace detail {
 
 std::string
-content_inc_pat(const zap::toolchain& tc)
+content_inc_pat(const zap::env& e)
 {
     std::string inc_pat = "(usr/(?:local/)?include/";
-    inc_pat += "(?:" + tc.target_arch() + "/)?";
+    inc_pat += "(?:" + e.toolchain().target_arch() + "/)?";
     inc_pat += "\\S+)";
     inc_pat += "\\s+(.+)";
 
@@ -32,10 +32,10 @@ content_inc_pat(const zap::toolchain& tc)
 }
 
 std::string
-content_pc_pat(const zap::toolchain& tc)
+content_pc_pat(const zap::env& e)
 {
     std::string pc_pat = "usr/(?:local/)?lib/";
-    pc_pat += "(?:" + tc.target_arch() + "/)?pkgconfig/";
+    pc_pat += "(?:" + e.toolchain().target_arch() + "/)?pkgconfig/";
     pc_pat += "(\\S+)\\.pc";
     pc_pat += "\\s+(.+)";
 
@@ -43,10 +43,10 @@ content_pc_pat(const zap::toolchain& tc)
 }
 
 std::string
-content_cmake_pat(const zap::toolchain& tc)
+content_cmake_pat(const zap::env& e)
 {
     std::string cmake_pat = "usr/(?:local/)?lib/";
-    cmake_pat += "(?:" + tc.target_arch() + "/)?cmake/";
+    cmake_pat += "(?:" + e.toolchain().target_arch() + "/)?cmake/";
     cmake_pat += "\\S+/(\\S+)(?:Config|-config)\\.cmake";
     cmake_pat += "\\s+(.+)";
 
@@ -54,14 +54,14 @@ content_cmake_pat(const zap::toolchain& tc)
 }
 
 std::string
-content_pkg_pat(const zap::toolchain& tc)
+content_pkg_pat(const zap::env& e)
 { return "/([^\\s/]+)(?:,|$)"; }
 
 std::string
-content_lib_pat(const zap::toolchain& tc)
+content_lib_pat(const zap::env& e)
 {
     std::string lib_pat = "usr/(?:local/)?lib/";
-    lib_pat += "(?:" + tc.target_arch() + "/)?";
+    lib_pat += "(?:" + e.toolchain().target_arch() + "/)?";
     lib_pat += "lib(\\S+)\\.(?:so|a)";
     lib_pat += "\\s+(.+)";
 
@@ -75,13 +75,13 @@ content_lib_pat(const zap::toolchain& tc)
 // APT resolver
 //
 ///////////////////////////////////////////////////////////////////////////////
-apt::apt(const zap::toolchain& tc)
-: resolver(tc, "apt", "/usr"),
-inc_re_(detail::content_inc_pat(tc)),
-pc_re_(detail::content_pc_pat(tc)),
-cmake_re_(detail::content_cmake_pat(tc)),
-pkg_re_(detail::content_pkg_pat(tc)),
-lib_re_(detail::content_lib_pat(tc))
+apt::apt(const zap::env& e)
+: resolver(e, "apt", "/usr"),
+inc_re_(detail::content_inc_pat(e)),
+pc_re_(detail::content_pc_pat(e)),
+cmake_re_(detail::content_cmake_pat(e)),
+pkg_re_(detail::content_pkg_pat(e)),
+lib_re_(detail::content_lib_pat(e))
 {
     load_installed();
     load_contents();
@@ -106,7 +106,7 @@ apt::load_contents()
 void
 apt::parse_contents(const std::string& file)
 {
-    archive_util<zap::resolver_data> au(file, tc().exec());
+    archive_util<zap::resolver_data> au(file, env().executor());
 
     au.for_each_line_block(
         [&](auto& ctx, const auto& data) {

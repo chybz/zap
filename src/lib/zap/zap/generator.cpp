@@ -3,10 +3,10 @@
 namespace zap {
 
 generator::generator(
-    const toolchain& tc,
+    const zap::env& e,
     const project& p
 )
-: tc_(tc),
+: e_(e),
 p_(p)
 {}
 

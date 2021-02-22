@@ -9,7 +9,7 @@ namespace zap::generators {
 class cmake : public zap::generator
 {
 public:
-    cmake(const toolchain& tc, const zap::project& p);
+    cmake(const zap::env& e, const zap::project& p);
     virtual ~cmake();
 
     void generate() final;

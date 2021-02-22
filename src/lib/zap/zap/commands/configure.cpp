@@ -3,28 +3,33 @@
 #include <unordered_set>
 #include <filesystem>
 
-#include <zap/command/configure.hpp>
-#include <zap/toolchain.hpp>
+#include <zap/commands/configure.hpp>
+#include <zap/env.hpp>
 #include <zap/layout.hpp>
 #include <zap/utils.hpp>
 #include <zap/log.hpp>
 #include <zap/resolvers/apt.hpp>
 #include <zap/generators/cmake.hpp>
 
-namespace zap::command {
+namespace zap::commands {
+
+configure::configure(const zap::env& e)
+: zap::command(e)
+{}
+
+configure::~configure()
+{}
 
 void
-configure::operator()(const toolchain& tc)
+configure::operator()()
 {
-    tc_ptr_ = std::addressof(tc);
-
     //zap::make_resolvers(tc, rps_);
 
     find_targets();
     scan_targets();
     resolve_targets();
 
-    zap::generators::cmake cm(tc, p_);
+    zap::generators::cmake cm(env(), p_);
 
     cm.generate();
 }
@@ -51,7 +56,7 @@ configure::scan_targets()
 void
 configure::resolve_targets()
 {
-    zap::resolvers::apt apt(tc());
+    zap::resolvers::apt apt(env());
     zap::resolve_info ri;
 
     resolve_targets(apt, p_.libs, ri);
@@ -71,7 +76,10 @@ configure::scan_targets(zap::targets& ts)
         scan_target(target);
     };
 
-    zap::async_pool<decltype(cb), cmake::config_context> ap(tc().exec(), cb);
+    zap::async_pool<
+        decltype(cb),
+        cmake::config_context
+    > ap(env().executor(), cb);
 
     for (auto& p : ts) {
         scan_target(p.second);
@@ -96,13 +104,14 @@ configure::scan_target_files(
 )
 {
     zap::strings all_deps;
+    const auto& tc = env().toolchain();
 
-    tc().scan_files(p_.inc_dirs, dir, files, all_deps);
+    tc.scan_files(p_.inc_dirs, dir, files, all_deps);
 
     std::string lib;
 
     for (auto& dep : all_deps) {
-        if (tc().is_std_header(dep) || t.has_file(dep)) {
+        if (tc.is_std_header(dep) || t.has_file(dep)) {
             continue;
         }
 
@@ -280,9 +289,5 @@ configure::project_targets_info(
         os << p.second << "\n\n";
     }
 }
-
-const zap::toolchain&
-configure::tc() const
-{ return *tc_ptr_; }
 
 }

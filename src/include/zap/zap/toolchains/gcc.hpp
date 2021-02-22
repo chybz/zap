@@ -5,7 +5,7 @@
 
 #include <re2/re2.h>
 
-#include <zap/toolchain.hpp>
+#include <zap/env.hpp>
 #include <zap/types.hpp>
 
 namespace zap::toolchains {

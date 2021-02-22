@@ -4,7 +4,7 @@
 #include <lyra/lyra.hpp>
 
 #include <zap/cmdline.hpp>
-#include <zap/toolchain.hpp>
+#include <zap/env.hpp>
 
 namespace zap {
 

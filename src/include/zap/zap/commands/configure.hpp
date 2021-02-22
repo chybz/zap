@@ -1,20 +1,21 @@
 #pragma once
 
-#include <zap/toolchain.hpp>
+#include <zap/command.hpp>
 #include <zap/files.hpp>
 #include <zap/types.hpp>
 #include <zap/project.hpp>
 #include <zap/resolver.hpp>
 #include <zap/resolve_info.hpp>
 
-namespace zap::command {
+namespace zap::commands {
 
-struct configure
+class configure : public zap::command
 {
-    bool asan = false;
-    bool debug = false;
+public:
+    configure(const zap::env& e);
+    virtual ~configure();
 
-    void operator()(const zap::toolchain& tc);
+    void operator()() final;
 
 private:
     void find_targets();
@@ -76,7 +77,7 @@ private:
         const zap::targets& ts
     ) const;
 
-    const zap::toolchain& tc() const;
+    const zap::env& e() const;
 
     const zap::toolchain* tc_ptr_ = nullptr;
     project p_;

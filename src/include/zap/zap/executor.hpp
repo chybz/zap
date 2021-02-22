@@ -5,12 +5,14 @@
 #include <mutex>
 #include <future>
 #include <vector>
+#include <memory>
 
 #include <taskflow/taskflow.hpp>
 
 namespace zap {
 
 using executor = tf::Executor;
+using executor_ptr = std::unique_ptr<executor>;
 
 std::size_t
 adjust_par_level(const executor& exec, std::size_t par_level);

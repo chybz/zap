@@ -3,8 +3,8 @@
 
 namespace zap::builders {
 
-cmake::cmake(const toolchain& tc, const archive_info& ai)
-: builder_base(tc, ai)
+cmake::cmake(const zap::env& e, const archive_info& ai)
+: builder_base(e, ai)
 {
     cmake_.cmd = zap::find_cmd("cmake");
     make_.cmd = zap::find_cmd("make");
@@ -21,7 +21,7 @@ cmake::configure() const
     zap::mkpath(build_dir_);
 
     cmake_.run({
-        zap::cat("-DCMAKE_INSTALL_PREFIX=", tc_.cfg().local_prefix),
+        zap::cat("-DCMAKE_INSTALL_PREFIX=", e_.cfg().local_prefix),
         "-S", ai_.source_dir, "-B", build_dir_
     });
 }

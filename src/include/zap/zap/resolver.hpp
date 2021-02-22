@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-#include <zap/toolchain.hpp>
+#include <zap/env.hpp>
 #include <zap/dep_info.hpp>
 #include <zap/pkg_config/configs.hpp>
 #include <zap/cmake/configs.hpp>
@@ -33,14 +33,14 @@ class resolver
 {
 public:
     resolver(
-        const toolchain& tc,
+        const zap::env& e,
         const std::string& name,
         const std::string& root
     );
 
     virtual ~resolver();
 
-    const toolchain& tc() const;
+    const zap::env& env() const;
 
     const std::string& name() const;
     const std::string& root() const;
@@ -85,7 +85,7 @@ private:
         const inc_dir_set& inc_dirs
     );
 
-    const toolchain& tc_;
+    const zap::env& e_;
     std::string name_;
     std::string root_;
     zap::pkg_config::configs pc_;
@@ -99,10 +99,10 @@ using resolver_ptr = std::unique_ptr<resolver>;
 using resolver_ptrs = std::vector<resolver_ptr>;
 
 void
-make_resolvers(const toolchain& tc, resolver_ptrs& rps);
+make_resolvers(const zap::env& e, resolver_ptrs& rps);
 
 resolver_ptrs
-make_resolvers(const toolchain& tc);
+make_resolvers(const zap::env& e);
 
 template <typename Resolver, typename... Args>
 resolver_ptr

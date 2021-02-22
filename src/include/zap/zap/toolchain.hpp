@@ -3,14 +3,10 @@
 #include <string>
 #include <memory>
 
-#include <zap/config.hpp>
 #include <zap/prog.hpp>
 #include <zap/toolchain_info.hpp>
 #include <zap/files.hpp>
 #include <zap/types.hpp>
-#include <zap/fetcher.hpp>
-#include <zap/archive_info.hpp>
-#include <zap/os_info.hpp>
 #include <zap/executor.hpp>
 
 namespace zap {
@@ -18,10 +14,8 @@ namespace zap {
 class toolchain
 {
 public:
-    toolchain(toolchain_info&& ti, executor& exec);
+    toolchain(toolchain_info&& ti, zap::executor& e);
     virtual ~toolchain();
-
-    executor& exec() const;
 
     const std::string& target_arch() const;
 
@@ -36,9 +30,6 @@ public:
     const prog& nm() const;
     const prog& ldd() const;
     const prog& scanner() const;
-    const zap::fetcher& fetcher() const;
-
-    const config& cfg() const;
 
     const files& std_headers() const;
     bool is_std_header(const std::string& name) const;
@@ -66,8 +57,6 @@ public:
         const string_map& accepted
     ) const;
 
-    archive_info download_archive(const std::string& url) const;
-
     bool is_unknown() const;
     bool is_gcc() const;
     bool is_native_clang() const;
@@ -77,9 +66,9 @@ public:
 
     const std::string& name() const;
 
-    const zap::os_info& os_info() const;
-
 protected:
+    zap::executor& executor() const;
+
     void set_target_arch(const std::string& arch);
 
     prog& cxx();
@@ -95,14 +84,13 @@ protected:
 
 private:
     void find_libc_headers();
-    void make_fetcher();
 
-    fetcher_ptr fetcher_ptr_;
-    zap::os_info os_info_;
-    executor& executor_;
+    zap::executor& executor_;
 };
 
-const toolchain&
-get_toolchain();
+using toolchain_ptr = std::unique_ptr<toolchain>;
+
+toolchain_ptr
+make_toolchain(zap::executor& e);
 
 }

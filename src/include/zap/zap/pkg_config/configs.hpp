@@ -3,7 +3,7 @@
 #include <set>
 #include <unordered_map>
 
-#include <zap/toolchain.hpp>
+#include <zap/env.hpp>
 #include <zap/prog.hpp>
 #include <zap/types.hpp>
 #include <zap/inc_dirs.hpp>
@@ -14,7 +14,7 @@ namespace zap::pkg_config {
 class configs : public zap::package_configs
 {
 public:
-    configs(const toolchain& tc, const std::string& root);
+    configs(const zap::env& e, const std::string& root);
     virtual ~configs();
 
     bool has(const std::string& pc_name) const final;

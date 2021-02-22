@@ -6,7 +6,7 @@
 
 #include <re2/re2.h>
 
-#include <zap/toolchain.hpp>
+#include <zap/env.hpp>
 #include <zap/resolver.hpp>
 #include <zap/prog.hpp>
 #include <zap/types.hpp>
@@ -16,7 +16,7 @@ namespace zap::resolvers {
 class apt : public zap::resolver
 {
 public:
-    apt(const zap::toolchain& tc);
+    apt(const zap::env& e);
     virtual ~apt();
 
 private:

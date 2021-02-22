@@ -3,17 +3,12 @@
 #include <filesystem>
 #include <memory>
 
-#include <taskflow/taskflow.hpp>
-
 #include <zap/utils.hpp>
 #include <zap/log.hpp>
 #include <zap/toolchain.hpp>
 #include <zap/toolchains/gcc.hpp>
 #include <zap/toolchains/clang.hpp>
 #include <zap/toolchains/msvc.hpp>
-#include <zap/fetchers/curl.hpp>
-#include <zap/archiver.hpp>
-#include <zap/scope.hpp>
 
 namespace zap {
 
@@ -44,17 +39,13 @@ get_default_cmds()
     return dcs;
 }
 
-toolchain::toolchain(toolchain_info&& ti, executor& exec)
+toolchain::toolchain(toolchain_info&& ti, zap::executor& e)
 : info_(std::move(ti)),
-executor_(exec)
+executor_(e)
 {}
 
 toolchain::~toolchain()
 {}
-
-executor&
-toolchain::exec() const
-{ return executor_; }
 
 const std::string&
 toolchain::target_arch() const
@@ -80,13 +71,16 @@ toolchain::make_arch_dirs(
     return dirs;
 }
 
+zap::executor&
+toolchain::executor() const
+{ return executor_; }
+
 void
 toolchain::set_target_arch(const std::string& arch)
 {
     target_arch_ = arch;
 
     find_libc_headers();
-    make_fetcher();
 }
 
 const prog&
@@ -108,14 +102,6 @@ toolchain::ldd() const
 const prog&
 toolchain::scanner() const
 { return scanner_; }
-
-const zap::fetcher&
-toolchain::fetcher() const
-{ return *fetcher_ptr_; }
-
-const config&
-toolchain::cfg() const
-{ return info_.cfg; }
 
 const files&
 toolchain::std_headers() const
@@ -162,68 +148,7 @@ toolchain::local_lib_deps(
 ) const
 { return {}; }
 
-archive_info
-toolchain::download_archive(const std::string& url) const
-{
-    scope s;
-    archive_info ai{url};
 
-    mkpath(cfg().archives_dir);
-    auto tdir = empty_temp_dir(cfg().archives_dir);
-
-    s.push_rmpath(tdir);
-
-    fetcher().download(url, tdir);
-
-    auto [ dlok, file ] = unique_file(tdir);
-
-    die_unless(
-        dlok,
-        "unable to find dowloaded file in: ", tdir
-    );
-
-    ai.file = cat_file(cfg().archives_dir, file);
-
-    rename(cat_file(tdir, file), ai.file);
-
-    archiver ar(cfg(), ai.file);
-
-    ar.verify();
-    ar.extract(tdir);
-
-    auto [ exok, dir ] = unique_dir(tdir);
-
-    die_unless(
-        exok,
-        "archive extracts into multiple directories: ", url
-    );
-
-    auto pos = dir.rfind('-');
-
-    die_if(
-        pos == std::string::npos,
-        "unable to extract name and version from: ", dir
-    );
-
-    ai.dir = cat_dir(cfg().work_dir, dir);
-
-    die_if(
-        directory_exists(ai.dir),
-        "source directory already exists: ", ai.dir
-    );
-
-    mkpath(ai.dir);
-
-    ai.name = dir.substr(0, pos);
-    ai.version = dir.substr(pos + 1);
-    ai.source_dir = cat_dir(ai.dir, "src");
-
-    rename(cat_dir(tdir, dir), ai.source_dir);
-
-    // TODO: register and cache
-
-    return ai;
-}
 
 bool
 toolchain::is_unknown() const
@@ -252,10 +177,6 @@ toolchain::is_msvc() const
 const std::string&
 toolchain::name() const
 { return toolchain_name(info_.type); }
-
-const zap::os_info&
-toolchain::os_info() const
-{ return os_info_; }
 
 prog&
 toolchain::cxx()
@@ -294,18 +215,6 @@ toolchain::find_libc_headers()
     }
 }
 
-void
-toolchain::make_fetcher()
-{
-    auto ftype = get_default_cmds().fetcher;
-
-    if (ftype == "curl") {
-        fetcher_ptr_ = new_fetcher<zap::fetchers::curl>(cfg());
-    } else {
-        die("unsupported fetcher: ", ftype);
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Utility functions
@@ -316,30 +225,10 @@ toolchain_ptr
 new_toolchain(Args&&... args)
 { return std::make_unique<ToolChain>(std::forward<Args>(args)...); }
 
-void
-make_toolchain(toolchain_ptr& tcp, tf::Executor& exec)
+toolchain_ptr
+make_toolchain(zap::executor& e)
 {
     toolchain_info ti;
-    auto& cfg = ti.cfg;
-
-    namespace fs = std::filesystem;
-
-    auto curp = fs::current_path();
-    auto buildp = curp / "build";
-
-    cfg.project_dir = curp.string();
-    cfg.build_dir = buildp.string();
-    cfg.archives_dir = (buildp / "archives").string();
-    cfg.work_dir = (buildp / "work").string();
-    cfg.local_prefix = "/local";
-    cfg.empty_dir = cat_dir(cfg.home, "scan", "empty");
-    cfg.empty_source_file = cat_file(cfg.home, "scan", "empty.cpp");
-
-    mkpath(cfg.empty_dir);
-    touch_file(cfg.empty_source_file);
-
-    cfg.package_file = (curp / "package.toml").string();
-    cfg.load_package_conf();
 
     auto dcs = get_default_cmds();
 
@@ -355,32 +244,23 @@ make_toolchain(toolchain_ptr& tcp, tf::Executor& exec)
         "unsupported compiler: ", ti.cxx.cmd
     );
 
+    toolchain_ptr tcp;
+
     switch (ti.type) {
         case toolchain_type::gcc:
-        tcp = new_toolchain<zap::toolchains::gcc>(std::move(ti), exec);
+        tcp = new_toolchain<zap::toolchains::gcc>(std::move(ti), e);
         break;
         case toolchain_type::clang:
         case toolchain_type::apple_clang:
-        tcp = new_toolchain<zap::toolchains::clang>(std::move(ti), exec);
+        tcp = new_toolchain<zap::toolchains::clang>(std::move(ti), e);
         break;
         case toolchain_type::msvc:
-        tcp = new_toolchain<zap::toolchains::msvc>(std::move(ti), exec);
+        tcp = new_toolchain<zap::toolchains::msvc>(std::move(ti), e);
         default:
         break;
     }
-}
 
-const toolchain&
-get_toolchain()
-{
-    static tf::Executor exec;
-    static toolchain_ptr tcp = nullptr;
-
-    if (!tcp) {
-        make_toolchain(tcp, exec);
-    }
-
-    return *tcp;
+    return tcp;
 }
 
 }

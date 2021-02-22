@@ -40,17 +40,17 @@ resolver_data::clear_temporaries()
 //
 ///////////////////////////////////////////////////////////////////////////////
 resolver::resolver(
-    const toolchain& tc,
+    const zap::env& e,
     const std::string& name,
     const std::string& root
 )
-: tc_(tc),
+: e_(e),
 name_(name),
 root_(root),
-pc_(tc_, root_),
-cmc_(tc_, root_)
+pc_(e_, root_),
+cmc_(e_, root_)
 {
-    for (auto& d : tc_.make_arch_dirs(root_, "include")) {
+    for (auto& d : e_.toolchain().make_arch_dirs(root_, "include")) {
         d.push_back('/');
         std_inc_dirs_.insert(std::move(d));
     }
@@ -59,9 +59,9 @@ cmc_(tc_, root_)
 resolver::~resolver()
 {}
 
-const toolchain&
-resolver::tc() const
-{ return tc_; }
+const zap::env&
+resolver::env() const
+{ return e_; }
 
 const std::string&
 resolver::name() const
@@ -275,20 +275,20 @@ resolver::strip_pkg_headers(
 //
 ///////////////////////////////////////////////////////////////////////////////
 void
-make_resolvers(const toolchain& tc, resolver_ptrs& rps)
+make_resolvers(const zap::env& e, resolver_ptrs& rps)
 {
-    if (tc.os_info().is_debian()) {
-        auto rp = new_resolver<zap::resolvers::apt>(tc);
+    if (e.os_info().is_debian()) {
+        auto rp = new_resolver<zap::resolvers::apt>(e);
         rps.emplace_back(std::move(rp));
     }
 }
 
 resolver_ptrs
-make_resolvers(const toolchain& tc)
+make_resolvers(const zap::env& e)
 {
     resolver_ptrs rps;
 
-    make_resolvers(tc, rps);
+    make_resolvers(e, rps);
 
     return rps;
 }

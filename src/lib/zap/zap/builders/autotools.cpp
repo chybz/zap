@@ -3,8 +3,8 @@
 
 namespace zap::builders {
 
-autotools::autotools(const toolchain& tc, const archive_info& ai)
-: builder_base(tc, ai)
+autotools::autotools(const zap::env& e, const archive_info& ai)
+: builder_base(e, ai)
 {
     make_.cmd = zap::find_cmd("make");
     build_dir_ = cat_dir(ai.dir, "build");
@@ -34,7 +34,7 @@ autotools::configure() const
             zap::prog config{ zap::cat_file(ai_.source_dir, "configure") };
 
             config.run({
-                zap::cat("--prefix=", tc_.cfg().local_prefix)
+                zap::cat("--prefix=", env().cfg().local_prefix)
             });
         }
     );

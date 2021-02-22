@@ -6,20 +6,20 @@
 
 namespace zap {
 
-builder_base::builder_base(const toolchain& tc, const archive_info& ai)
-: tc_(tc),
+builder_base::builder_base(const zap::env& e, const archive_info& ai)
+: e_(e),
 ai_(ai)
 {}
 
 builder_base::~builder_base()
 {}
 
-builder::builder(const toolchain& tc, const archive_info& ai)
+builder::builder(const zap::env& e, const archive_info& ai)
 {
     if (file_exists(cat_file(ai.source_dir, "CMakeLists.txt"))) {
-        bp_ = std::make_unique<zap::builders::cmake>(tc, ai);
+        bp_ = std::make_unique<zap::builders::cmake>(e, ai);
     } else if (file_exists(cat_file(ai.source_dir, "autogen.sh"))) {
-        bp_ = std::make_unique<zap::builders::autotools>(tc, ai);
+        bp_ = std::make_unique<zap::builders::autotools>(e, ai);
     } else {
         die("unknown build system in dir: ", ai.source_dir);
     }

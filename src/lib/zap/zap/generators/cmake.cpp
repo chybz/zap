@@ -5,8 +5,8 @@
 
 namespace zap::generators {
 
-cmake::cmake(const toolchain& tc, const zap::project& p)
-: generator(tc, p)
+cmake::cmake(const zap::env& e, const zap::project& p)
+: generator(e, p)
 {}
 
 cmake::~cmake()

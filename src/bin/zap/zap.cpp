@@ -2,7 +2,7 @@
 
 #include <zap/cmdline.hpp>
 #include <zap/utils.hpp>
-#include <zap/toolchain.hpp>
+#include <zap/env.hpp>
 #include <zap/cmake/trace_parser.hpp>
 
 int main(int ac, char** av)
