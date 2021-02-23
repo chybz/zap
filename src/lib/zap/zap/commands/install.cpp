@@ -3,8 +3,9 @@
 
 namespace zap::commands {
 
-install::install(const zap::env& e)
-: zap::command(e)
+install::install(const zap::env& e, const install_opts& opts)
+: zap::command(e),
+opts_(opts)
 {}
 
 install::~install()

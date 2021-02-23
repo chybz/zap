@@ -12,3 +12,4 @@ https://github.com/taskflow/taskflow/archive/v3.0.0.zip -DTF_BUILD_CUDA=OFF -DTF
 https://github.com/nlohmann/json/archive/v3.9.1.zip -DJSON_BuildTests=OFF
 https://github.com/pantor/inja/archive/v3.1.0.zip -DBUILD_TESTING=OFF -DBUILD_BENCHMARK=OFF
 https://github.com/marzer/tomlplusplus/archive/v2.3.0.zip
+https://github.com/p-ranav/structopt/archive/v0.1.1.zip

@@ -13,8 +13,9 @@
 
 namespace zap::commands {
 
-configure::configure(const zap::env& e)
-: zap::command(e)
+configure::configure(const zap::env& e, const configure_opts& opts)
+: zap::command(e),
+opts_(opts)
 {}
 
 configure::~configure()

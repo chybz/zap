@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <zap/command.hpp>
 #include <zap/files.hpp>
 #include <zap/types.hpp>
@@ -9,10 +11,16 @@
 
 namespace zap::commands {
 
+struct configure_opts
+{
+    std::optional<bool> asan = false;
+    std::optional<bool> debug = false;
+};
+
 class configure : public zap::command
 {
 public:
-    configure(const zap::env& e);
+    configure(const zap::env& e, const configure_opts& opts);
     virtual ~configure();
 
     void operator()() final;
@@ -79,7 +87,7 @@ private:
 
     const zap::env& e() const;
 
-    const zap::toolchain* tc_ptr_ = nullptr;
+    configure_opts opts_;
     project p_;
     resolver_ptrs rps_;
 };

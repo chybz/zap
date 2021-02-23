@@ -3,13 +3,10 @@
 #include <zap/cmdline.hpp>
 #include <zap/utils.hpp>
 #include <zap/env.hpp>
-#include <zap/cmake/trace_parser.hpp>
 
 int main(int ac, char** av)
 {
-    zap::cmake::trace_parser tp;
-
-    auto p = tp.parse(av[1], av[2]);
+    zap::env e;
 
     // int rc = 0;
 

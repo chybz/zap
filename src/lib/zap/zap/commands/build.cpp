@@ -2,8 +2,9 @@
 
 namespace zap::commands {
 
-build::build(const zap::env& e)
-: zap::command(e)
+build::build(const zap::env& e, const build_opts& opts)
+: zap::command(e),
+opts_(opts)
 {}
 
 build::~build()

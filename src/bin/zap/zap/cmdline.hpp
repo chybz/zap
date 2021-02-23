@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <zap/env.hpp>
 #include <zap/cmd.hpp>
 
 namespace zap {
@@ -15,6 +16,6 @@ struct cmdline
 };
 
 cmdline
-parse(int ac, char** argv);
+parse(const zap::env& e, int ac, char** argv);
 
 } // namespace zap
