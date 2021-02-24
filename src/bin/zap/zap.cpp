@@ -8,17 +8,15 @@ int main(int ac, char** av)
 {
     zap::env e;
 
-    // int rc = 0;
+    int rc = 0;
 
-    // auto cl = zap::parse(ac, av);
+    auto cl = zap::parse(e, ac, av);
 
-    // if (cl.exit) {
-    //     rc = 1;
-    // } else {
-    //     cl.run();
-    // }
-    //
-    // return rc;
+    if (cl.exit) {
+        rc = 1;
+    } else {
+        cl.run();
+    }
 
-    return 0;
+    return rc;
 }

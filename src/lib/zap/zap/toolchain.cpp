@@ -39,8 +39,13 @@ get_default_cmds()
     return dcs;
 }
 
-toolchain::toolchain(toolchain_info&& ti, zap::executor& e)
-: info_(std::move(ti)),
+toolchain::toolchain(
+    const zap::config& cfg,
+    toolchain_info&& ti,
+    zap::executor& e
+)
+: cfg_(cfg),
+info_(std::move(ti)),
 executor_(e)
 {}
 
@@ -70,6 +75,10 @@ toolchain::make_arch_dirs(
 
     return dirs;
 }
+
+const zap::config&
+toolchain::cfg() const
+{ return cfg_; }
 
 zap::executor&
 toolchain::executor() const
@@ -226,7 +235,7 @@ new_toolchain(Args&&... args)
 { return std::make_unique<ToolChain>(std::forward<Args>(args)...); }
 
 toolchain_ptr
-make_toolchain(zap::executor& e)
+make_toolchain(const zap::config& cfg, zap::executor& e)
 {
     toolchain_info ti;
 
@@ -248,14 +257,14 @@ make_toolchain(zap::executor& e)
 
     switch (ti.type) {
         case toolchain_type::gcc:
-        tcp = new_toolchain<zap::toolchains::gcc>(std::move(ti), e);
+        tcp = new_toolchain<zap::toolchains::gcc>(cfg, std::move(ti), e);
         break;
         case toolchain_type::clang:
         case toolchain_type::apple_clang:
-        tcp = new_toolchain<zap::toolchains::clang>(std::move(ti), e);
+        tcp = new_toolchain<zap::toolchains::clang>(cfg, std::move(ti), e);
         break;
         case toolchain_type::msvc:
-        tcp = new_toolchain<zap::toolchains::msvc>(std::move(ti), e);
+        tcp = new_toolchain<zap::toolchains::msvc>(cfg, std::move(ti), e);
         default:
         break;
     }

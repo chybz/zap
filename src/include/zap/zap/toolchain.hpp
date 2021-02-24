@@ -14,7 +14,7 @@ namespace zap {
 class toolchain
 {
 public:
-    toolchain(toolchain_info&& ti, zap::executor& e);
+    toolchain(const zap::config& cfg, toolchain_info&& ti, zap::executor& e);
     virtual ~toolchain();
 
     const std::string& target_arch() const;
@@ -67,6 +67,7 @@ public:
     const std::string& name() const;
 
 protected:
+    const zap::config& cfg() const;
     zap::executor& executor() const;
 
     void set_target_arch(const std::string& arch);
@@ -77,6 +78,7 @@ protected:
     prog& ldd();
     prog& scanner();
 
+    const zap::config& cfg_;
     toolchain_info info_;
     std::string target_arch_;
     prog scanner_;
@@ -91,6 +93,6 @@ private:
 using toolchain_ptr = std::unique_ptr<toolchain>;
 
 toolchain_ptr
-make_toolchain(zap::executor& e);
+make_toolchain(const zap::config& cfg, zap::executor& e);
 
 }

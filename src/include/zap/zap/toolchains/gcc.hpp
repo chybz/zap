@@ -13,7 +13,12 @@ namespace zap::toolchains {
 class gcc : public toolchain
 {
 public:
-    gcc(zap::toolchain_info&& ti, zap::executor& exec);
+    gcc(
+        const zap::config& config,
+        zap::toolchain_info&& ti,
+        zap::executor& exec
+    );
+
     virtual ~gcc();
 
     void scan_files(

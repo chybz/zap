@@ -2,8 +2,12 @@
 
 namespace zap::toolchains {
 
-clang::clang(zap::toolchain_info&& ti, zap::executor& exec)
-: gcc(std::forward<zap::toolchain_info>(ti), exec)
+clang::clang(
+    const zap::config& config,
+    zap::toolchain_info&& ti,
+    zap::executor& exec
+)
+: gcc(config, std::forward<zap::toolchain_info>(ti), exec)
 {
     scanner_.push_args({ "-w" });
 }

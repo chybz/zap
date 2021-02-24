@@ -10,8 +10,7 @@
 namespace zap {
 
 env::env()
-: executor_ptr_(std::make_unique<zap::executor>()),
-toolchain_ptr_(make_toolchain(executor()))
+: executor_ptr_(std::make_unique<zap::executor>())
 {
     namespace fs = std::filesystem;
 
@@ -31,6 +30,8 @@ toolchain_ptr_(make_toolchain(executor()))
 
     cfg_.package_file = (curp / "package.toml").string();
     cfg_.load_package_conf();
+
+    toolchain_ptr_ = make_toolchain(cfg_, executor());
 
     make_fetcher();
 }

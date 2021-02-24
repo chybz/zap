@@ -3,13 +3,13 @@
 #include <string>
 
 #include <zap/env.hpp>
-#include <zap/cmd.hpp>
+#include <zap/command.hpp>
 
 namespace zap {
 
 struct cmdline
 {
-    cmd c;
+    command_ptr cp;
     bool exit = false;
 
     void run();

@@ -7,7 +7,12 @@ namespace zap::toolchains {
 class clang : public gcc
 {
 public:
-    clang(zap::toolchain_info&& ti, zap::executor& exec);
+    clang(
+        const zap::config& config,
+        zap::toolchain_info&& ti,
+        zap::executor& exec
+    );
+
     virtual ~clang();
 };
 
