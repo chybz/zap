@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <zap/config.hpp>
 #include <zap/executor.hpp>
 #include <zap/toolchain.hpp>
@@ -12,8 +14,10 @@ namespace zap {
 class env
 {
 public:
-    env();
+    env(const std::string& root = {});
     virtual ~env();
+
+    const std::string& root() const;
 
     zap::executor& executor() const;
 
@@ -30,11 +34,14 @@ public:
 private:
     void make_fetcher();
 
+    std::string root_;
     config cfg_;
     executor_ptr executor_ptr_;
     zap::os_info os_info_;
     toolchain_ptr toolchain_ptr_;
     fetcher_ptr fetcher_ptr_;
 };
+
+using env_ptr = std::unique_ptr<env>;
 
 }

@@ -11,7 +11,7 @@ find_package(reproc++ CONFIG REQUIRED)
 find_package(tomlplusplus CONFIG REQUIRED)
 find_package(re2 CONFIG REQUIRED)
 find_package(Taskflow CONFIG REQUIRED)
-find_package(structopt CONFIG REQUIRED)
+find_package(docopt CONFIG REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

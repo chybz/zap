@@ -9,13 +9,17 @@ namespace zap {
 
 struct cmdline
 {
+    env_ptr ep;
     command_ptr cp;
     bool exit = false;
 
+    const zap::env& env() const;
+
     void run();
+
 };
 
 cmdline
-parse(const zap::env& e, int ac, char** argv);
+parse(int ac, char** argv);
 
 } // namespace zap

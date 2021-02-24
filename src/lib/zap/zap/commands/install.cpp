@@ -14,16 +14,15 @@ install::~install()
 void
 install::operator()()
 {
-    //TOFIX
-    // std::cout << "installing " << target << std::endl;
+    std::cout << "installing " << target << std::endl;
 
-    // auto ai = e.download_archive(target);
+    auto ai = env().download_archive(target);
 
-    // zap::builder b(env(), ai);
+    zap::builder b(env(), ai);
 
-    // b.configure();
-    // b.build();
-    // b.install();
+    b.configure();
+    b.build();
+    b.install();
 }
 
 }

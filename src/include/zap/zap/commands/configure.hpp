@@ -1,7 +1,5 @@
 #pragma once
 
-#include <optional>
-
 #include <zap/command.hpp>
 #include <zap/files.hpp>
 #include <zap/types.hpp>
@@ -13,8 +11,8 @@ namespace zap::commands {
 
 struct configure_opts
 {
-    std::optional<bool> asan = false;
-    std::optional<bool> debug = false;
+    bool asan = false;
+    bool debug = false;
 };
 
 class configure : public zap::command

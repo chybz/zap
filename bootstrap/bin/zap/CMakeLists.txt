@@ -18,7 +18,7 @@ target_link_libraries(
     zap
     PRIVATE
         lib_zap
-        structopt::structopt
+        docopt
 )
 
 set_target_properties(

@@ -9,12 +9,13 @@
 
 namespace zap {
 
-env::env()
-: executor_ptr_(std::make_unique<zap::executor>())
+env::env(const std::string& root)
+: root_(root),
+executor_ptr_(std::make_unique<zap::executor>())
 {
     namespace fs = std::filesystem;
 
-    auto curp = fs::current_path();
+    auto curp = root_.empty() ? fs::current_path() : fs::path(root_);
     auto buildp = curp / "build";
 
     cfg_.project_dir = curp.string();
@@ -38,6 +39,10 @@ env::env()
 
 env::~env()
 {}
+
+const std::string&
+env::root() const
+{ return root_; }
 
 zap::executor&
 env::executor() const

@@ -3,12 +3,15 @@
 #include <string>
 
 #include <zap/command.hpp>
+#include <zap/types.hpp>
 
 namespace zap::commands {
 
 struct install_opts
 {
+    std::string file;
     std::string target;
+    zap::strings args;
 };
 
 class install : public zap::command

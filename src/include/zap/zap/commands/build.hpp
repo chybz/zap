@@ -1,14 +1,12 @@
 #pragma once
 
-#include <optional>
-
 #include <zap/command.hpp>
 
 namespace zap::commands {
 
 struct build_opts
 {
-    std::optional<std::size_t> cpus = 0;
+    std::size_t cpus = 0;
 };
 
 class build : public zap::command
