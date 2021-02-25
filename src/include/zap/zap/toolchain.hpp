@@ -8,13 +8,15 @@
 #include <zap/files.hpp>
 #include <zap/types.hpp>
 #include <zap/executor.hpp>
+#include <zap/env_paths.hpp>
+#include <zap/scope.hpp>
 
 namespace zap {
 
 class toolchain
 {
 public:
-    toolchain(const zap::config& cfg, toolchain_info&& ti, zap::executor& e);
+    toolchain(const zap::env_paths& ep, toolchain_info&& ti, zap::executor& e);
     virtual ~toolchain();
 
     const std::string& target_arch() const;
@@ -67,7 +69,10 @@ public:
     const std::string& name() const;
 
 protected:
-    const zap::config& cfg() const;
+    const std::string& empty_dir() const;
+    const std::string& empty_file() const;
+
+    const zap::env_paths& ep() const;
     zap::executor& executor() const;
 
     void set_target_arch(const std::string& arch);
@@ -78,11 +83,14 @@ protected:
     prog& ldd();
     prog& scanner();
 
-    const zap::config& cfg_;
+    const zap::env_paths& ep_;
     toolchain_info info_;
     std::string target_arch_;
     prog scanner_;
     files std_headers_;
+    std::string empty_dir_;
+    std::string empty_file_;
+    scope scope_;
 
 private:
     void find_libc_headers();
@@ -93,6 +101,6 @@ private:
 using toolchain_ptr = std::unique_ptr<toolchain>;
 
 toolchain_ptr
-make_toolchain(const zap::config& cfg, zap::executor& e);
+make_toolchain(const zap::env_paths& ep, zap::executor& e);
 
 }

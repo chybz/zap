@@ -14,7 +14,7 @@ class gcc : public toolchain
 {
 public:
     gcc(
-        const zap::config& config,
+        const zap::env_paths& ep,
         zap::toolchain_info&& ti,
         zap::executor& exec
     );

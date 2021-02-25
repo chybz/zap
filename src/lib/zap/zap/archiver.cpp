@@ -5,18 +5,18 @@
 
 namespace zap {
 
-archiver_base::archiver_base(const config& cfg, const std::string& file)
-: cfg_(cfg),
+archiver_base::archiver_base(const env_paths& ep, const std::string& file)
+: ep_(ep),
 file_(file)
 {}
 
 archiver_base::~archiver_base()
 {}
 
-archiver::archiver(const config& cfg, const std::string& file)
+archiver::archiver(const env_paths& ep, const std::string& file)
 {
     if (imatch(file, ".*\\.zip")) {
-        ap_ = std::make_unique<zap::archivers::zip>(cfg, file);
+        ap_ = std::make_unique<zap::archivers::zip>(ep, file);
     } else {
         die("unknown archive format: ", file);
     }

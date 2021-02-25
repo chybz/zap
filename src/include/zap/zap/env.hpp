@@ -2,12 +2,12 @@
 
 #include <memory>
 
-#include <zap/config.hpp>
 #include <zap/executor.hpp>
 #include <zap/toolchain.hpp>
 #include <zap/os_info.hpp>
 #include <zap/fetcher.hpp>
 #include <zap/archive_info.hpp>
+#include <zap/env_paths.hpp>
 
 namespace zap {
 
@@ -18,6 +18,7 @@ public:
     virtual ~env();
 
     const std::string& root() const;
+    const std::string& operator[](const std::string& name) const;
 
     zap::executor& executor() const;
 
@@ -27,15 +28,13 @@ public:
 
     const zap::fetcher& fetcher() const;
 
-    const config& cfg() const;
-
     archive_info download_archive(const std::string& url) const;
 
 private:
     void make_fetcher();
 
     std::string root_;
-    config cfg_;
+    env_paths paths_;
     executor_ptr executor_ptr_;
     zap::os_info os_info_;
     toolchain_ptr toolchain_ptr_;

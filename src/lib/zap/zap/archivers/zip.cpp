@@ -3,8 +3,8 @@
 
 namespace zap::archivers {
 
-zip::zip(const config& cfg, const std::string& file)
-: archiver_base(cfg, file)
+zip::zip(const env_paths& ep, const std::string& file)
+: archiver_base(ep, file)
 {
     zip_.cmd = zap::find_cmd("zip");
     unzip_.cmd = zap::find_cmd("unzip");

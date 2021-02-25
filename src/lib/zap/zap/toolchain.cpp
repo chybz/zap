@@ -40,14 +40,23 @@ get_default_cmds()
 }
 
 toolchain::toolchain(
-    const zap::config& cfg,
+    const zap::env_paths& ep,
     toolchain_info&& ti,
     zap::executor& e
 )
-: cfg_(cfg),
+: ep_(ep),
 info_(std::move(ti)),
 executor_(e)
-{}
+{
+    empty_dir_ = zap::empty_temp_dir(ep["tmp"]);
+
+    zap::mkpath(empty_dir_);
+    scope_.push_rmpath(empty_dir_);
+
+    empty_file_ = zap::cat_file(empty_dir_, "empty.cpp");
+
+    zap::touch_file(empty_file_);
+}
 
 toolchain::~toolchain()
 {}
@@ -76,9 +85,17 @@ toolchain::make_arch_dirs(
     return dirs;
 }
 
-const zap::config&
-toolchain::cfg() const
-{ return cfg_; }
+const std::string&
+toolchain::empty_dir() const
+{ return empty_dir_; }
+
+const std::string&
+toolchain::empty_file() const
+{ return empty_file_; }
+
+const zap::env_paths&
+toolchain::ep() const
+{ return ep_; }
 
 zap::executor&
 toolchain::executor() const
@@ -157,8 +174,6 @@ toolchain::local_lib_deps(
 ) const
 { return {}; }
 
-
-
 bool
 toolchain::is_unknown() const
 { return info_.type == toolchain_type::unknown; }
@@ -186,6 +201,8 @@ toolchain::is_msvc() const
 const std::string&
 toolchain::name() const
 { return toolchain_name(info_.type); }
+
+
 
 prog&
 toolchain::cxx()
@@ -235,7 +252,7 @@ new_toolchain(Args&&... args)
 { return std::make_unique<ToolChain>(std::forward<Args>(args)...); }
 
 toolchain_ptr
-make_toolchain(const zap::config& cfg, zap::executor& e)
+make_toolchain(const zap::env_paths& ep, zap::executor& e)
 {
     toolchain_info ti;
 
@@ -257,14 +274,14 @@ make_toolchain(const zap::config& cfg, zap::executor& e)
 
     switch (ti.type) {
         case toolchain_type::gcc:
-        tcp = new_toolchain<zap::toolchains::gcc>(cfg, std::move(ti), e);
+        tcp = new_toolchain<zap::toolchains::gcc>(ep, std::move(ti), e);
         break;
         case toolchain_type::clang:
         case toolchain_type::apple_clang:
-        tcp = new_toolchain<zap::toolchains::clang>(cfg, std::move(ti), e);
+        tcp = new_toolchain<zap::toolchains::clang>(ep, std::move(ti), e);
         break;
         case toolchain_type::msvc:
-        tcp = new_toolchain<zap::toolchains::msvc>(cfg, std::move(ti), e);
+        tcp = new_toolchain<zap::toolchains::msvc>(ep, std::move(ti), e);
         default:
         break;
     }

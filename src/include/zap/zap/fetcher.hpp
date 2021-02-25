@@ -3,14 +3,14 @@
 #include <string>
 #include <memory>
 
-#include <zap/config.hpp>
+#include <zap/env_paths.hpp>
 
 namespace zap {
 
 class fetcher
 {
 public:
-    fetcher(const config& cfg);
+    fetcher(const env_paths& ep);
     virtual ~fetcher();
 
     virtual void download(
@@ -19,7 +19,7 @@ public:
     ) const = 0;
 
 protected:
-    const config& cfg_;
+    const env_paths& ep_;
 };
 
 using fetcher_ptr = std::unique_ptr<fetcher>;

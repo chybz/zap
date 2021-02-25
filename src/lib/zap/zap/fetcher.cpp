@@ -2,8 +2,8 @@
 
 namespace zap {
 
-fetcher::fetcher(const config& cfg)
-: cfg_(cfg)
+fetcher::fetcher(const env_paths& ep)
+: ep_(ep)
 {}
 
 fetcher::~fetcher()

@@ -3,6 +3,7 @@
 #include <zap/toolchains/gcc.hpp>
 #include <zap/file_utils.hpp>
 #include <zap/utils.hpp>
+#include <zap/scope.hpp>
 #include <zap/scan_context.hpp>
 
 namespace zap::toolchains {
@@ -13,11 +14,11 @@ namespace zap::toolchains {
 //
 ///////////////////////////////////////////////////////////////////////////////
 gcc::gcc(
-    const zap::config& config,
+    const zap::env_paths& ep,
     zap::toolchain_info&& ti,
     zap::executor& exec
 )
-: zap::toolchain(config, std::forward<zap::toolchain_info>(ti), exec),
+: zap::toolchain(ep, std::forward<zap::toolchain_info>(ti), exec),
 extract_line_re_("(?:ZAP_SOURCE:)?\\s+(.*)\\s+\\\\?\n")
 {
     set_target_arch(cxx().get_line({ "-dumpmachine" }));
@@ -26,20 +27,13 @@ extract_line_re_("(?:ZAP_SOURCE:)?\\s+(.*)\\s+\\\\?\n")
 
     scanner().push_args({
         "-x", "c++",
+        "-std=c++20", // TOFIX: make this somewhat configurable
         "-M", "-MG", "-MT", "ZAP_SOURCE",
-        zap::cat("-I", cfg().empty_dir),
+        zap::cat("-I", empty_dir()),
         "-nostdinc", "-nostdinc++"
     });
 
     nm().push_args({ "-u", "-g" });
-
-    std::string std =
-        cfg().has("std")
-        ? cfg().str("std")
-        : "c++20"
-        ;
-
-    scanner().push_args({ "-std=" + std });
 
     find_std_headers();
 }
@@ -139,7 +133,7 @@ gcc::find_std_headers()
         "-x", "c++",
         "-Wp,-v",
         "-fsyntax-only",
-        cfg().empty_source_file
+        empty_file()
     });
 
     configure_std_header_finder(cxx_finder);

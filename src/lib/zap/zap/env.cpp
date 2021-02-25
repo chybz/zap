@@ -15,24 +15,16 @@ executor_ptr_(std::make_unique<zap::executor>())
 {
     namespace fs = std::filesystem;
 
-    auto curp = root_.empty() ? fs::current_path() : fs::path(root_);
-    auto buildp = curp / "build";
+    auto rootp = root_.empty() ? fs::current_path() : fs::path(root_);
+    auto buildp = rootp / "build";
 
-    cfg_.project_dir = curp.string();
-    cfg_.build_dir = buildp.string();
-    cfg_.archives_dir = (buildp / "archives").string();
-    cfg_.work_dir = (buildp / "work").string();
-    cfg_.local_prefix = "/local";
-    cfg_.empty_dir = cat_dir(cfg_.home, "scan", "empty");
-    cfg_.empty_source_file = cat_file(cfg_.home, "scan", "empty.cpp");
+    paths_.sm.emplace("root", rootp.string());
+    paths_.sm.emplace("build", buildp.string());
+    paths_.sm.emplace("archives", (buildp / "archives").string());
+    paths_.sm.emplace("work", (buildp / "work").string());
+    paths_.sm.emplace("tmp", (buildp / "tmp").string());
 
-    mkpath(cfg_.empty_dir);
-    touch_file(cfg_.empty_source_file);
-
-    cfg_.package_file = (curp / "package.toml").string();
-    cfg_.load_package_conf();
-
-    toolchain_ptr_ = make_toolchain(cfg_, executor());
+    toolchain_ptr_ = make_toolchain(paths_, executor());
 
     make_fetcher();
 }
@@ -43,6 +35,10 @@ env::~env()
 const std::string&
 env::root() const
 { return root_; }
+
+const std::string&
+env::operator[](const std::string& name) const
+{ return paths_[name]; }
 
 zap::executor&
 env::executor() const
@@ -60,18 +56,16 @@ const zap::fetcher&
 env::fetcher() const
 { return *fetcher_ptr_; }
 
-const config&
-env::cfg() const
-{ return cfg_; }
-
 archive_info
 env::download_archive(const std::string& url) const
 {
     scope s;
     archive_info ai{url};
 
-    mkpath(cfg().archives_dir);
-    auto tdir = empty_temp_dir(cfg().archives_dir);
+    const auto& archives_dir = paths_["archives"];
+
+    mkpath(archives_dir);
+    auto tdir = empty_temp_dir(archives_dir);
 
     s.push_rmpath(tdir);
 
@@ -84,11 +78,11 @@ env::download_archive(const std::string& url) const
         "unable to find dowloaded file in: ", tdir
     );
 
-    ai.file = cat_file(cfg().archives_dir, file);
+    ai.file = cat_file(archives_dir, file);
 
     rename(cat_file(tdir, file), ai.file);
 
-    archiver ar(cfg(), ai.file);
+    archiver ar(paths_, ai.file);
 
     ar.verify();
     ar.extract(tdir);
@@ -107,7 +101,7 @@ env::download_archive(const std::string& url) const
         "unable to extract name and version from: ", dir
     );
 
-    ai.dir = cat_dir(cfg().work_dir, dir);
+    ai.dir = cat_dir(paths_["work"], dir);
 
     die_if(
         directory_exists(ai.dir),
@@ -129,6 +123,6 @@ env::download_archive(const std::string& url) const
 
 void
 env::make_fetcher()
-{ fetcher_ptr_ = new_fetcher<zap::fetchers::curl>(cfg_); }
+{ fetcher_ptr_ = new_fetcher<zap::fetchers::curl>(paths_); }
 
 }

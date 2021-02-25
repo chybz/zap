@@ -8,7 +8,7 @@ namespace zap::archivers {
 class zip : public zap::archiver_base
 {
 public:
-    zip(const zap::config& cfg, const std::string& file);
+    zip(const zap::env_paths& ep, const std::string& file);
     virtual ~zip();
 
     bool verify() const final;

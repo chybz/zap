@@ -21,7 +21,7 @@ cmake::configure() const
     zap::mkpath(build_dir_);
 
     cmake_.run({
-        zap::cat("-DCMAKE_INSTALL_PREFIX=", e_.cfg().local_prefix),
+        zap::cat("-DCMAKE_INSTALL_PREFIX=", e_["root"]),
         "-S", ai_.source_dir, "-B", build_dir_
     });
 }

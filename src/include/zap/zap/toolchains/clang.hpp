@@ -8,7 +8,7 @@ class clang : public gcc
 {
 public:
     clang(
-        const zap::config& config,
+        const zap::env_paths& ep,
         zap::toolchain_info&& ti,
         zap::executor& exec
     );

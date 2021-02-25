@@ -107,8 +107,8 @@ content_disposition_pat()
 // CURL fetcher
 //
 ///////////////////////////////////////////////////////////////////////////////
-curl::curl(const zap::config& cfg)
-: fetcher(cfg)
+curl::curl(const zap::env_paths& ep)
+: fetcher(ep)
 {
     auto ret = curl_global_init(CURL_GLOBAL_DEFAULT);
 

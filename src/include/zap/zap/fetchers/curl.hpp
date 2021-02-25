@@ -28,7 +28,7 @@ struct curl_context
 class curl : public zap::fetcher
 {
 public:
-    curl(const zap::config& cfg);
+    curl(const zap::env_paths& ep);
     virtual ~curl();
 
     void download(

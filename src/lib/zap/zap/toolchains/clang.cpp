@@ -3,11 +3,11 @@
 namespace zap::toolchains {
 
 clang::clang(
-    const zap::config& config,
+    const zap::env_paths& ep,
     zap::toolchain_info&& ti,
     zap::executor& exec
 )
-: gcc(config, std::forward<zap::toolchain_info>(ti), exec)
+: gcc(ep, std::forward<zap::toolchain_info>(ti), exec)
 {
     scanner_.push_args({ "-w" });
 }

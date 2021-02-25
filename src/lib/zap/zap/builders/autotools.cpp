@@ -34,7 +34,7 @@ autotools::configure() const
             zap::prog config{ zap::cat_file(ai_.source_dir, "configure") };
 
             config.run({
-                zap::cat("--prefix=", env().cfg().local_prefix)
+                zap::cat("--prefix=", env()["root"])
             });
         }
     );
