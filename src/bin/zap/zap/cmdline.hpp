@@ -9,6 +9,7 @@ namespace zap {
 
 struct cmdline
 {
+    std::string& env_name;
     env_ptr ep;
     command_ptr cp;
     bool exit = false;
@@ -16,7 +17,6 @@ struct cmdline
     const zap::env& env() const;
 
     void run();
-
 };
 
 cmdline

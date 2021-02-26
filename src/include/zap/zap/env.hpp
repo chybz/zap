@@ -14,11 +14,13 @@ namespace zap {
 class env
 {
 public:
-    env(const std::string& root = {});
+    env(const std::string& root);
     virtual ~env();
 
     const std::string& root() const;
     const std::string& operator[](const std::string& name) const;
+
+    const string_map& build_env() const;
 
     zap::executor& executor() const;
 
@@ -39,6 +41,7 @@ private:
     zap::os_info os_info_;
     toolchain_ptr toolchain_ptr_;
     fetcher_ptr fetcher_ptr_;
+    string_map build_env_;
 };
 
 using env_ptr = std::unique_ptr<env>;

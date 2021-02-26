@@ -19,12 +19,22 @@ executor_ptr_(std::make_unique<zap::executor>())
     auto buildp = rootp / "build";
 
     paths_.sm.emplace("root", rootp.string());
+    paths_.sm.emplace("include", (rootp / "include").string());
+    paths_.sm.emplace("lib", (rootp / "lib").string());
+    paths_.sm.emplace("pkgconfig", (rootp / "lib" / "pkgconfig").string());
+    paths_.sm.emplace("cmake", (rootp / "lib" / "cmake").string());
     paths_.sm.emplace("build", buildp.string());
     paths_.sm.emplace("archives", (buildp / "archives").string());
     paths_.sm.emplace("work", (buildp / "work").string());
     paths_.sm.emplace("tmp", (buildp / "tmp").string());
 
     toolchain_ptr_ = make_toolchain(paths_, executor());
+
+    build_env_.emplace("CC", toolchain().cc_cmd());
+    build_env_.emplace("CXX", toolchain().cxx_cmd());
+    build_env_.emplace("CPATH", paths_["include"]);
+    build_env_.emplace("LIBRARY_PATH", paths_["lib"]);
+    build_env_.emplace("PKG_CONFIG_PATH", paths_["pkgconfig"]);
 
     make_fetcher();
 }
@@ -39,6 +49,10 @@ env::root() const
 const std::string&
 env::operator[](const std::string& name) const
 { return paths_[name]; }
+
+const string_map&
+env::build_env() const
+{ return build_env_; }
 
 zap::executor&
 env::executor() const

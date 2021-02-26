@@ -14,13 +14,14 @@
 namespace zap {
 
 static const char general_usage[] =
-R"(Zap C++ project tool
+R"(Zap - C++ project tool
 
 usage:
-    zap [--help] <command> [<args>...]
+    zap [--help] [-e <env>] <command> [<args>...]
 
 Options:
     -h, --help   Prints this
+    -e <env>     Specifies environment to work in
 
 Commands:
     install      Install dependencies
@@ -32,11 +33,10 @@ See 'zap help <command>' for more information on a specific command.
 
 static const char install_usage[] =
 R"(usage:
-    zap install [-e <env>] <url> [<args>...]
-    zap install [-e <env>] -f <file>
+    zap install <url> [<args>...]
+    zap install -f <file>
 
 Options:
-    -e <env>     Specifies environment to install to
     -f <file>    Installs dependencies from <file>
 
 The first form allows you to install a software package by specifying a URL.
@@ -48,6 +48,13 @@ each line will specify a dependency like in the first form, that is:
 URL1 [ARGS...]
 URL2 [ARGS...]
 ...
+)";
+
+static const char configure_usage[] =
+R"(usage:
+    zap configure
+
+Configures a project to build with CMake.
 )";
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -146,6 +153,11 @@ parse(int ac, char** av)
     );
 
     cmdline cl;
+
+    if (args["<env>"]) {
+        cl.env_name = args["<env>"].asString();
+    }
+
     std::string cmd = args["<command>"].asString();
     const auto& sub_args = args["<args>"].asStringList();
 

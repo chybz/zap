@@ -85,8 +85,7 @@ elif [ -f $SRCDIR/meson.build ]; then
         "$@" \
         . $SRCDIR
     meson install
-elif [ -f $SRCDIR/autogen.sh ]; then
-    (cd $SRCDIR && autoreconf -fvi)
+elif [ -x $SRCDIR/configure ]; then
     cd $BUILDDIR
     $SRCDIR/configure \
         --prefix=$BUILDROOT \

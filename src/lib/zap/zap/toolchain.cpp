@@ -129,6 +129,14 @@ const prog&
 toolchain::scanner() const
 { return scanner_; }
 
+const std::string&
+toolchain::cc_cmd() const
+{ return cc().cmd; }
+
+const std::string&
+toolchain::cxx_cmd() const
+{ return cxx().cmd; }
+
 const files&
 toolchain::std_headers() const
 { return std_headers_; }
@@ -201,8 +209,6 @@ toolchain::is_msvc() const
 const std::string&
 toolchain::name() const
 { return toolchain_name(info_.type); }
-
-
 
 prog&
 toolchain::cxx()

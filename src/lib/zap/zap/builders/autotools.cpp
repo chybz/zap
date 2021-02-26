@@ -20,22 +20,17 @@ autotools::configure() const
     zap::mkpath(build_dir_);
 
     zap::call_in_directory(
-        ai_.source_dir,
-        [&] {
-            zap::prog autoreconf{ zap::find_cmd("autoreconf") };
-
-            autoreconf.run({ "-fvi" });
-        }
-    );
-
-    zap::call_in_directory(
         build_dir_,
         [&] {
             zap::prog config{ zap::cat_file(ai_.source_dir, "configure") };
 
-            config.run({
-                zap::cat("--prefix=", env()["root"])
-            });
+            config.run(
+                {
+                    zap::cat("--prefix=", e_["root"]),
+                    "--enable-shared"
+                },
+                e_.build_env()
+            );
         }
     );
 }
@@ -43,19 +38,23 @@ autotools::configure() const
 void
 autotools::build() const
 {
-    make_.run({
-        "-C", build_dir_
-    });
+    make_.run(
+        { "-C", build_dir_ },
+        e_.build_env()
+    );
 }
 
 void
 autotools::install() const
 {
-    make_.run({
-        "-C", build_dir_,
-        zap::cat("DESTDIR=", stage_dir_),
-        "install"
-    });
+    make_.run(
+        {
+            "-C", build_dir_,
+            zap::cat("DESTDIR=", stage_dir_),
+            "install"
+        },
+        e_.build_env()
+    );
 }
 
 }

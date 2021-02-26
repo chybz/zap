@@ -27,11 +27,14 @@ public:
         const std::string& post = {}
     ) const;
 
-    const prog& cxx() const;
     const prog& cc() const;
+    const prog& cxx() const;
     const prog& nm() const;
     const prog& ldd() const;
     const prog& scanner() const;
+
+    const std::string& cc_cmd() const;
+    const std::string& cxx_cmd() const;
 
     const files& std_headers() const;
     bool is_std_header(const std::string& name) const;
