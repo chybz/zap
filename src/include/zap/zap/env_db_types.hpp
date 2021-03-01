@@ -4,19 +4,19 @@
 
 namespace zap {
 
-struct pkg
+struct env_db_pkg
 {
     std::string name;
     std::string version;
 };
 
-struct pkg_file
+struct env_db_pkg_file
 {
     std::string pkg;
     std::string file;
 };
 
-struct pkg_files
+struct env_db_pkg_files
 {
     std::string pkg;
     string_set files;

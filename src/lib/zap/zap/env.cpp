@@ -9,38 +9,23 @@
 
 namespace zap {
 
-env::env(const std::string& root)
-: root_(root),
-executor_ptr_(std::make_unique<zap::executor>())
+env::env(const env_opts& opts)
+: opts_(opts)
 {
-    namespace fs = std::filesystem;
-
-    auto rootp = root_.empty() ? fs::current_path() : fs::path(root_);
-    auto buildp = rootp / "build";
-
-    paths_.sm.emplace("root", rootp.string());
-    paths_.sm.emplace("include", (rootp / "include").string());
-    paths_.sm.emplace("lib", (rootp / "lib").string());
-    paths_.sm.emplace("pkgconfig", (rootp / "lib" / "pkgconfig").string());
-    paths_.sm.emplace("cmake", (rootp / "lib" / "cmake").string());
-    paths_.sm.emplace("build", buildp.string());
-    paths_.sm.emplace("archives", (buildp / "archives").string());
-    paths_.sm.emplace("work", (buildp / "work").string());
-    paths_.sm.emplace("tmp", (buildp / "tmp").string());
-
-    toolchain_ptr_ = make_toolchain(paths_, executor());
-
-    build_env_.emplace("CC", toolchain().cc_cmd());
-    build_env_.emplace("CXX", toolchain().cxx_cmd());
-    build_env_.emplace("CPATH", paths_["include"]);
-    build_env_.emplace("LIBRARY_PATH", paths_["lib"]);
-    build_env_.emplace("PKG_CONFIG_PATH", paths_["pkgconfig"]);
-
-    make_fetcher();
+    if (!opts_.name.empty()) {
+        init();
+    }
 }
 
 env::~env()
 {}
+
+void
+env::init(const std::string& name)
+{
+    opts_.name = name;
+    init();
+}
 
 const std::string&
 env::root() const
@@ -133,6 +118,35 @@ env::download_archive(const std::string& url) const
     // TODO: register and cache
 
     return ai;
+}
+
+void
+env::init()
+{
+    namespace fs = std::filesystem;
+
+    auto rootp = root_.empty() ? fs::current_path() : fs::path(root_);
+    auto buildp = rootp / "build";
+
+    paths_.sm.emplace("root", rootp.string());
+    paths_.sm.emplace("include", (rootp / "include").string());
+    paths_.sm.emplace("lib", (rootp / "lib").string());
+    paths_.sm.emplace("pkgconfig", (rootp / "lib" / "pkgconfig").string());
+    paths_.sm.emplace("cmake", (rootp / "lib" / "cmake").string());
+    paths_.sm.emplace("build", buildp.string());
+    paths_.sm.emplace("archives", (buildp / "archives").string());
+    paths_.sm.emplace("work", (buildp / "work").string());
+    paths_.sm.emplace("tmp", (buildp / "tmp").string());
+
+    toolchain_ptr_ = make_toolchain(paths_, executor());
+
+    build_env_.emplace("CC", toolchain().cc_cmd());
+    build_env_.emplace("CXX", toolchain().cxx_cmd());
+    build_env_.emplace("CPATH", paths_["include"]);
+    build_env_.emplace("LIBRARY_PATH", paths_["lib"]);
+    build_env_.emplace("PKG_CONFIG_PATH", paths_["pkgconfig"]);
+
+    make_fetcher();
 }
 
 void

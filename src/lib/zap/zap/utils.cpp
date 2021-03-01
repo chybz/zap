@@ -661,6 +661,16 @@ bool
 has_dirs(const std::string_view& path)
 { return dir_count(path) > 0; }
 
+bool
+dir_is_empty(const std::string_view& path)
+{
+    if (!directory_exists(path)) {
+        return true;
+    }
+
+    return !has_dirs(path) && !has_files(path);
+}
+
 std::string
 empty_temp_dir(const std::string_view& base_dir)
 {

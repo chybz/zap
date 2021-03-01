@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <memory>
 
 #include <zap/executor.hpp>
@@ -8,14 +9,22 @@
 #include <zap/fetcher.hpp>
 #include <zap/archive_info.hpp>
 #include <zap/env_paths.hpp>
+#include <zap/env_db.hpp>
 
 namespace zap {
+
+struct env_opts
+{
+    std::string name;
+};
 
 class env
 {
 public:
-    env(const std::string& root);
+    env(const env_opts& opts);
     virtual ~env();
+
+    void init(const std::string& name);
 
     const std::string& root() const;
     const std::string& operator[](const std::string& name) const;
@@ -33,8 +42,11 @@ public:
     archive_info download_archive(const std::string& url) const;
 
 private:
+    void init();
     void make_fetcher();
 
+    env_opts opts_;
+    env_db db_;
     std::string root_;
     env_paths paths_;
     executor_ptr executor_ptr_;
@@ -45,5 +57,10 @@ private:
 };
 
 using env_ptr = std::unique_ptr<env>;
+
+template <typename... Args>
+env_ptr
+new_env(Args&&... args)
+{ return std::make_unique<env>(std::forward<Args>(args)...); }
 
 }

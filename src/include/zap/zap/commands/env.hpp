@@ -1,0 +1,33 @@
+#pragma once
+
+#include <zap/command.hpp>
+
+namespace zap::commands {
+
+enum class env_cmd
+{
+    new_env,
+    delete_env,
+    ls_env
+};
+
+struct env_opts
+{
+    env_cmd cmd;
+    std::string name;
+    std::string directory;
+};
+
+class env : public zap::command
+{
+public:
+    env(const zap::env& e, const env_opts& opts);
+    virtual ~env();
+
+    void operator()() final;
+
+private:
+    env_opts opts_;
+};
+
+}

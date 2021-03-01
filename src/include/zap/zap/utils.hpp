@@ -62,6 +62,7 @@ std::size_t dir_count(const std::string_view& path);
 std::pair<bool, std::string> unique_dir(const std::string_view& path);
 std::pair<bool, std::string> unique_file(const std::string_view& path);
 bool has_dirs(const std::string_view& path);
+bool dir_is_empty(const std::string_view& path);
 
 std::string empty_temp_dir(const std::string_view& base_dir);
 

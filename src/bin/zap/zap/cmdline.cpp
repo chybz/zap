@@ -6,6 +6,7 @@
 
 #include <zap/cmdline.hpp>
 #include <zap/env.hpp>
+#include <zap/commands/env.hpp>
 #include <zap/commands/configure.hpp>
 #include <zap/commands/build.hpp>
 #include <zap/commands/install.hpp>
@@ -17,13 +18,13 @@ static const char general_usage[] =
 R"(Zap - C++ project tool
 
 usage:
-    zap [--help] [-e <env>] <command> [<args>...]
+    zap [--help] <command> [<args>...]
 
 Options:
     -h, --help   Prints this
-    -e <env>     Specifies environment to work in
 
 Commands:
+    env          Manage environments
     install      Install dependencies
     configure    Configures project
 
@@ -31,12 +32,22 @@ Commands:
 See 'zap help <command>' for more information on a specific command.
 )";
 
+static const char env_usage[] =
+R"(usage:
+    zap env new <name> <directory>
+    zap env delete <name>
+    zap env ls <name>
+
+Manages environments.
+)";
+
 static const char install_usage[] =
 R"(usage:
-    zap install <url> [<args>...]
-    zap install -f <file>
+    zap install [-e <env>] <url> [<args>...]
+    zap install [-e <env>] -f <file>
 
 Options:
+    -e <env>     Environment to use
     -f <file>    Installs dependencies from <file>
 
 The first form allows you to install a software package by specifying a URL.
@@ -52,7 +63,10 @@ URL2 [ARGS...]
 
 static const char configure_usage[] =
 R"(usage:
-    zap configure
+    zap configure [-e <env>]
+
+Options:
+    -e <env>     Environment to use
 
 Configures a project to build with CMake.
 )";
@@ -113,9 +127,42 @@ set_opt(const docopt::value& val, strings& v)
 { set_opt(val, v, [&] { return val.asStringList(); }); }
 
 void
+set_env(cmdline& cl, const docopt::Options& args)
+{
+    if (args.at("<env>")) {
+        cl.env_name = args.at("<env>").asString();
+        cl.ep = new_env(env_opts{ .name = cl.env_name });
+    }
+}
+
+void
+parse_env(cmdline& cl, const zap::strings& cmd_args)
+{
+    auto args = docopt::docopt(env_usage, cmd_args, true);
+
+    zap::commands::env_opts opts;
+
+    if (args["new"]) {
+        opts.cmd = zap::commands::env_cmd::new_env;
+        set_opt(args.at("<directory>"), opts.directory);
+    } else if (args["delete"]) {
+        opts.cmd = zap::commands::env_cmd::delete_env;
+    } else if (args["ls"]) {
+        opts.cmd = zap::commands::env_cmd::ls_env;
+    }
+
+    set_opt(args.at("<name>"), opts.name);
+
+    cl.ep = new_env();
+    cl.cp = new_command<zap::commands::env>(cl.env(), opts);
+}
+
+void
 parse_install(cmdline& cl, const zap::strings& cmd_args)
 {
     auto args = docopt::docopt(install_usage, cmd_args, true);
+
+    set_env(cl, args);
 
     zap::commands::install_opts opts;
 
@@ -130,6 +177,7 @@ using parse_func = void(*)(cmdline&, const zap::strings&);
 using parse_map = std::unordered_map<std::string, parse_func>;
 
 parse_map parsers = {
+    { "env", &parse_env },
     { "install", &parse_install }
 };
 

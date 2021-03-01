@@ -1,26 +1,27 @@
 #pragma once
 
-#include <memory>
+#include <string>
 
 #include <zap/env_db_types.hpp>
+#include <zap/db/storage_base.hpp>
 
 namespace zap {
-
-struct db_storage_base
-{};
-
-using db_storage_ptr = std::unique_ptr<db_storage_base>;
 
 class env_db
 {
 public:
+    env_db();
     env_db(const std::string& dir);
+
     virtual ~env_db();
+
+    void init(const std::string& dir);
 
 private:
     auto& db();
+    auto& dbi();
 
-    db_storage_ptr db_ptr_;
+    zap::db::storage_ptr db_ptr_;
 };
 
 }
