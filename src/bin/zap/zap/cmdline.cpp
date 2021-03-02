@@ -36,7 +36,7 @@ static const char env_usage[] =
 R"(usage:
     zap env new <name> <directory>
     zap env delete <name>
-    zap env ls <name>
+    zap env ls [<name>]
 
 Manages environments.
 )";
@@ -142,12 +142,12 @@ parse_env(cmdline& cl, const zap::strings& cmd_args)
 
     zap::commands::env_opts opts;
 
-    if (args["new"]) {
+    if (args["new"].asBool()) {
         opts.cmd = zap::commands::env_cmd::new_env;
         set_opt(args.at("<directory>"), opts.directory);
-    } else if (args["delete"]) {
+    } else if (args["delete"].asBool()) {
         opts.cmd = zap::commands::env_cmd::delete_env;
-    } else if (args["ls"]) {
+    } else if (args["ls"].asBool()) {
         opts.cmd = zap::commands::env_cmd::ls_env;
     }
 

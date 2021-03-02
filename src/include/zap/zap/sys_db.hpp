@@ -17,13 +17,19 @@ public:
 
     bool has_var(const std::string& name) const;
     const std::string& var(const std::string& name) const;
-    void var(const std::string& name, const std::string& val);
+
+    bool is_default_env(const std::string& name) const;
+    std::string default_env() const;
 
     void new_env(const std::string& name, const std::string& root);
     void delete_env(const std::string& name);
-    std::string default_env() const;
+    sys_db_envs ls_env(const std::string& name = {});
 
 private:
+    // Private use for now, it inserts into db
+    void set_var(const std::string& name, const std::string& val);
+    void del_var(const std::string& name);
+
     void load_info();
     void save_info();
 

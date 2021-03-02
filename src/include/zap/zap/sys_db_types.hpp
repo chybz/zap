@@ -15,6 +15,7 @@ struct sys_db_info
     using val_map = std::unordered_map<std::string, std::string>;
 
     bool contains(const std::string& name) const;
+    void erase(const std::string& name);
 
     std::string& operator[](const std::string& name);
     const std::string& operator[](const std::string& name) const;

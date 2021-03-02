@@ -69,11 +69,25 @@ sys_db::var(const std::string& name) const
 { return info_[name]; }
 
 void
-sys_db::var(const std::string& name, const std::string& val)
+sys_db::set_var(const std::string& name, const std::string& val)
 {
     info_[name] = val;
 
     db().replace(sys_db_info_val{ name, val });
+}
+
+void
+sys_db::del_var(const std::string& name)
+{ db().remove<sys_db_info_val>(name); }
+
+bool
+sys_db::is_default_env(const std::string& name) const
+{
+    return
+        has_var("default_env")
+        &&
+        var("default_env") == name
+        ;
 }
 
 void
@@ -89,12 +103,12 @@ sys_db::new_env(const std::string& name, const std::string& dir)
 
         scope.if_not_ok_rmpath(dir);
 
-        dbi().ensure_not_exists<sys_db_env>("an environment named", name);
+        dbi().ensure_not_exists<sys_db_env>("environment", name);
 
         db().insert(sys_db_env{ name, dir });
 
         if (!has_var("default_env")) {
-            var("default_env", name);
+            set_var("default_env", name);
         }
     };
 
@@ -103,15 +117,67 @@ sys_db::new_env(const std::string& name, const std::string& dir)
 
 void
 sys_db::delete_env(const std::string& name)
-{}
+{
+    auto tx_cb = [&](zap::scope& scope) {
+        dbi().ensure_exists<sys_db_env>("environment", name);
+
+        db().remove<sys_db_env>(name);
+
+        if (has_var("default_env") && var("default_env") == name) {
+            del_var("default_env");
+        }
+    };
+
+    dbi().exec_write(tx_cb);
+}
+
+sys_db_envs
+sys_db::ls_env(const std::string& name)
+{
+    sys_db_envs envs;
+
+    auto tx_cb = [&](zap::scope& scope) {
+        using namespace sqlite_orm;
+
+        if (name.empty()) {
+            envs = db().get_all<sys_db_env>();
+        } else {
+            envs = db().get_all<sys_db_env>(
+                where(c(&sys_db_env::name) == name)
+            );
+
+            die_if(envs.empty(), "no such environment: ", name);
+        }
+    };
+
+    dbi().exec_read(tx_cb);
+
+    return envs;
+}
 
 std::string
 sys_db::default_env() const
-{}
+{
+    std::string de;
+
+    if (has_var("default_env")) {
+        de = var("default_env");
+    }
+
+    return de;
+}
 
 void
 sys_db::load_info()
-{}
+{
+    auto tx_cb = [&](zap::scope& scope) {
+        for (auto& r : db().get_all<sys_db_info_val>()) {
+            info_.vm.try_emplace(std::move(r.name), std::move(r.value));
+        }
+    };
+
+    dbi().exec_read(tx_cb);
+}
 
 void
 sys_db::save_info()

@@ -23,6 +23,7 @@ target_link_libraries(
         re2::re2
         tomlplusplus::tomlplusplus
     PRIVATE
+        tabulate::tabulate
         sqlite_orm::sqlite_orm
         CURL::libcurl
         reproc++

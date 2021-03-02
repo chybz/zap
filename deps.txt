@@ -15,3 +15,4 @@ https://github.com/marzer/tomlplusplus/archive/v2.3.0.zip
 https://github.com/docopt/docopt.cpp/archive/v0.6.3.zip
 https://www.sqlite.org/2021/sqlite-autoconf-3340100.tar.gz
 https://github.com/fnc12/sqlite_orm/archive/1.6.zip -DSQLITE_ORM_ENABLE_CXX_17=ON -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF
+https://github.com/p-ranav/tabulate/archive/v1.4.zip
