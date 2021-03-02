@@ -27,6 +27,10 @@ public:
     void operator()() final;
 
 private:
+    void new_env();
+    void delete_env();
+    void ls_env();
+
     env_opts opts_;
 };
 

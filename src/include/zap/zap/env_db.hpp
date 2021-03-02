@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 #include <zap/env_db_types.hpp>
 #include <zap/db/storage_base.hpp>
@@ -23,5 +24,12 @@ private:
 
     zap::db::storage_ptr db_ptr_;
 };
+
+using env_db_ptr = std::unique_ptr<env_db>;
+
+template <typename... Args>
+env_db_ptr
+new_env_db(Args&&... args)
+{ return std::make_unique<env_db>(std::forward<Args>(args)...); }
 
 }

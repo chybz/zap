@@ -10,7 +10,8 @@
 namespace zap {
 
 env::env(const env_opts& opts)
-: opts_(opts)
+: opts_(opts),
+sys_db_ptr_(new_sys_db())
 {
     if (!opts_.name.empty()) {
         init();
@@ -26,6 +27,14 @@ env::init(const std::string& name)
     opts_.name = name;
     init();
 }
+
+zap::sys_db&
+env::sys_db() const
+{ return *sys_db_ptr_; }
+
+zap::env_db&
+env::env_db() const
+{ return *env_db_ptr_; }
 
 const std::string&
 env::root() const

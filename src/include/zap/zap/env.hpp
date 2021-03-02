@@ -8,8 +8,9 @@
 #include <zap/os_info.hpp>
 #include <zap/fetcher.hpp>
 #include <zap/archive_info.hpp>
-#include <zap/env_paths.hpp>
+#include <zap/sys_db.hpp>
 #include <zap/env_db.hpp>
+#include <zap/env_paths.hpp>
 
 namespace zap {
 
@@ -25,6 +26,9 @@ public:
     virtual ~env();
 
     void init(const std::string& name);
+
+    zap::sys_db& sys_db() const;
+    zap::env_db& env_db() const;
 
     const std::string& root() const;
     const std::string& operator[](const std::string& name) const;
@@ -46,7 +50,8 @@ private:
     void make_fetcher();
 
     env_opts opts_;
-    env_db db_;
+    zap::sys_db_ptr sys_db_ptr_;
+    zap::env_db_ptr env_db_ptr_;
     std::string root_;
     env_paths paths_;
     executor_ptr executor_ptr_;

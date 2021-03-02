@@ -15,7 +15,8 @@ struct sys_db_spec
             file,
             make_table(
                 "info",
-                make_column("default_env", &sys_db_info::default_env)
+                make_column("name", &sys_db_info_val::name, primary_key()),
+                make_column("value", &sys_db_info_val::value)
             ).without_rowid(),
             make_table(
                 "envs",
@@ -52,10 +53,28 @@ sys_db::sys_db()
 
     db().open_forever();
     db().sync_schema();
+
+    load_info();
 }
 
 sys_db::~sys_db()
 {}
+
+bool
+sys_db::has_var(const std::string& name) const
+{ return info_.contains(name); }
+
+const std::string&
+sys_db::var(const std::string& name) const
+{ return info_[name]; }
+
+void
+sys_db::var(const std::string& name, const std::string& val)
+{
+    info_[name] = val;
+
+    db().replace(sys_db_info_val{ name, val });
+}
 
 void
 sys_db::new_env(const std::string& name, const std::string& dir)
@@ -74,18 +93,9 @@ sys_db::new_env(const std::string& name, const std::string& dir)
 
         db().insert(sys_db_env{ name, dir });
 
-        dbi().with_record<sys_db_info>(
-            [&](auto& info) {
-                bool modified = false;
-
-                if (info.default_env.empty()) {
-                    info.default_env = name;
-                    modified = true;
-                }
-
-                return modified;
-            }
-        );
+        if (!has_var("default_env")) {
+            var("default_env", name);
+        }
     };
 
     dbi().exec_write(tx_cb);
@@ -97,6 +107,14 @@ sys_db::delete_env(const std::string& name)
 
 std::string
 sys_db::default_env() const
+{}
+
+void
+sys_db::load_info()
+{}
+
+void
+sys_db::save_info()
 {}
 
 }

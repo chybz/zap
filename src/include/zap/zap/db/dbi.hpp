@@ -25,6 +25,9 @@ struct dbi : storage_base
     : db_(StorageSpec::make(file))
     {}
 
+    virtual ~dbi()
+    {}
+
     static
     storage_ptr new_storage(const std::string& file)
     { return std::make_unique<dbi>(file); }

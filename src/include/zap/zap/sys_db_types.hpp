@@ -4,9 +4,22 @@
 
 namespace zap {
 
+struct sys_db_info_val
+{
+    std::string name;
+    std::string value;
+};
+
 struct sys_db_info
 {
-    std::string default_env;
+    using val_map = std::unordered_map<std::string, std::string>;
+
+    bool contains(const std::string& name) const;
+
+    std::string& operator[](const std::string& name);
+    const std::string& operator[](const std::string& name) const;
+
+    val_map vm;
 };
 
 struct sys_db_env

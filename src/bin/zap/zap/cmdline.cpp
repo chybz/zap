@@ -153,7 +153,7 @@ parse_env(cmdline& cl, const zap::strings& cmd_args)
 
     set_opt(args.at("<name>"), opts.name);
 
-    cl.ep = new_env();
+    cl.ep = new_env(env_opts{});
     cl.cp = new_command<zap::commands::env>(cl.env(), opts);
 }
 
@@ -221,7 +221,6 @@ parse(int ac, char** av)
         get_parser(cmd)(cl, cmd_args);
     }
 
-    cl.exit = true;
     return cl;
 }
 
