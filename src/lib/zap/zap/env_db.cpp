@@ -64,4 +64,22 @@ env_db::init(const std::string& dir)
     db().sync_schema();
 }
 
+env_db_pkgs
+env_db::packages()
+{
+    env_db_pkgs pkgs;
+
+    auto tx_cb = [&](zap::scope& scope) {
+        using namespace sqlite_orm;
+
+        pkgs = db().get_all<env_db_pkg>(
+            order_by(&env_db_pkg::name)
+        );
+    };
+
+    dbi().exec_read(tx_cb);
+
+    return pkgs;
+}
+
 }

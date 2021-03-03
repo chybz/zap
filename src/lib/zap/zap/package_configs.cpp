@@ -1,3 +1,5 @@
+#include <iterator>
+
 #include <zap/package_configs.hpp>
 
 namespace zap {
@@ -59,5 +61,68 @@ package_configs::env() const
 const std::string&
 package_configs::root() const
 { return root_; }
+
+strings
+package_configs::make_config_paths(
+    const std::string& lib_dir,
+    const std::string& conf_dir
+) const
+{
+    strings paths;
+
+    auto env_conf_dirs = e_.toolchain().make_arch_dirs(
+        e_.root(), lib_dir, conf_dir
+    );
+
+    // conf_dir is something like: pkgconfig or cmake
+    if (root_ != e_.root()) {
+        auto stage_base = zap::cat_dir(root_, e_.root());
+
+        if (directory_exists(stage_base)) {
+            // We are loading from a staging directory
+            auto stage_conf_dirs = e_.toolchain().make_arch_dirs(
+                stage_base, lib_dir, conf_dir
+            );
+
+            push_config_paths(paths, stage_conf_dirs);
+        } else {
+            // Unrelated...
+            auto conf_dirs = e_.toolchain().make_arch_dirs(
+                root_, lib_dir, conf_dir
+            );
+
+            push_config_paths(paths, conf_dirs);
+        }
+    }
+
+    push_config_paths(paths, env_conf_dirs);
+
+    return paths;
+}
+
+void
+package_configs::set_config_paths(
+    const std::string& lib_dir,
+    const std::string& conf_dir
+)
+{
+    auto paths = make_config_paths(lib_dir, conf_dir);
+
+    config_paths_ = std::move(paths);
+}
+
+const strings&
+package_configs::config_paths() const
+{ return config_paths_; }
+
+void
+package_configs::push_config_paths(strings& to, strings& from) const
+{
+    to.insert(
+        to.end(),
+        std::make_move_iterator(from.begin()),
+        std::make_move_iterator(from.end())
+    );
+}
 
 }

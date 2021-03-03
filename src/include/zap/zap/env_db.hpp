@@ -18,6 +18,8 @@ public:
 
     void init(const std::string& dir);
 
+    env_db_pkgs packages();
+
 private:
     auto& db();
     auto& dbi();

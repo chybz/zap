@@ -1,4 +1,5 @@
 #include <zap/commands/env.hpp>
+#include <zap/env_db.hpp>
 #include <zap/text/table.hpp>
 #include <zap/log.hpp>
 
@@ -25,6 +26,9 @@ env::operator()()
         case env_cmd::ls_env:
         ls_env();
         break;
+        case env_cmd::ls_pkgs:
+        ls_pkgs();
+        break;
     }
 }
 
@@ -39,9 +43,12 @@ env::new_env()
 void
 env::delete_env()
 {
-    command::env().sys_db().delete_env(opts_.name);
+    auto e = command::env().sys_db().delete_env(opts_.name);
 
-    zap::log("environment ", opts_.name, " deleted");
+    zap::log(
+        "environment ", opts_.name, " deleted\n",
+        "you can remove ", e.root
+    );
 }
 
 void
@@ -63,6 +70,22 @@ env::ls_env()
         }
 
         t.add_row(e.name, e.root);
+    }
+
+    std::cout << t << std::endl;
+}
+
+void
+env::ls_pkgs()
+{
+    auto e = command::env().sys_db().get_env(opts_.name);
+
+    zap::env_db edb(e.root);
+
+    zap::text::table t("name", "version");
+
+    for (auto& p : edb.packages()) {
+        t.add_row(p.name, p.version);
     }
 
     std::cout << t << std::endl;

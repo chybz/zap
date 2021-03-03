@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <memory>
 
 #include <zap/env.hpp>
@@ -15,7 +16,7 @@ public:
 
     virtual void configure() const = 0;
     virtual void build() const = 0;
-    virtual void install() const = 0;
+    virtual const std::string& install() const = 0;
 
 protected:
     const env& e_;
@@ -32,7 +33,7 @@ public:
 
     void configure() const;
     void build() const;
-    void install() const;
+    const std::string& install() const;
 
 private:
     builder_ptr bp_;

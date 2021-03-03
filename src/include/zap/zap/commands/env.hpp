@@ -8,7 +8,8 @@ enum class env_cmd
 {
     new_env,
     delete_env,
-    ls_env
+    ls_env,
+    ls_pkgs
 };
 
 struct env_opts
@@ -30,6 +31,7 @@ private:
     void new_env();
     void delete_env();
     void ls_env();
+    void ls_pkgs();
 
     env_opts opts_;
 };

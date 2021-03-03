@@ -17,6 +17,7 @@ namespace zap {
 struct env_opts
 {
     std::string name;
+    bool no_init = false;
 };
 
 class env
@@ -24,8 +25,6 @@ class env
 public:
     env(const env_opts& opts);
     virtual ~env();
-
-    void init(const std::string& name);
 
     zap::sys_db& sys_db() const;
     zap::env_db& env_db() const;

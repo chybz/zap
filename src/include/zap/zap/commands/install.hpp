@@ -20,11 +20,11 @@ public:
     install(const zap::env& e, const install_opts& opts);
     virtual ~install();
 
-    std::string target;
-
     void operator()() final;
 
 private:
+    void install_target(const std::string& target);
+
     install_opts opts_;
 };
 

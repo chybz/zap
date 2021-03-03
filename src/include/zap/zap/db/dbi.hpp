@@ -41,18 +41,20 @@ struct dbi : storage_base
     { return get(p).db_; }
 
     template <typename Record, typename Value>
-    void ensure_exists(const std::string& label, Value&& v)
+    Record ensure_exists(const std::string& label, Value&& v)
     {
         using namespace sqlite_orm;
 
-        auto count = db_.template count<Record>(
+        auto rows = db_.template get_all<Record>(
             where(c(&Record::name) == v)
         );
 
         die_if(
-            count == 0,
+            rows.empty(),
             label, " '", v, "' doesn't exist"
         );
+
+        return rows.front();
     }
 
     template <typename Record, typename Value>

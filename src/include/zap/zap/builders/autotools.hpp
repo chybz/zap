@@ -13,7 +13,7 @@ public:
 
     void configure() const final;
     void build() const final;
-    void install() const final;
+    const std::string& install() const final;
 
 private:
     zap::prog make_;

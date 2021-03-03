@@ -18,11 +18,13 @@ public:
     bool has_var(const std::string& name) const;
     const std::string& var(const std::string& name) const;
 
+    bool has_default_env() const;
     bool is_default_env(const std::string& name) const;
     std::string default_env() const;
 
     void new_env(const std::string& name, const std::string& root);
-    void delete_env(const std::string& name);
+    sys_db_env delete_env(const std::string& name);
+    sys_db_env get_env(const std::string& name);
     sys_db_envs ls_env(const std::string& name = {});
 
 private:

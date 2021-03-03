@@ -110,6 +110,12 @@ location_re_(detail::location_pat()),
 link_lib_re_(detail::link_lib_pat()),
 inc_dirs_re_(detail::inc_dirs_pat())
 {
+    set_config_paths("lib", "cmake");
+
+    auto pcpaths = make_config_paths("lib", "pkgconfig");
+
+    cmake_.env["PKG_CONFIG_PATH"] = join(":", pcpaths);
+
     load_configs();
 }
 
@@ -173,7 +179,7 @@ void
 configs::load_configs()
 {
     cmake_.push_args({
-        "-DCMAKE_PREFIX_PATH=" + root_,
+        "-DCMAKE_PREFIX_PATH=" + join(";", config_paths()),
         "-DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON"
     });
 

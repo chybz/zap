@@ -13,20 +13,25 @@ env::env(const env_opts& opts)
 : opts_(opts),
 sys_db_ptr_(new_sys_db())
 {
-    if (!opts_.name.empty()) {
+    if (opts_.name.empty() && !opts_.no_init) {
+        die_unless(
+            sys_db().has_default_env(),
+            "no default environment"
+        );
+
+        auto de = sys_db().get_env(sys_db().default_env());
+
+        opts_.name = de.name;
+        root_ = de.root;
+    }
+
+    if (!opts_.no_init) {
         init();
     }
 }
 
 env::~env()
 {}
-
-void
-env::init(const std::string& name)
-{
-    opts_.name = name;
-    init();
-}
 
 zap::sys_db&
 env::sys_db() const
@@ -134,7 +139,7 @@ env::init()
 {
     namespace fs = std::filesystem;
 
-    auto rootp = root_.empty() ? fs::current_path() : fs::path(root_);
+    auto rootp = fs::path(root_);
     auto buildp = rootp / "build";
 
     paths_.sm.emplace("root", rootp.string());
@@ -147,6 +152,7 @@ env::init()
     paths_.sm.emplace("work", (buildp / "work").string());
     paths_.sm.emplace("tmp", (buildp / "tmp").string());
 
+    env_db_ptr_ = new_env_db(paths_["root"]);
     toolchain_ptr_ = make_toolchain(paths_, executor());
 
     build_env_.emplace("CC", toolchain().cc_cmd());

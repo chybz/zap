@@ -27,6 +27,10 @@ configs::configs(const zap::env& e, const std::string& root)
 : package_configs(e, root, zap::package_config_type::pkg_config),
 pc_{ zap::find_cmd("pkg-config") }
 {
+    set_config_paths("lib", "pkgconfig");
+
+    pc_.env["PKG_CONFIG_PATH"] = join(":", config_paths());
+
     load_configs();
 }
 
@@ -110,9 +114,8 @@ configs::load_configs()
     using pool = zap::async_pool<decltype(cb), detail::config_context>;
 
     pool ap(env().executor(), cb);
-    const auto& tc = env().toolchain();
 
-    for (const auto& dir : tc.make_arch_dirs(root(), "lib", "pkgconfig")) {
+    for (const auto& dir : config_paths()) {
         for (auto& pc : find_files(dir, ".*\\.pc")) {
             ap.async(std::move(pc));
         }

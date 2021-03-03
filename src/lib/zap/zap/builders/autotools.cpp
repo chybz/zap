@@ -44,7 +44,7 @@ autotools::build() const
     );
 }
 
-void
+const std::string&
 autotools::install() const
 {
     make_.run(
@@ -55,6 +55,8 @@ autotools::install() const
         },
         e_.build_env()
     );
+
+    return stage_dir_;
 }
 
 }

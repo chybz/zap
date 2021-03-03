@@ -37,6 +37,7 @@ R"(usage:
     zap env new <name> <directory>
     zap env delete <name>
     zap env ls [<name>]
+    zap env lspkgs [<name>]
 
 Manages environments.
 )";
@@ -101,38 +102,73 @@ print_error(const std::string& what, const std::string& help)
 
 template <typename T, typename Callable>
 void
-set_opt(const docopt::value& val, T& v, Callable&& cb)
+set_opt(
+    const docopt::Options& opts,
+    const std::string& key,
+    T& v,
+    Callable&& cb
+)
 {
-    if (!val) {
+    if (!opts.contains(key)) {
         return;
     }
 
-    v = cb();
+    if (!opts.at(key)) {
+        return;
+    }
+
+    v = cb(opts.at(key));
 }
 
 void
-set_opt(const docopt::value& val, bool& v)
-{ set_opt(val, v, [&] { return val.asBool(); }); }
+set_opt(
+    const docopt::Options& opts,
+    const std::string& key,
+    bool& v
+)
+{ set_opt(opts, key, v, [&](const auto& val) { return val.asBool(); }); }
 
 void
-set_opt(const docopt::value& val, std::size_t& v)
-{ set_opt(val, v, [&] { return val.asLong(); }); }
+set_opt(
+    const docopt::Options& opts,
+    const std::string& key,
+    std::size_t& v
+)
+{ set_opt(opts, key, v, [&](const auto& val) { return val.asLong(); }); }
 
 void
-set_opt(const docopt::value& val, std::string& v)
-{ set_opt(val, v, [&] { return val.asString(); }); }
+set_opt(
+    const docopt::Options& opts,
+    const std::string& key,
+    std::string& v
+)
+{ set_opt(opts, key, v, [&](const auto& val) { return val.asString(); }); }
 
 void
-set_opt(const docopt::value& val, strings& v)
-{ set_opt(val, v, [&] { return val.asStringList(); }); }
+set_opt(
+    const docopt::Options& opts,
+    const std::string& key,
+    strings& v
+)
+{ set_opt(opts, key, v, [&](const auto& val) { return val.asStringList(); }); }
 
 void
-set_env(cmdline& cl, const docopt::Options& args)
+set_env(
+    cmdline& cl,
+    const docopt::Options& args,
+    const std::string& key
+)
 {
-    if (args.at("<env>")) {
-        cl.env_name = args.at("<env>").asString();
-        cl.ep = new_env(env_opts{ .name = cl.env_name });
+    env_opts opts;
+
+    if (args.contains(key)) {
+        if (args.at(key)) {
+            cl.env_name = args.at(key).asString();
+            opts.name = cl.env_name;
+        }
     }
+
+    cl.ep = new_env(opts);
 }
 
 void
@@ -144,16 +180,18 @@ parse_env(cmdline& cl, const zap::strings& cmd_args)
 
     if (args["new"].asBool()) {
         opts.cmd = zap::commands::env_cmd::new_env;
-        set_opt(args.at("<directory>"), opts.directory);
+        set_opt(args, "<directory>", opts.directory);
     } else if (args["delete"].asBool()) {
         opts.cmd = zap::commands::env_cmd::delete_env;
     } else if (args["ls"].asBool()) {
         opts.cmd = zap::commands::env_cmd::ls_env;
+    } else if (args["lspkgs"].asBool()) {
+        opts.cmd = zap::commands::env_cmd::ls_pkgs;
     }
 
-    set_opt(args.at("<name>"), opts.name);
+    set_opt(args, "<name>", opts.name);
 
-    cl.ep = new_env(env_opts{});
+    cl.ep = new_env(env_opts{ .no_init = true });
     cl.cp = new_command<zap::commands::env>(cl.env(), opts);
 }
 
@@ -162,13 +200,13 @@ parse_install(cmdline& cl, const zap::strings& cmd_args)
 {
     auto args = docopt::docopt(install_usage, cmd_args, true);
 
-    set_env(cl, args);
+    set_env(cl, args, "-e");
 
     zap::commands::install_opts opts;
 
-    set_opt(args.at("<file>"), opts.file);
-    set_opt(args.at("<url>"), opts.target);
-    set_opt(args.at("<args>"), opts.args);
+    set_opt(args, "<file>", opts.file);
+    set_opt(args, "<url>", opts.target);
+    set_opt(args, "<args>", opts.args);
 
     cl.cp = new_command<zap::commands::install>(cl.env(), opts);
 }

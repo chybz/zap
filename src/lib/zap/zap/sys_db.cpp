@@ -1,5 +1,6 @@
 #include <zap/sys_db.hpp>
 #include <zap/db/dbi.hpp>
+#include <zap/env_db.hpp>
 #include <zap/utils.hpp>
 #include <zap/log.hpp>
 
@@ -81,13 +82,23 @@ sys_db::del_var(const std::string& name)
 { db().remove<sys_db_info_val>(name); }
 
 bool
+sys_db::has_default_env() const
+{ return has_var("default_env"); }
+
+bool
 sys_db::is_default_env(const std::string& name) const
+{ return has_default_env() && var("default_env") == name; }
+
+std::string
+sys_db::default_env() const
 {
-    return
-        has_var("default_env")
-        &&
-        var("default_env") == name
-        ;
+    std::string de;
+
+    if (has_default_env()) {
+        de = var("default_env");
+    }
+
+    return de;
 }
 
 void
@@ -103,6 +114,8 @@ sys_db::new_env(const std::string& name, const std::string& dir)
 
         scope.if_not_ok_rmpath(dir);
 
+        env_db edb(dir);
+
         dbi().ensure_not_exists<sys_db_env>("environment", name);
 
         db().insert(sys_db_env{ name, dir });
@@ -115,11 +128,13 @@ sys_db::new_env(const std::string& name, const std::string& dir)
     dbi().exec_write(tx_cb);
 }
 
-void
+sys_db_env
 sys_db::delete_env(const std::string& name)
 {
+    sys_db_env e;
+
     auto tx_cb = [&](zap::scope& scope) {
-        dbi().ensure_exists<sys_db_env>("environment", name);
+        e = dbi().ensure_exists<sys_db_env>("environment", name);
 
         db().remove<sys_db_env>(name);
 
@@ -129,6 +144,22 @@ sys_db::delete_env(const std::string& name)
     };
 
     dbi().exec_write(tx_cb);
+
+    return e;
+}
+
+sys_db_env
+sys_db::get_env(const std::string& name)
+{
+    sys_db_env e;
+
+    auto tx_cb = [&](zap::scope& scope) {
+        e = dbi().ensure_exists<sys_db_env>("environment", name);
+    };
+
+    dbi().exec_read(tx_cb);
+
+    return e;
 }
 
 sys_db_envs
@@ -153,18 +184,6 @@ sys_db::ls_env(const std::string& name)
     dbi().exec_read(tx_cb);
 
     return envs;
-}
-
-std::string
-sys_db::default_env() const
-{
-    std::string de;
-
-    if (has_var("default_env")) {
-        de = var("default_env");
-    }
-
-    return de;
 }
 
 void

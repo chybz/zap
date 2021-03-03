@@ -1,3 +1,5 @@
+#include <thread>
+
 #include <zap/builders/cmake.hpp>
 #include <zap/utils.hpp>
 
@@ -7,7 +9,6 @@ cmake::cmake(const zap::env& e, const archive_info& ai)
 : builder_base(e, ai)
 {
     cmake_.cmd = zap::find_cmd("cmake");
-    make_.cmd = zap::find_cmd("make");
     build_dir_ = cat_dir(ai.dir, "build");
     stage_dir_ = cat_dir(ai.dir, "stage");
 }
@@ -21,6 +22,7 @@ cmake::configure() const
     zap::mkpath(build_dir_);
 
     cmake_.run({
+        zap::cat("-DCMAKE_PREFIX_PATH=", e_["root"]),
         zap::cat("-DCMAKE_INSTALL_PREFIX=", e_["root"]),
         "-S", ai_.source_dir, "-B", build_dir_
     });
@@ -30,18 +32,20 @@ void
 cmake::build() const
 {
     cmake_.run({
-       "--build", build_dir_
+       "--build", build_dir_,
+       "--parallel", std::to_string(std::thread::hardware_concurrency())
     });
 }
 
-void
+const std::string&
 cmake::install() const
 {
-    make_.run({
-        "-C", build_dir_,
-        zap::cat("DESTDIR=", stage_dir_),
-        "install"
-    });
+    cmake_.run(
+        { "--install", build_dir_ },
+        { { "DESTDIR", stage_dir_ } }
+    );
+
+    return stage_dir_;
 }
 
 }

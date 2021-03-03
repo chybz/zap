@@ -48,10 +48,25 @@ protected:
     const zap::env& env() const;
     const std::string& root() const;
 
+    strings make_config_paths(
+        const std::string& lib_dir,
+        const std::string& conf_dir
+    ) const;
+
+    void set_config_paths(
+        const std::string& lib_dir,
+        const std::string& conf_dir
+    );
+
+    const strings& config_paths() const;
+
 private:
+    void push_config_paths(strings& to, strings& from) const;
+
     const zap::env& e_;
     std::string root_;
     package_config_type type_;
+    strings config_paths_;
 };
 
 }

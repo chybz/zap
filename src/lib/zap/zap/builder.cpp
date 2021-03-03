@@ -18,7 +18,7 @@ builder::builder(const zap::env& e, const archive_info& ai)
 {
     if (file_exists(cat_file(ai.source_dir, "CMakeLists.txt"))) {
         bp_ = std::make_unique<zap::builders::cmake>(e, ai);
-    } else if (file_exists(cat_file(ai.source_dir, "autogen.sh"))) {
+    } else if (file_exists(cat_file(ai.source_dir, "configure"))) {
         bp_ = std::make_unique<zap::builders::autotools>(e, ai);
     } else {
         die("unknown build system in dir: ", ai.source_dir);
@@ -36,8 +36,8 @@ void
 builder::build() const
 { bp_->build(); }
 
-void
+const std::string&
 builder::install() const
-{ bp_->install(); }
+{ return bp_->install(); }
 
 }
