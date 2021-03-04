@@ -19,12 +19,27 @@ public:
     toolchain(const zap::env_paths& ep, toolchain_info&& ti, zap::executor& e);
     virtual ~toolchain();
 
+    bool link_shared() const;
+    bool link_static() const;
+
     const std::string& target_arch() const;
+
+    void make_arch_dirs(
+        strings& dirs,
+        const std::string& root,
+        const std::string& pre,
+        const std::string& post = {}
+    ) const;
 
     strings make_arch_dirs(
         const std::string& root,
         const std::string& pre,
         const std::string& post = {}
+    ) const;
+
+    strings make_arch_conf_dirs(
+        const std::string& root,
+        const std::string& post
     ) const;
 
     const prog& cc() const;

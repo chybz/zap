@@ -110,9 +110,9 @@ location_re_(detail::location_pat()),
 link_lib_re_(detail::link_lib_pat()),
 inc_dirs_re_(detail::inc_dirs_pat())
 {
-    set_config_paths("lib", "cmake");
+    set_config_paths("cmake");
 
-    auto pcpaths = make_config_paths("lib", "pkgconfig");
+    auto pcpaths = make_config_paths("pkgconfig");
 
     cmake_.env["PKG_CONFIG_PATH"] = join(":", pcpaths);
 
@@ -211,7 +211,7 @@ configs::load_configs()
     zap::async_pool<decltype(cb), config_context> ap(env().executor(), cb);
     const auto& tc = env().toolchain();
 
-    for (const auto& dir : tc.make_arch_dirs(root(), "lib", "cmake")) {
+    for (const auto& dir : tc.make_arch_conf_dirs(root(), "cmake")) {
         for (const auto& mdir : find_dirs(dir)) {
             auto adir = cat_dir(dir, mdir);
             ap.async(std::move(adir));

@@ -44,8 +44,8 @@ autotools::build() const
     });
 }
 
-const std::string&
-autotools::install() const
+void
+autotools::install(zap::package::manifest& pm) const
 {
     make_.run({
         .args = {
@@ -55,8 +55,6 @@ autotools::install() const
         },
         .env = e_.build_env()
     });
-
-    return stage_dir_;
 }
 
 }

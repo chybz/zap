@@ -5,6 +5,7 @@
 
 #include <zap/env.hpp>
 #include <zap/archive_info.hpp>
+#include <zap/package/manifest.hpp>
 
 namespace zap {
 
@@ -16,7 +17,7 @@ public:
 
     virtual void configure() const = 0;
     virtual void build() const = 0;
-    virtual const std::string& install() const = 0;
+    virtual void install(zap::package::manifest& pm) const = 0;
 
 protected:
     const env& e_;
@@ -33,7 +34,7 @@ public:
 
     void configure() const;
     void build() const;
-    const std::string& install() const;
+    void install(zap::package::manifest& pm) const;
 
 private:
     builder_ptr bp_;

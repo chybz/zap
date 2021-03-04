@@ -1,6 +1,8 @@
 #pragma once
 
+#include <utility>
 #include <string>
+#include <vector>
 #include <unordered_map>
 
 #include <zap/types.hpp>
@@ -11,17 +13,26 @@ struct library
 {
     std::string name;
     std::string alias;
-    zap::string_set headers;
+    std::string interface_dir;
 };
 
-using library_map = std::unordered_map<std::string, library>;
+using libraries = std::vector<library>;
+using library_map = std::unordered_map<std::string, std::size_t>;
 
 struct project
 {
     std::string dir;
     std::string name;
-    library_map libs;
+    libraries libs;
+    library_map map;
     zap::string_map aliases;
+
+    void clear();
+
+    bool has_library(const std::string& name) const;
+
+    void add_library(const std::string& name);
+    void add_library(const std::string& name, const std::string& target);
 
     library& get_library(const std::string& name);
 };

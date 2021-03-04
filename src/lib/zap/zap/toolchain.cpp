@@ -61,9 +61,34 @@ executor_(e)
 toolchain::~toolchain()
 {}
 
+bool
+toolchain::link_shared() const
+{ return info_.link_shared(); }
+
+bool
+toolchain::link_static() const
+{ return info_.link_static(); }
+
 const std::string&
 toolchain::target_arch() const
 { return target_arch_; }
+
+void
+toolchain::make_arch_dirs(
+    strings& dirs,
+    const std::string& root,
+    const std::string& pre,
+    const std::string& post
+) const
+{
+    if (post.empty()) {
+        dirs.emplace_back(cat_dir(root, pre));
+        dirs.emplace_back(cat_dir(root, pre, target_arch_));
+    } else {
+        dirs.emplace_back(cat_dir(root, pre, post));
+        dirs.emplace_back(cat_dir(root, pre, target_arch_, post));
+    }
+}
 
 strings
 toolchain::make_arch_dirs(
@@ -74,13 +99,21 @@ toolchain::make_arch_dirs(
 {
     strings dirs;
 
-    if (post.empty()) {
-        dirs.emplace_back(cat_dir(root, pre));
-        dirs.emplace_back(cat_dir(root, pre, target_arch_));
-    } else {
-        dirs.emplace_back(cat_dir(root, pre, post));
-        dirs.emplace_back(cat_dir(root, pre, target_arch_, post));
-    }
+    make_arch_dirs(dirs, root, pre, post);
+
+    return dirs;
+}
+
+strings
+toolchain::make_arch_conf_dirs(
+    const std::string& root,
+    const std::string& post
+) const
+{
+    strings dirs;
+
+    make_arch_dirs(dirs, root, "lib", post);
+    make_arch_dirs(dirs, root, "share", post);
 
     return dirs;
 }

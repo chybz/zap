@@ -1,11 +1,13 @@
 #pragma once
 
+#include <string>
+
 namespace zap::package {
 
 class manifest
 {
 public:
-    manifest(const std::string& dir)
+    manifest();
     virtual ~manifest();
 
 private:

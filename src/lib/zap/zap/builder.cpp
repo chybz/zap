@@ -36,8 +36,8 @@ void
 builder::build() const
 { bp_->build(); }
 
-const std::string&
-builder::install() const
-{ return bp_->install(); }
+void
+builder::install(zap::package::manifest& pm) const
+{ bp_->install(pm); }
 
 }

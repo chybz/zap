@@ -2,6 +2,9 @@
 
 #include <zap/builders/cmake.hpp>
 #include <zap/utils.hpp>
+#include <zap/cmake/configs.hpp>
+#include <zap/cmake/trace_parser.hpp>
+#include <zap/pkg_config/configs.hpp>
 
 namespace zap::builders {
 
@@ -9,8 +12,9 @@ cmake::cmake(const zap::env& e, const archive_info& ai)
 : builder_base(e, ai)
 {
     cmake_.cmd = zap::find_cmd("cmake");
-    build_dir_ = cat_dir(ai.dir, "build");
-    stage_dir_ = cat_dir(ai.dir, "stage");
+    build_dir_ = zap::cat_dir(ai.dir, "build");
+    stage_dir_ = zap::cat_dir(ai.dir, "stage");
+    trace_file_ = zap::cat_file(build_dir_, "zap-trace.json");
 }
 
 cmake::~cmake()
@@ -25,7 +29,12 @@ cmake::configure() const
         .args = {
             zap::cat("-DCMAKE_PREFIX_PATH=", e_["root"]),
             zap::cat("-DCMAKE_INSTALL_PREFIX=", e_["root"]),
-            "-S", ai_.source_dir, "-B", build_dir_
+            "-S", ai_.source_dir,
+            "-B", build_dir_,
+            "-Wno-dev", // trace mode vomits...
+            "--trace-expand",
+            zap::cat("--trace-redirect=", trace_file_),
+            "--trace-format=json-v1"
         }
     });
 }
@@ -41,15 +50,21 @@ cmake::build() const
     });
 }
 
-const std::string&
-cmake::install() const
+void
+cmake::install(zap::package::manifest& pm) const
 {
     cmake_.run({
         .args = { "--install", build_dir_ },
         .env = { { "DESTDIR", stage_dir_ } }
     });
 
-    return stage_dir_;
+    zap::cmake::trace_parser tp(env().toolchain());
+    zap::cmake::configs cmc(e_, stage_dir_);
+    zap::pkg_config::configs pcc(e_, stage_dir_);
+
+    auto p = tp.parse(ai_.source_dir, trace_file_);
+
+    std::cout << "WHOAA" << std::endl;
 }
 
 }

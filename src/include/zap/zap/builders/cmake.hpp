@@ -13,13 +13,14 @@ public:
 
     void configure() const final;
     void build() const final;
-    const std::string& install() const final;
+    void install(zap::package::manifest& pm) const final;
 
 private:
     zap::prog cmake_;
     zap::prog make_;
     std::string build_dir_;
     std::string stage_dir_;
+    std::string trace_file_;
 };
 
 }

@@ -153,6 +153,7 @@ env::init()
     paths_.sm.emplace("tmp", (buildp / "tmp").string());
 
     env_db_ptr_ = new_env_db(paths_["root"]);
+    executor_ptr_ = std::make_unique<zap::executor>();
     toolchain_ptr_ = make_toolchain(paths_, executor());
 
     build_env_.emplace("CC", toolchain().cc_cmd());

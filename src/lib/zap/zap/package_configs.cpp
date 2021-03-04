@@ -63,33 +63,27 @@ package_configs::root() const
 { return root_; }
 
 strings
-package_configs::make_config_paths(
-    const std::string& lib_dir,
-    const std::string& conf_dir
-) const
+package_configs::make_config_paths(const std::string& conf_dir) const
 {
     strings paths;
+    const auto& tc = e_.toolchain();
 
-    auto env_conf_dirs = e_.toolchain().make_arch_dirs(
-        e_.root(), lib_dir, conf_dir
-    );
+    auto env_conf_dirs = tc.make_arch_conf_dirs(e_.root(), conf_dir);
 
     // conf_dir is something like: pkgconfig or cmake
     if (root_ != e_.root()) {
-        auto stage_base = zap::cat_dir(root_, e_.root());
+        auto stage_base = zap::cat(root_, e_.root());
 
         if (directory_exists(stage_base)) {
             // We are loading from a staging directory
-            auto stage_conf_dirs = e_.toolchain().make_arch_dirs(
-                stage_base, lib_dir, conf_dir
+            auto stage_conf_dirs = tc.make_arch_conf_dirs(
+                stage_base, conf_dir
             );
 
             push_config_paths(paths, stage_conf_dirs);
         } else {
             // Unrelated...
-            auto conf_dirs = e_.toolchain().make_arch_dirs(
-                root_, lib_dir, conf_dir
-            );
+            auto conf_dirs = tc.make_arch_conf_dirs(root_, conf_dir);
 
             push_config_paths(paths, conf_dirs);
         }
@@ -101,12 +95,9 @@ package_configs::make_config_paths(
 }
 
 void
-package_configs::set_config_paths(
-    const std::string& lib_dir,
-    const std::string& conf_dir
-)
+package_configs::set_config_paths(const std::string& conf_dir)
 {
-    auto paths = make_config_paths(lib_dir, conf_dir);
+    auto paths = make_config_paths(conf_dir);
 
     config_paths_ = std::move(paths);
 }

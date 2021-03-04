@@ -27,7 +27,7 @@ configs::configs(const zap::env& e, const std::string& root)
 : package_configs(e, root, zap::package_config_type::pkg_config),
 pc_{ zap::find_cmd("pkg-config") }
 {
-    set_config_paths("lib", "pkgconfig");
+    set_config_paths("pkgconfig");
 
     pc_.env["PKG_CONFIG_PATH"] = join(":", config_paths());
 
