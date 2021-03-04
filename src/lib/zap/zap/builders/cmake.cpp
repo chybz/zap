@@ -22,9 +22,11 @@ cmake::configure() const
     zap::mkpath(build_dir_);
 
     cmake_.run({
-        zap::cat("-DCMAKE_PREFIX_PATH=", e_["root"]),
-        zap::cat("-DCMAKE_INSTALL_PREFIX=", e_["root"]),
-        "-S", ai_.source_dir, "-B", build_dir_
+        .args = {
+            zap::cat("-DCMAKE_PREFIX_PATH=", e_["root"]),
+            zap::cat("-DCMAKE_INSTALL_PREFIX=", e_["root"]),
+            "-S", ai_.source_dir, "-B", build_dir_
+        }
     });
 }
 
@@ -32,18 +34,20 @@ void
 cmake::build() const
 {
     cmake_.run({
-       "--build", build_dir_,
-       "--parallel", std::to_string(std::thread::hardware_concurrency())
+        .args = {
+            "--build", build_dir_,
+            "--parallel", std::to_string(std::thread::hardware_concurrency())
+        }
     });
 }
 
 const std::string&
 cmake::install() const
 {
-    cmake_.run(
-        { "--install", build_dir_ },
-        { { "DESTDIR", stage_dir_ } }
-    );
+    cmake_.run({
+        .args = { "--install", build_dir_ },
+        .env = { { "DESTDIR", stage_dir_ } }
+    });
 
     return stage_dir_;
 }

@@ -24,13 +24,13 @@ autotools::configure() const
         [&] {
             zap::prog config{ zap::cat_file(ai_.source_dir, "configure") };
 
-            config.run(
-                {
+            config.run({
+                .args = {
                     zap::cat("--prefix=", e_["root"]),
                     "--enable-shared"
                 },
-                e_.build_env()
-            );
+                .env = e_.build_env()
+            });
         }
     );
 }
@@ -38,23 +38,23 @@ autotools::configure() const
 void
 autotools::build() const
 {
-    make_.run(
-        { "-C", build_dir_ },
-        e_.build_env()
-    );
+    make_.run({
+        .args = { "-C", build_dir_ },
+        .env = e_.build_env()
+    });
 }
 
 const std::string&
 autotools::install() const
 {
-    make_.run(
-        {
+    make_.run({
+        .args = {
             "-C", build_dir_,
             zap::cat("DESTDIR=", stage_dir_),
             "install"
         },
-        e_.build_env()
-    );
+        .env = e_.build_env()
+    });
 
     return stage_dir_;
 }

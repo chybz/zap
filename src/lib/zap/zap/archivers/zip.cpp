@@ -19,7 +19,7 @@ zip::verify() const
     bool ok = false;
 
     try {
-        unzip_.run({ "-qt", file_ });
+        unzip_.run({ .args = {"-qt", file_ } });
         ok = true;
     } catch (...) {
     }
@@ -33,7 +33,7 @@ zip::extract(const std::string& to) const
     bool ok = false;
 
     try {
-        unzip_.run({ "-q", "-d", to, file_ });
+        unzip_.run({ .args = { "-q", "-d", to, file_ } });
         ok = true;
     } catch (...) {
     }

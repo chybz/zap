@@ -234,7 +234,7 @@ void
 toolchain::find_libc_headers()
 {
     if (os_info().is_debian()) {
-        auto res = run("dpkg", { "-L", "libc6-dev" });
+        auto res = run("dpkg", { .args = { "-L", "libc6-dev" } });
         auto lines = res.get_lines();
 
         std::string hfilter{

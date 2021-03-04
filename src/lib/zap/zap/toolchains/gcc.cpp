@@ -21,7 +21,7 @@ gcc::gcc(
 : zap::toolchain(ep, std::forward<zap::toolchain_info>(ti), exec),
 extract_line_re_("(?:ZAP_SOURCE:)?\\s+(.*)\\s+\\\\?\n")
 {
-    set_target_arch(cxx().get_line({ "-dumpmachine" }));
+    set_target_arch(cxx().get_line({ .args = { "-dumpmachine" } }));
 
     scanner() = cxx();
 
@@ -67,7 +67,9 @@ gcc::scan_files(
     re2::RE2 header_re(header_pat);
 
     auto cb = [&](auto& ctx, const auto& dir, const auto& file) {
-        auto res = sc.run_silent_no_fail({ zap::cat_file(dir, file) });
+        auto res = sc.run_silent_no_fail(
+            { .args = { zap::cat_file(dir, file) } }
+        );
 
         extract_deps(header_re, res, ctx.deps);
     };
@@ -201,7 +203,7 @@ gcc::local_shared_lib_deps(
         "\\s+", zap::re_type::lib_link_name, " => .*"
     );
 
-    auto res = ldd().run_silent({ file });
+    auto res = ldd().run_silent({ .args = { file } });
 
     for (auto&& l : zap::split_and_map_lines(re, res.out)) {
         std::string sl{l};

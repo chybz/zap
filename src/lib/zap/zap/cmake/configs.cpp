@@ -344,7 +344,7 @@ configs::get_properties(
 
     write_file(ctx, module, cml);
 
-    auto res = cmake_.run_silent_no_fail({ "-S", dir, "-B", dir });
+    auto res = cmake_.run_silent_no_fail({ .args = { "-S", dir, "-B", dir } });
 
     parse_target_dirs(ctx, module, res.out);
     parse_target_location(ctx, module, res.out);

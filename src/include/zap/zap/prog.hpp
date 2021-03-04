@@ -78,18 +78,15 @@ struct prog
     void push_args(const strings& a);
     void clear_args();
 
-    prog_result run(const prog_opts& po) const;
+    prog_result run(const prog_opts& po = {}) const;
 
-    prog_result run(const strings& args) const;
-    prog_result run(const strings& args, const string_map& env) const;
-    prog_result run(const run_opts& opts = {}) const;
-    prog_result run_silent(const strings& args = {}) const;
-    prog_result run_no_fail(const strings& args = {}) const;
-    prog_result run_silent_no_fail(const strings& args = {}) const;
+    prog_result run_silent(const prog_opts& po = {}) const;
+    prog_result run_no_fail(const prog_opts& po = {}) const;
+    prog_result run_silent_no_fail(const prog_opts& po = {}) const;
 
-    std::string get_line(const strings& a = {}) const;
+    std::string get_line(const prog_opts& po = {}) const;
 
-    void read_lines(prog_lines_cb cb, const strings& a = {});
+    void read_lines(prog_lines_cb cb, const prog_opts& po = {});
 
 private:
     void handle_error(
@@ -104,9 +101,9 @@ zap::prog
 find_prog(const std::string& name);
 
 prog_result
-run(const std::string& cmd, const strings& args = {});
+run(const std::string& cmd, const prog_opts& po = {});
 
 std::string
-get_line(const std::string& cmd, const strings& args = {});
+get_line(const std::string& cmd, const prog_opts& po = {});
 
 }

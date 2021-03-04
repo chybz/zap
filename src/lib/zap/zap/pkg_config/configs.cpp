@@ -88,7 +88,7 @@ configs::load_configs()
 
         ctx.names.insert(pc_name);
 
-        auto pc_line = pc_.get_line({ pc_name });
+        auto pc_line = pc_.get_line({ .args = { pc_name } });
 
         inc_dir_set idirs;
         re2::StringPiece input(pc_line);
