@@ -40,14 +40,12 @@ struct dbi : storage_base
     db_type& get_db(storage_ptr& p)
     { return get(p).db_; }
 
-    template <typename Record, typename Value>
-    Record ensure_exists(const std::string& label, Value&& v)
+    template <typename Record, typename Col, typename Value>
+    Record ensure_exists(const std::string& label, Col&& col, Value&& v)
     {
         using namespace sqlite_orm;
 
-        auto rows = db_.template get_all<Record>(
-            where(c(&Record::name) == v)
-        );
+        auto rows = db_.template get_all<Record>(where(c(col) == v));
 
         die_if(
             rows.empty(),
@@ -57,14 +55,12 @@ struct dbi : storage_base
         return rows.front();
     }
 
-    template <typename Record, typename Value>
-    void ensure_not_exists(const std::string& label, Value&& v)
+    template <typename Record, typename Col, typename Value>
+    void ensure_not_exists(const std::string& label, Col&& col, Value&& v)
     {
         using namespace sqlite_orm;
 
-        auto count = db_.template count<Record>(
-            where(c(&Record::name) == v)
-        );
+        auto count = db_.template count<Record>(where(c(col) == v));
 
         die_if(
             count > 0,

@@ -23,7 +23,7 @@ build_interface_{ "$<BUILD_INTERFACE:" }
 trace_parser::~trace_parser()
 {}
 
-project
+void
 trace_parser::parse(
     const std::string& src_dir,
     const std::string& trace_file
@@ -38,17 +38,23 @@ trace_parser::parse(
 
     for (std::string line; std::getline(ifs, line); ) {
         if (zap::contains(line, al)) {
-            parse_library(p, line);
+            parse_library(line);
         } else if (zap::contains(line, tid)) {
-            parse_library_includes(p, line);
+            parse_library_includes(src_dir, line);
         }
     }
-
-    return p;
 }
 
+const project&
+trace_parser::static_project() const
+{ return static_; }
+
+const project&
+trace_parser::shared_project() const
+{ return shared_; }
+
 void
-trace_parser::parse_library(project& p, const std::string& line)
+trace_parser::parse_library(const std::string& line)
 {
     auto cmd = parse_cmd(line);
 
@@ -60,14 +66,15 @@ trace_parser::parse_library(project& p, const std::string& line)
         // SHARED, STATIC, INTERFACE...
         die_unless(cmd.args.size() > 1, "invalid add_library");
 
-        if (cmd.has("INTERFACE")) {
+        if (cmd.has("STATIC")) {
+            static_.add_library(cmd.args[0]);
+        } else if (cmd.has("SHARED")) {
+            shared_.add_library(cmd.args[0]);
+        } else {
+            // INTERFACE or unspecified, valid for both schemes
             static_.add_library(cmd.args[0]);
             shared_.add_library(cmd.args[0]);
-        } else if (cmd.has("STATIC")) {
-
         }
-
-        p.add_library(cmd.args[0]);
     } else {
         die_unless(cmd.args.size() == 3, "invalid add_library ALIAS");
 
@@ -76,11 +83,12 @@ trace_parser::parse_library(project& p, const std::string& line)
 }
 
 void
-trace_parser::parse_library_includes(project& p, const std::string& line)
+trace_parser::parse_library_includes(
+    const std::string& src_dir,
+    const std::string& line
+)
 {
     auto cmd = parse_cmd(line);
-
-    auto& l = p.get_library(cmd.args[0]);
 
     for (const auto& a : cmd.args) {
         if (a.starts_with(build_interface_)) {
@@ -91,8 +99,8 @@ trace_parser::parse_library_includes(project& p, const std::string& line)
 
             auto inc_dir = zap::fullpath(dir);
 
-            if (inc_dir.starts_with(p.dir)) {
-                l.interface_dir = inc_dir;
+            if (inc_dir.starts_with(src_dir)) {
+                set_library_interface(cmd.args[0], inc_dir);
             }
         }
     }
@@ -100,15 +108,7 @@ trace_parser::parse_library_includes(project& p, const std::string& line)
 
 bool
 trace_parser::ignore_library(const cmd& c) const
-{
-    return
-        cmd.has("IMPORTED")
-        ||
-        cmd.has("OBJECT")
-        ||
-        cmd.has("MODULE")
-        ;
-}
+{ return c.has("IMPORTED") || c.has("OBJECT") || c.has("MODULE"); }
 
 cmd
 trace_parser::parse_cmd(const std::string& line) const
@@ -156,6 +156,30 @@ trace_parser::add_alias(
     }
 
     p.add_library(from, to);
+}
+
+void
+trace_parser::set_library_interface(
+    const std::string& name,
+    const std::string& dir
+)
+{
+    set_library_interface(static_, name, dir);
+    set_library_interface(shared_, name, dir);
+}
+
+void
+trace_parser::set_library_interface(
+    project& p,
+    const std::string& name,
+    const std::string& dir
+)
+{
+    if (!p.has_library(name)) {
+        return;
+    }
+
+    p.get_library(name).interface_dir = dir;
 }
 
 void

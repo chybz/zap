@@ -58,11 +58,11 @@ cmake::install(zap::package::manifest& pm) const
         .env = { { "DESTDIR", stage_dir_ } }
     });
 
-    zap::cmake::trace_parser tp(env().toolchain());
+    zap::cmake::trace_parser tp(e_.toolchain());
     zap::cmake::configs cmc(e_, stage_dir_);
     zap::pkg_config::configs pcc(e_, stage_dir_);
 
-    auto p = tp.parse(ai_.source_dir, trace_file_);
+    tp.parse(ai_.source_dir, trace_file_);
 
     std::cout << "WHOAA" << std::endl;
 }

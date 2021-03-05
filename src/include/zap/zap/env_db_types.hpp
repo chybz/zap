@@ -26,4 +26,10 @@ struct env_db_pkg_files
     string_set files;
 };
 
+struct env_db_archive
+{
+    std::string url;
+    std::string file;
+};
+
 }

@@ -15,6 +15,13 @@ namespace zap {
 bool
 strip_header(const inc_dir_set& inc_dirs, std::string& header);
 
+enum class package_config_mode
+{
+    all_,
+    public_,
+    private_
+};
+
 class package_configs
 {
 public:
@@ -48,7 +55,10 @@ protected:
     const zap::env& env() const;
     const std::string& root() const;
 
-    strings make_config_paths(const std::string& conf_dir) const;
+    strings make_config_paths(
+        const std::string& conf_dir,
+        package_config_mode mode = package_config_mode::all_
+    ) const;
 
     void set_config_paths(const std::string& conf_dir);
 

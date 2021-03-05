@@ -115,7 +115,12 @@ configs::load_configs()
 
     pool ap(env().executor(), cb);
 
-    for (const auto& dir : config_paths()) {
+    auto conf_dirs = make_config_paths(
+        "pkgconfig",
+        package_config_mode::private_
+    );
+
+    for (const auto& dir : conf_dirs) {
         for (auto& pc : find_files(dir, ".*\\.pc")) {
             ap.async(std::move(pc));
         }

@@ -63,18 +63,28 @@ package_configs::root() const
 { return root_; }
 
 strings
-package_configs::make_config_paths(const std::string& conf_dir) const
+package_configs::make_config_paths(
+    const std::string& conf_dir,
+    package_config_mode mode
+) const
 {
     strings paths;
     const auto& tc = e_.toolchain();
-
-    auto env_conf_dirs = tc.make_arch_conf_dirs(e_.root(), conf_dir);
 
     // conf_dir is something like: pkgconfig or cmake
     if (root_ != e_.root()) {
         auto stage_base = zap::cat(root_, e_.root());
 
-        if (directory_exists(stage_base)) {
+        auto staging =
+            directory_exists(stage_base)
+            &&
+            (
+                mode == package_config_mode::all_
+                ||
+                mode == package_config_mode::private_
+            );
+
+        if (staging) {
             // We are loading from a staging directory
             auto stage_conf_dirs = tc.make_arch_conf_dirs(
                 stage_base, conf_dir
@@ -89,7 +99,14 @@ package_configs::make_config_paths(const std::string& conf_dir) const
         }
     }
 
-    push_config_paths(paths, env_conf_dirs);
+    if (
+        mode == package_config_mode::all_
+        ||
+        mode == package_config_mode::public_
+    ) {
+        auto env_conf_dirs = tc.make_arch_conf_dirs(e_.root(), conf_dir);
+        push_config_paths(paths, env_conf_dirs);
+    }
 
     return paths;
 }

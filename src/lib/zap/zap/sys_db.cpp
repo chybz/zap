@@ -116,7 +116,9 @@ sys_db::new_env(const std::string& name, const std::string& dir)
 
         env_db edb(dir);
 
-        dbi().ensure_not_exists<sys_db_env>("environment", name);
+        dbi().ensure_not_exists<sys_db_env>(
+            "environment", &sys_db_env::name, name
+        );
 
         db().insert(sys_db_env{ name, dir });
 
@@ -134,7 +136,9 @@ sys_db::delete_env(const std::string& name)
     sys_db_env e;
 
     auto tx_cb = [&](zap::scope& scope) {
-        e = dbi().ensure_exists<sys_db_env>("environment", name);
+        e = dbi().ensure_exists<sys_db_env>(
+            "environment", &sys_db_env::name, name
+        );
 
         db().remove<sys_db_env>(name);
 
@@ -154,7 +158,9 @@ sys_db::get_env(const std::string& name)
     sys_db_env e;
 
     auto tx_cb = [&](zap::scope& scope) {
-        e = dbi().ensure_exists<sys_db_env>("environment", name);
+        e = dbi().ensure_exists<sys_db_env>(
+            "environment", &sys_db_env::name, name
+        );
     };
 
     dbi().exec_read(tx_cb);

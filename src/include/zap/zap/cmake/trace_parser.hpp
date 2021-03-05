@@ -24,14 +24,21 @@ public:
 
     virtual ~trace_parser();
 
-    project parse(
+    void parse(
         const std::string& src_dir,
         const std::string& trace_file
     );
 
+    const project& static_project() const;
+    const project& shared_project() const;
+
 private:
-    void parse_library(project& p, const std::string& line);
-    void parse_library_includes(project& p, const std::string& line);
+    void parse_library(const std::string& line);
+
+    void parse_library_includes(
+        const std::string& src_dir,
+        const std::string& line
+    );
 
     bool ignore_library(const cmd& c) const;
 
@@ -44,6 +51,17 @@ private:
         project& p,
         const std::string& from,
         const std::string& to
+    );
+
+    void set_library_interface(
+        const std::string& name,
+        const std::string& dir
+    );
+
+    void set_library_interface(
+        project& p,
+        const std::string& name,
+        const std::string& dir
     );
 
     void set_project_dirs(const std::string& dir);

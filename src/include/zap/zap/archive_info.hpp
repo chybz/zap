@@ -10,6 +10,7 @@ struct archive_info
     std::string file;
     std::string dir;
     std::string source_dir;
+    std::string temp_dir;
     std::string name;
     std::string version;
 };

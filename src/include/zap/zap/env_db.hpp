@@ -20,6 +20,9 @@ public:
 
     env_db_pkgs packages();
 
+    bool has_archive(const std::string& url, env_db_archive& ar);
+    void add_archive(const env_db_archive& ar);
+
 private:
     auto& db();
     auto& dbi();

@@ -209,9 +209,13 @@ configs::load_configs()
     };
 
     zap::async_pool<decltype(cb), config_context> ap(env().executor(), cb);
-    const auto& tc = env().toolchain();
 
-    for (const auto& dir : tc.make_arch_conf_dirs(root(), "cmake")) {
+    auto conf_dirs = make_config_paths(
+        "cmake",
+        package_config_mode::private_
+    );
+
+    for (const auto& dir : conf_dirs) {
         for (const auto& mdir : find_dirs(dir)) {
             auto adir = cat_dir(dir, mdir);
             ap.async(std::move(adir));
@@ -307,11 +311,11 @@ configs::write_file(
     std::ofstream os(file);
 
     os
-        << "minimum_required(VERSION 3.12)\n"
+        << "cmake_minimum_required(VERSION 3.12)\n"
         << "project(detect_deps VERSION 1.0.0)\n"
         << "include(CMakePrintHelpers)\n"
         << "find_package(" << module << " CONFIG REQUIRED)\n"
-        << "print_properties(\n"
+        << "cmake_print_properties(\n"
         << "    TARGETS\n"
         ;
 
@@ -344,7 +348,7 @@ configs::get_properties(
 
     write_file(ctx, module, cml);
 
-    auto res = cmake_.run_silent_no_fail({ .args = { "-S", dir, "-B", dir } });
+    auto res = cmake_.run_silent({ .args = { "-S", dir, "-B", dir } });
 
     parse_target_dirs(ctx, module, res.out);
     parse_target_location(ctx, module, res.out);

@@ -45,6 +45,11 @@ public:
     archive_info download_archive(const std::string& url) const;
 
 private:
+    void download_archive(scope& s, archive_info& ai) const;
+    void extract_archive(scope& s, archive_info& ai) const;
+
+    void set_temp_dir(scope& s, archive_info& ai) const;
+
     void init();
     void make_fetcher();
 

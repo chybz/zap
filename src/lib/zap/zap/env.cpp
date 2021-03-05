@@ -74,37 +74,66 @@ env::download_archive(const std::string& url) const
 {
     scope s;
     archive_info ai{url};
+    env_db_archive ar;
+    bool download_needed = true;
 
     const auto& archives_dir = paths_["archives"];
 
     mkpath(archives_dir);
-    auto tdir = empty_temp_dir(archives_dir);
 
-    s.push_rmpath(tdir);
+    if (env_db().has_archive(url, ar)) {
+        ai.file = cat_file(archives_dir, ar.file);
 
-    fetcher().download(url, tdir);
+        download_needed = !file_exists(ai.file);
+    }
 
-    auto [ dlok, file ] = unique_file(tdir);
+    if (download_needed) {
+        download_archive(s, ai);
+    }
+
+    extract_archive(s, ai);
+
+    return ai;
+}
+
+void
+env::download_archive(scope& s, archive_info& ai) const
+{
+    const auto& archives_dir = paths_["archives"];
+
+    set_temp_dir(s, ai);
+
+    fetcher().download(ai.url, ai.temp_dir);
+
+    auto [ dlok, file ] = unique_file(ai.temp_dir);
 
     die_unless(
         dlok,
-        "unable to find dowloaded file in: ", tdir
+        "unable to find dowloaded file in: ", ai.temp_dir
     );
 
     ai.file = cat_file(archives_dir, file);
 
-    rename(cat_file(tdir, file), ai.file);
+    rename(cat_file(ai.temp_dir, file), ai.file);
+
+    env_db().add_archive(env_db_archive{ ai.url, file });
+}
+
+void
+env::extract_archive(scope& s, archive_info& ai) const
+{
+    set_temp_dir(s, ai);
 
     archiver ar(paths_, ai.file);
 
     ar.verify();
-    ar.extract(tdir);
+    ar.extract(ai.temp_dir);
 
-    auto [ exok, dir ] = unique_dir(tdir);
+    auto [ exok, dir ] = unique_dir(ai.temp_dir);
 
     die_unless(
         exok,
-        "archive extracts into multiple directories: ", url
+        "archive extracts into multiple directories: ", ai.url
     );
 
     auto pos = dir.rfind('-');
@@ -116,10 +145,9 @@ env::download_archive(const std::string& url) const
 
     ai.dir = cat_dir(paths_["work"], dir);
 
-    die_if(
-        directory_exists(ai.dir),
-        "source directory already exists: ", ai.dir
-    );
+    if (directory_exists(ai.dir)) {
+        rmpath(ai.dir);
+    }
 
     mkpath(ai.dir);
 
@@ -127,11 +155,19 @@ env::download_archive(const std::string& url) const
     ai.version = dir.substr(pos + 1);
     ai.source_dir = cat_dir(ai.dir, "src");
 
-    rename(cat_dir(tdir, dir), ai.source_dir);
+    rename(cat_dir(ai.temp_dir, dir), ai.source_dir);
+}
 
-    // TODO: register and cache
+void
+env::set_temp_dir(scope& s, archive_info& ai) const
+{
+    if (!ai.temp_dir.empty()) {
+        return;
+    }
 
-    return ai;
+    ai.temp_dir = empty_temp_dir(paths_["archives"]);
+
+    s.push_rmpath(ai.temp_dir);
 }
 
 void

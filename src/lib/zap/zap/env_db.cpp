@@ -21,6 +21,11 @@ struct env_db_spec
                 "pkg_files",
                 make_column("pkg", &env_db_pkg_file::pkg, primary_key()),
                 make_column("file", &env_db_pkg_file::file)
+            ).without_rowid(),
+            make_table(
+                "archives",
+                make_column("url", &env_db_archive::url, primary_key()),
+                make_column("file", &env_db_archive::file)
             ).without_rowid()
         );
     }
@@ -80,6 +85,43 @@ env_db::packages()
     dbi().exec_read(tx_cb);
 
     return pkgs;
+}
+
+bool
+env_db::has_archive(const std::string& url, env_db_archive& ar)
+{
+    bool ret = false;
+
+    auto tx_cb = [&](zap::scope& scope) {
+        using namespace sqlite_orm;
+
+        auto rows = db().get_all<env_db_archive>(
+            where(c(&env_db_archive::url) == url)
+        );
+
+        if (rows.size() == 1) {
+            ret = true;
+            ar = rows.front();
+        }
+    };
+
+    dbi().exec_read(tx_cb);
+
+    return ret;
+}
+
+void
+env_db::add_archive(const env_db_archive& ar)
+{
+    auto tx_cb = [&](zap::scope& scope) {
+        dbi().ensure_not_exists<env_db_archive>(
+            "archive", &env_db_archive::url, ar.url
+        );
+
+        db().insert(ar);
+    };
+
+    dbi().exec_write(tx_cb);
 }
 
 }
