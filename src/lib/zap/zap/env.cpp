@@ -179,6 +179,7 @@ env::init()
     auto buildp = rootp / "build";
 
     paths_.sm.emplace("root", rootp.string());
+    paths_.sm.emplace("etc", (rootp / "etc").string());
     paths_.sm.emplace("include", (rootp / "include").string());
     paths_.sm.emplace("lib", (rootp / "lib").string());
     paths_.sm.emplace("pkgconfig", (rootp / "lib" / "pkgconfig").string());
