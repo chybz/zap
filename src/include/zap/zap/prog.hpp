@@ -100,6 +100,9 @@ private:
 zap::prog
 find_prog(const std::string& name);
 
+void
+try_find_prog(const std::string& name, prog& p);
+
 prog_result
 run(const std::string& cmd, const prog_opts& po = {});
 

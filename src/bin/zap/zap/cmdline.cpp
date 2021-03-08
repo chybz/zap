@@ -10,6 +10,7 @@
 #include <zap/commands/configure.hpp>
 #include <zap/commands/build.hpp>
 #include <zap/commands/install.hpp>
+#include <zap/commands/analyze.hpp>
 #include <zap/log.hpp>
 
 namespace zap {
@@ -27,6 +28,7 @@ Commands:
     env          Manage environments
     install      Install dependencies
     configure    Configures project
+    analyze      Shows project targets and interfaces
 
 
 See 'zap help <command>' for more information on a specific command.
@@ -68,6 +70,17 @@ R"(usage:
 
 Options:
     -e <env>     Environment to use
+
+Configures a project to build with CMake.
+)";
+
+static const char analyze_usage[] =
+R"(usage:
+    zap analyze [-e <env>] <directory>
+
+Options:
+    -e <env>     Environment to use
+    <directory>  Project directory to analyze
 
 Configures a project to build with CMake.
 )";
@@ -211,12 +224,27 @@ parse_install(cmdline& cl, const zap::strings& cmd_args)
     cl.cp = new_command<zap::commands::install>(cl.env(), opts);
 }
 
+void
+parse_analyze(cmdline& cl, const zap::strings& cmd_args)
+{
+    auto args = docopt::docopt(analyze_usage, cmd_args, true);
+
+    set_env(cl, args, "-e");
+
+    zap::commands::analyze_opts opts;
+
+    set_opt(args, "<directory>", opts.directory);
+
+    cl.cp = new_command<zap::commands::analyze>(cl.env(), opts);
+}
+
 using parse_func = void(*)(cmdline&, const zap::strings&);
 using parse_map = std::unordered_map<std::string, parse_func>;
 
 parse_map parsers = {
     { "env", &parse_env },
-    { "install", &parse_install }
+    { "install", &parse_install },
+    { "analyze", &parse_analyze }
 };
 
 parse_func

@@ -4,6 +4,7 @@
 #include <zap/utils.hpp>
 #include <zap/cmake/configs.hpp>
 #include <zap/cmake/trace_parser.hpp>
+#include <zap/cmake/toolchain_file.hpp>
 #include <zap/pkg_config/configs.hpp>
 
 namespace zap::builders {
@@ -25,10 +26,20 @@ cmake::configure() const
 {
     zap::mkpath(build_dir_);
 
+    auto toolchain_file = zap::cat_file(
+        e_["etc"], "toolchains", "build.cmake"
+    );
+
+    if (!zap::file_exists(toolchain_file)) {
+        zap::mkfilepath(toolchain_file);
+        zap::cmake::toolchain_file::write(e_.toolchain(), toolchain_file);
+    }
+
     cmake_.run({
         .args = {
             zap::cat("-DCMAKE_PREFIX_PATH=", e_["root"]),
             zap::cat("-DCMAKE_INSTALL_PREFIX=", e_["root"]),
+            zap::cat("-DCMAKE_TOOLCHAIN_FILE=", toolchain_file),
             "-S", ai_.source_dir,
             "-B", build_dir_,
             "-Wno-dev", // trace mode vomits...
@@ -66,5 +77,9 @@ cmake::install(zap::package::manifest& pm) const
 
     std::cout << "WHOAA" << std::endl;
 }
+
+const std::string&
+cmake::trace_file() const
+{ return trace_file_; }
 
 }

@@ -326,6 +326,10 @@ zap::prog
 find_prog(const std::string& name)
 { return { find_cmd(name) }; }
 
+void
+try_find_prog(const std::string& name, prog& p)
+{ p.cmd = try_find_cmd(name); }
+
 prog_result
 run(const std::string& cmd, const prog_opts& po)
 { return find_prog(cmd).run_silent_no_fail(po); }

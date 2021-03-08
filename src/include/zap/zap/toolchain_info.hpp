@@ -14,6 +14,7 @@ struct toolchain_info
     prog nm;
     prog ldd;
     prog fetcher;
+    prog compiler_launcher;
     toolchain_type type = toolchain_type::unknown;
     std::string version;
     link_type link = link_type::link_shared;

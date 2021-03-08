@@ -48,6 +48,9 @@ public:
     const prog& ldd() const;
     const prog& scanner() const;
 
+    bool has_compiler_launcher() const;
+    const std::string& compiler_launcher_cmd() const;
+
     const std::string& cc_cmd() const;
     const std::string& cxx_cmd() const;
 

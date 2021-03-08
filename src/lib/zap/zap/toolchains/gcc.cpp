@@ -35,6 +35,8 @@ extract_line_re_("(?:ZAP_SOURCE:)?\\s+(.*)\\s+\\\\?\n")
 
     nm().push_args({ "-u", "-g" });
 
+    zap::try_find_prog("ccache", info_.compiler_launcher);
+
     find_std_headers();
 }
 

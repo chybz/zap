@@ -15,6 +15,8 @@ public:
     void build() const final;
     void install(zap::package::manifest& pm) const final;
 
+    const std::string& trace_file() const;
+
 private:
     zap::prog cmake_;
     zap::prog make_;

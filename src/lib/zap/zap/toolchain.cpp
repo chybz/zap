@@ -162,6 +162,14 @@ const prog&
 toolchain::scanner() const
 { return scanner_; }
 
+bool
+toolchain::has_compiler_launcher() const
+{ return !compiler_launcher_cmd().empty(); }
+
+const std::string&
+toolchain::compiler_launcher_cmd() const
+{ return info_.compiler_launcher.cmd; }
+
 const std::string&
 toolchain::cc_cmd() const
 { return cc().cmd; }
