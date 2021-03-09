@@ -29,10 +29,10 @@ project::add_library(const std::string& name)
 }
 
 void
-project::add_library(const std::string& name, const std::string& target)
+project::add_alias(const std::string& name, const std::string& target)
 {
-    // Per CMake spec, name must have been declared already
-    map[target] = map[name];
+    // Per CMake spec, target must have been declared already
+    map[name] = map[target];
 }
 
 library&

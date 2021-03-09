@@ -3,6 +3,8 @@
 #include <string>
 #include <string_view>
 
+#include <re2/re2.h>
+
 #include <zap/toolchain.hpp>
 #include <zap/types.hpp>
 #include <zap/cmake/project.hpp>
@@ -13,6 +15,8 @@ struct cmd
 {
     zap::strings args;
     zap::string_set arg_keys;
+    std::string file;
+    std::size_t frame;
 
     bool has(const std::string& key) const;
 };
@@ -33,7 +37,16 @@ public:
     const project& shared_project() const;
 
 private:
+    void parse_subdirectory(const std::string& line);
+
     void parse_library(const std::string& line);
+
+    void parse_library_sources(const std::string& line);
+
+    void parse_library_sources(
+        const std::string& lib,
+        const zap::strings& args
+    );
 
     void parse_library_includes(
         const std::string& src_dir,
@@ -45,12 +58,18 @@ private:
     cmd parse_cmd(const std::string& line) const;
     std::string make_cmd(const std::string& cmd) const;
 
-    void add_alias(const std::string& from, const std::string& to);
+    void add_alias(const std::string& name, const std::string& target);
 
     void add_alias(
         project& p,
-        const std::string& from,
-        const std::string& to
+        const std::string& name,
+        const std::string& target
+    );
+
+    void add_library_header(
+        project& p,
+        const std::string& name,
+        const std::string& header
     );
 
     void set_library_interface(
@@ -67,9 +86,11 @@ private:
     void set_project_dirs(const std::string& dir);
 
     const zap::toolchain& tc_;
-    std::string project_source_dir_;
+    re2::RE2 hdr_re_;
+    std::string source_dir_;
     std::string file_;
     std::string_view build_interface_;
+    std::string subdir_;
     project static_;
     project shared_;
 };

@@ -14,6 +14,7 @@ struct library
     std::string name;
     std::string alias;
     std::string interface_dir;
+    string_set headers;
 };
 
 using libraries = std::vector<library>;
@@ -32,7 +33,7 @@ struct project
     bool has_library(const std::string& name) const;
 
     void add_library(const std::string& name);
-    void add_library(const std::string& name, const std::string& target);
+    void add_alias(const std::string& name, const std::string& target);
 
     library& get_library(const std::string& name);
 };
