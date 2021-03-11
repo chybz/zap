@@ -4,6 +4,14 @@
 namespace zap::cmake {
 
 void
+library::add_header(const std::string& header)
+{ headers.insert(header); }
+
+void
+library::add_headers(const zap::string_set& hs)
+{ headers.insert(hs.begin(), hs.end()); }
+
+void
 project::clear()
 {
     dir.clear();
@@ -31,12 +39,49 @@ project::add_library(const std::string& name)
 void
 project::add_alias(const std::string& name, const std::string& target)
 {
+    if (!has_library(target)) {
+        return;
+    }
+
     // Per CMake spec, target must have been declared already
-    map[name] = map[target];
+    auto pos = map[target];
+
+    libs[pos].alias = name;
+    map[name] = pos;
 }
 
 library&
 project::get_library(const std::string& name)
 { return libs[map[name]]; }
+
+void
+project::add_header(const std::string& name, const std::string& header)
+{
+    if (!has_library(name)) {
+        return;
+    }
+
+    get_library(name).add_header(header);
+}
+
+void
+project::add_headers(const std::string& name, const zap::string_set& hs)
+{
+    if (!has_library(name)) {
+        return;
+    }
+
+    get_library(name).add_headers(hs);
+}
+
+void
+project::set_interface_dir(const std::string& name, const std::string& dir)
+{
+    if (!has_library(name)) {
+        return;
+    }
+
+    get_library(name).interface_dir = dir;
+}
 
 }

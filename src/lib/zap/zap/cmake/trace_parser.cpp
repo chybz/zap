@@ -40,6 +40,7 @@ trace_parser::parse(
     auto asd = make_cmd("add_subdirectory");
     auto al = make_cmd("add_library");
     auto tid = make_cmd("target_include_directories");
+    auto tll = make_cmd("target_link_libraries");
     auto ts = make_cmd("target_sources");
 
     for (std::string line; std::getline(ifs, line); ) {
@@ -129,11 +130,23 @@ trace_parser::parse_library_sources(
     const zap::strings& args
 )
 {
+    zap::string_set headers;
+
     for (const auto& a : args) {
-        if (re2::RE2::FullMatch(a, hdr_re_)) {
-            std::cout << "WHOA" << std::endl;
+        for (const auto& file : parse_build_interface(a)) {
+            if (re2::RE2::FullMatch(file, hdr_re_)) {
+                std::string_view fv = file;
+
+                if (fv.starts_with(source_dir_)) {
+                    fv.remove_prefix(source_dir_.size() + 1);
+                }
+
+                headers.insert(zap::cat_file(subdir_, fv));
+            }
         }
     }
+
+    add_library_headers(lib, headers);
 }
 
 void
@@ -146,18 +159,27 @@ trace_parser::parse_library_includes(
 
     for (const auto& a : cmd.args) {
         if (a.starts_with(build_interface_)) {
-            std::string_view dir = a;
-
-            dir.remove_prefix(build_interface_.size());
-            dir.remove_suffix(1);
-
-            auto inc_dir = zap::fullpath(dir);
+            auto dirs = parse_build_interface(a);
+            auto inc_dir = zap::fullpath(dirs.front());
 
             if (inc_dir.starts_with(src_dir)) {
                 set_library_interface(cmd.args[0], inc_dir);
             }
         }
     }
+}
+
+zap::string_views
+trace_parser::parse_build_interface(const std::string& s) const
+{
+    std::string_view list = s;
+
+    if (list.starts_with(build_interface_)) {
+        list.remove_prefix(build_interface_.size());
+        list.remove_suffix(1);
+    }
+
+    return zap::split(";", list);
 }
 
 bool
@@ -197,36 +219,18 @@ trace_parser::make_cmd(const std::string& cmd) const
 void
 trace_parser::add_alias(const std::string& name, const std::string& target)
 {
-    add_alias(static_, name, target);
-    add_alias(shared_, name, target);
+    static_.add_alias(name, target);
+    shared_.add_alias(name, target);
 }
 
 void
-trace_parser::add_alias(
-    project& p,
+trace_parser::add_library_headers(
     const std::string& name,
-    const std::string& target
+    const zap::string_set& headers
 )
 {
-    if (!p.has_library(target)) {
-        return;
-    }
-
-    p.add_alias(name, target);
-}
-
-void
-trace_parser::add_library_header(
-    project& p,
-    const std::string& name,
-    const std::string& header
-)
-{
-    if (!p.has_library(name)) {
-        return;
-    }
-
-    p.get_library(name).headers.insert(header);
+    static_.add_headers(name, headers);
+    shared_.add_headers(name, headers);
 }
 
 void
@@ -235,22 +239,8 @@ trace_parser::set_library_interface(
     const std::string& dir
 )
 {
-    set_library_interface(static_, name, dir);
-    set_library_interface(shared_, name, dir);
-}
-
-void
-trace_parser::set_library_interface(
-    project& p,
-    const std::string& name,
-    const std::string& dir
-)
-{
-    if (!p.has_library(name)) {
-        return;
-    }
-
-    p.get_library(name).interface_dir = dir;
+    static_.set_interface_dir(name, dir);
+    shared_.set_interface_dir(name, dir);
 }
 
 void

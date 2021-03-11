@@ -15,6 +15,9 @@ struct library
     std::string alias;
     std::string interface_dir;
     string_set headers;
+
+    void add_header(const std::string& header);
+    void add_headers(const zap::string_set& hs);
 };
 
 using libraries = std::vector<library>;
@@ -36,6 +39,10 @@ struct project
     void add_alias(const std::string& name, const std::string& target);
 
     library& get_library(const std::string& name);
+
+    void add_header(const std::string& name, const std::string& header);
+    void add_headers(const std::string& name, const zap::string_set& hs);
+    void set_interface_dir(const std::string& name, const std::string& dir);
 };
 
 }

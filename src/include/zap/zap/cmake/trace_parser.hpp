@@ -53,6 +53,8 @@ private:
         const std::string& line
     );
 
+    zap::string_views parse_build_interface(const std::string& s) const;
+
     bool ignore_library(const cmd& c) const;
 
     cmd parse_cmd(const std::string& line) const;
@@ -60,25 +62,12 @@ private:
 
     void add_alias(const std::string& name, const std::string& target);
 
-    void add_alias(
-        project& p,
+    void add_library_headers(
         const std::string& name,
-        const std::string& target
-    );
-
-    void add_library_header(
-        project& p,
-        const std::string& name,
-        const std::string& header
+        const zap::string_set& headers
     );
 
     void set_library_interface(
-        const std::string& name,
-        const std::string& dir
-    );
-
-    void set_library_interface(
-        project& p,
         const std::string& name,
         const std::string& dir
     );
