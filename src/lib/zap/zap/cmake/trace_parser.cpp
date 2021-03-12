@@ -12,10 +12,50 @@ namespace zap::cmake {
 
 using json = nlohmann::json;
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Utilities
+//
+///////////////////////////////////////////////////////////////////////////////
+namespace detail {
+
+template <typename T>
+auto extract(const T& v)
+{ return v; }
+
+template <typename T, typename U>
+auto extract(const std::pair<T, U>& p)
+{ return p.first; }
+
+template <typename Associative, typename Callable>
+void
+erase_if(Associative&& a, Callable&& cb)
+{
+    for (auto it = a.begin(); it != a.end(); ) {
+        if (cb(extract(*it))) {
+            it = a.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// cmd
+//
+///////////////////////////////////////////////////////////////////////////////
 bool
 cmd::has(const std::string& key) const
 { return arg_keys.contains(key); }
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Trace Parser
+//
+///////////////////////////////////////////////////////////////////////////////
 trace_parser::trace_parser(const zap::toolchain& tc)
 : tc_(tc),
 hdr_re_(zap::re(zap::re_type::hdr)),
@@ -49,11 +89,29 @@ trace_parser::parse(
         } else if (zap::contains(line, al)) {
             parse_library(line);
         } else if (zap::contains(line, tid)) {
-            parse_library_includes(src_dir, line);
+            parse_library_includes(line);
+        } else if (zap::contains(line, tll)) {
+            parse_library_deps(line);
         } else if (zap::contains(line, ts)) {
             parse_library_sources(line);
         }
     }
+
+    handle_deps();
+}
+
+void
+trace_parser::handle_deps()
+{
+    auto external_lib = [&](const auto& lib) {
+        return !seen_libs_.contains(lib);
+    };
+
+    for (auto& p : deps_) {
+        detail::erase_if(p.second, external_lib);
+    }
+
+    detail::erase_if(rev_deps_, external_lib);
 }
 
 const project&
@@ -77,9 +135,9 @@ trace_parser::parse_subdirectory(const std::string& line)
     dirs.remove_suffix(15);
 
     if (dirs.empty()) {
-        subdir_ = cmd.args[0];
+        subdir_ = cmd.subject;
     } else {
-        subdir_ = zap::cat_dir(dirs, cmd.args[0]);
+        subdir_ = zap::cat_dir(dirs, cmd.subject);
     }
 }
 
@@ -92,11 +150,13 @@ trace_parser::parse_library(const std::string& line)
         return;
     }
 
-    const auto& lib = cmd.args[0];
+    const auto& lib = cmd.subject;
+
+    seen_libs_.insert(lib);
 
     if (!cmd.has("ALIAS")) {
         // SHARED, STATIC, INTERFACE...
-        die_unless(cmd.args.size() > 1, "invalid add_library");
+        die_unless(cmd.args.size() > 0, "invalid add_library");
 
         if (cmd.has("STATIC")) {
             static_.add_library(lib);
@@ -110,9 +170,9 @@ trace_parser::parse_library(const std::string& line)
 
         parse_library_sources(lib, cmd.args);
     } else {
-        die_unless(cmd.args.size() == 3, "invalid add_library ALIAS");
+        die_unless(cmd.args.size() == 2, "invalid add_library ALIAS");
 
-        add_alias(lib, cmd.args[2]);
+        add_alias(lib, cmd.args[1]);
     }
 }
 
@@ -121,7 +181,7 @@ trace_parser::parse_library_sources(const std::string& line)
 {
     auto cmd = parse_cmd(line);
 
-    parse_library_sources(cmd.args[0], cmd.args);
+    parse_library_sources(cmd.subject, cmd.args);
 }
 
 void
@@ -150,10 +210,7 @@ trace_parser::parse_library_sources(
 }
 
 void
-trace_parser::parse_library_includes(
-    const std::string& src_dir,
-    const std::string& line
-)
+trace_parser::parse_library_includes(const std::string& line)
 {
     auto cmd = parse_cmd(line);
 
@@ -162,11 +219,51 @@ trace_parser::parse_library_includes(
             auto dirs = parse_build_interface(a);
             auto inc_dir = zap::fullpath(dirs.front());
 
-            if (inc_dir.starts_with(src_dir)) {
-                set_library_interface(cmd.args[0], inc_dir);
+            if (inc_dir.starts_with(source_dir_)) {
+                set_library_interface(cmd.subject, inc_dir);
             }
         }
     }
+}
+
+void
+trace_parser::parse_library_deps(const std::string& line)
+{
+    auto cmd = parse_cmd(line);
+    auto& lib_deps = deps_[cmd.subject];
+
+    for (const auto& a : cmd.args) {
+        if (not_a_library(a)) {
+            continue;
+        }
+
+        // Accumulate possible dependencies for now as they might be
+        // declared out of order. We'll consolidate after the entire
+        // trace is processed
+        for (const auto& depv : zap::split(";", a)) {
+            std::string dep(depv.data(), depv.size());
+
+            rev_deps_[dep].insert(cmd.subject);
+            lib_deps.insert(std::move(dep));
+        }
+    }
+}
+
+bool
+trace_parser::not_a_library(const std::string& s) const
+{
+    return
+        s.empty()
+        ||
+        // I saw compiler/linker flags...
+        s.starts_with('-')
+        ||
+        // Generator expressions
+        s.starts_with('$')
+        ||
+        // Ignore keywords
+        s == "PUBLIC" || s == "PRIVATE" || s == "INTERFACE"
+        ;
 }
 
 zap::string_views
@@ -192,12 +289,18 @@ trace_parser::parse_cmd(const std::string& line) const
     cmd c;
 
     auto l = json::parse(line);
+    bool first = true;
 
     for (const auto& arg : l["args"]) {
         auto a = arg.get<std::string>();
 
-        c.arg_keys.insert(a);
-        c.args.emplace_back(std::move(a));
+        if (first) {
+            c.subject = std::move(a);
+            first = false;
+        } else {
+            c.arg_keys.insert(a);
+            c.args.emplace_back(std::move(a));
+        }
     }
 
     c.file = l["file"].get<std::string>();

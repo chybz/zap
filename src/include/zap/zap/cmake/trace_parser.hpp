@@ -13,6 +13,7 @@ namespace zap::cmake {
 
 struct cmd
 {
+    std::string subject; // The first arg, for convenience
     zap::strings args;
     zap::string_set arg_keys;
     std::string file;
@@ -37,6 +38,8 @@ public:
     const project& shared_project() const;
 
 private:
+    void handle_deps();
+
     void parse_subdirectory(const std::string& line);
 
     void parse_library(const std::string& line);
@@ -48,10 +51,11 @@ private:
         const zap::strings& args
     );
 
-    void parse_library_includes(
-        const std::string& src_dir,
-        const std::string& line
-    );
+    void parse_library_includes(const std::string& line);
+
+    void parse_library_deps(const std::string& line);
+
+    bool not_a_library(const std::string& s) const;
 
     zap::string_views parse_build_interface(const std::string& s) const;
 
@@ -82,6 +86,9 @@ private:
     std::string subdir_;
     project static_;
     project shared_;
+    zap::string_set seen_libs_;
+    zap::string_set_map deps_;
+    zap::string_set_map rev_deps_;
 };
 
 }
