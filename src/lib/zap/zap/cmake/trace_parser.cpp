@@ -27,19 +27,6 @@ template <typename T, typename U>
 auto extract(const std::pair<T, U>& p)
 { return p.first; }
 
-template <typename Associative, typename Callable>
-void
-erase_if(Associative&& a, Callable&& cb)
-{
-    for (auto it = a.begin(); it != a.end(); ) {
-        if (cb(extract(*it))) {
-            it = a.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,15 +90,15 @@ trace_parser::parse(
 void
 trace_parser::handle_deps()
 {
-    auto external_lib = [&](const auto& lib) {
-        return !seen_libs_.contains(lib);
+    auto external_lib = [&](const auto& item) {
+        return !seen_libs_.contains(detail::extract(item));
     };
 
     for (auto& p : deps_) {
-        detail::erase_if(p.second, external_lib);
+        std::erase_if(p.second, external_lib);
     }
 
-    detail::erase_if(rev_deps_, external_lib);
+    std::erase_if(rev_deps_, external_lib);
 }
 
 const project&
@@ -146,6 +133,7 @@ trace_parser::parse_library(const std::string& line)
 {
     auto cmd = parse_cmd(line);
 
+    // TODO: handle OBJECT case and scan for headers too
     if (ignore_library(cmd) || cmd.args.empty()) {
         return;
     }
@@ -221,6 +209,11 @@ trace_parser::parse_library_includes(const std::string& line)
 
             if (inc_dir.starts_with(source_dir_)) {
                 set_library_interface(cmd.subject, inc_dir);
+
+                zap::files files;
+
+                zap::add_files(files, inc_dir, zap::re(zap::re_type::hdr));
+                add_library_headers(cmd.subject, files);
             }
         }
     }
