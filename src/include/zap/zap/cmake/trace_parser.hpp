@@ -34,6 +34,8 @@ public:
         const std::string& trace_file
     );
 
+    void post_install(const std::string& inst_dir);
+
     const project& static_project() const;
     const project& shared_project() const;
 
@@ -80,7 +82,8 @@ private:
 
     const zap::toolchain& tc_;
     re2::RE2 hdr_re_;
-    std::string source_dir_;
+    std::string src_dir_;
+    std::string inst_dir_;
     std::string file_;
     std::string_view build_interface_;
     std::string subdir_;

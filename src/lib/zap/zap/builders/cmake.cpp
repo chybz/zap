@@ -74,6 +74,7 @@ cmake::install(zap::package::manifest& pm) const
     zap::pkg_config::configs pcc(e_, stage_dir_);
 
     tp.parse(ai_.source_dir, trace_file_);
+    tp.post_install(zap::cat_dir(stage_dir_, e_["root"]));
 
     std::cout << "WHOAA" << std::endl;
 }

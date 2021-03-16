@@ -3,6 +3,11 @@
 
 namespace zap::cmake {
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Library
+//
+///////////////////////////////////////////////////////////////////////////////
 void
 library::add_header(const std::string& header)
 { headers.insert(header); }
@@ -12,6 +17,19 @@ library::add_headers(const zap::string_set& hs)
 { headers.insert(hs.begin(), hs.end()); }
 
 void
+library::clean_headers(const std::string& inst_dir)
+{
+    for (auto it = headers.begin(), end = headers.end(); it != end; ) {
+
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Project
+//
+///////////////////////////////////////////////////////////////////////////////
+void
 project::clear()
 {
     dir.clear();
@@ -19,6 +37,25 @@ project::clear()
     libs.clear();
     map.clear();
     aliases.clear();
+}
+
+void
+project::clean_libraries(const std::string& inst_dir)
+{
+    for (auto it = libs.begin(), end = libs.end(); it != end; ) {
+        auto& lib = *it;
+
+        lib.clean_headers(inst_dir);
+
+        if (lib.headers.empty()) {
+            map.erase(lib.name);
+            map.erase(lib.alias);
+
+            it = libs.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 bool

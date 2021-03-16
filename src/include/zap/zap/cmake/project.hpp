@@ -18,6 +18,7 @@ struct library
 
     void add_header(const std::string& header);
     void add_headers(const zap::string_set& hs);
+    void clean_headers(const std::string& inst_dir);
 };
 
 using libraries = std::vector<library>;
@@ -32,6 +33,8 @@ struct project
     zap::string_map aliases;
 
     void clear();
+
+    void clean_libraries(const std::string& inst_dir);
 
     bool has_library(const std::string& name) const;
 

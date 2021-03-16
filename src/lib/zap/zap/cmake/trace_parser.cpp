@@ -58,9 +58,9 @@ trace_parser::parse(
     const std::string& trace_file
 )
 {
-    source_dir_ = zap::fullpath(src_dir);
+    src_dir_ = zap::fullpath(src_dir);
 
-    set_project_dirs(source_dir_);
+    set_project_dirs(src_dir_);
 
     std::ifstream ifs(trace_file);
 
@@ -85,6 +85,15 @@ trace_parser::parse(
     }
 
     handle_deps();
+}
+
+void
+trace_parser::post_install(const std::string& inst_dir)
+{
+    inst_dir_ = zap::fullpath(inst_dir);
+
+    static_.clean_libraries(inst_dir_);
+    shared_.clean_libraries(inst_dir_);
 }
 
 void
@@ -118,7 +127,7 @@ trace_parser::parse_subdirectory(const std::string& line)
 
     // Remove "source dir/" and trailing "/CMakeLists.txt"
     // "/CMakeLists.txt" is 15 chars
-    dirs.remove_prefix(source_dir_.size() + 1);
+    dirs.remove_prefix(src_dir_.size() + 1);
     dirs.remove_suffix(15);
 
     if (dirs.empty()) {
@@ -185,8 +194,8 @@ trace_parser::parse_library_sources(
             if (re2::RE2::FullMatch(file, hdr_re_)) {
                 std::string_view fv = file;
 
-                if (fv.starts_with(source_dir_)) {
-                    fv.remove_prefix(source_dir_.size() + 1);
+                if (fv.starts_with(src_dir_)) {
+                    fv.remove_prefix(src_dir_.size() + 1);
                 }
 
                 headers.insert(zap::cat_file(subdir_, fv));
@@ -207,7 +216,7 @@ trace_parser::parse_library_includes(const std::string& line)
             auto dirs = parse_build_interface(a);
             auto inc_dir = zap::fullpath(dirs.front());
 
-            if (inc_dir.starts_with(source_dir_)) {
+            if (inc_dir.starts_with(src_dir_)) {
                 set_library_interface(cmd.subject, inc_dir);
 
                 zap::files files;

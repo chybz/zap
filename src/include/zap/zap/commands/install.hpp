@@ -9,8 +9,9 @@ namespace zap::commands {
 
 struct install_opts
 {
+    std::string url;
     std::string file;
-    std::string target;
+    std::string directory;
     zap::strings args;
 };
 
@@ -23,7 +24,9 @@ public:
     void operator()() final;
 
 private:
-    void install_target(const std::string& target);
+    void install_url(const std::string& url);
+    void install_directory(const std::string& dir);
+    void install_archive(const archive_info& ai);
 
     install_opts opts_;
 };

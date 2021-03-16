@@ -26,7 +26,7 @@ Options:
 
 Commands:
     env          Manage environments
-    install      Install dependencies
+    install      Install software
     configure    Configures project
     analyze      Shows project targets and interfaces
 
@@ -48,16 +48,18 @@ static const char install_usage[] =
 R"(usage:
     zap install [-e <env>] <url> [<args>...]
     zap install [-e <env>] -f <file>
+    zap install [-e <env>] -d <directory>
 
 Options:
-    -e <env>     Environment to use
-    -f <file>    Installs dependencies from <file>
+    -e <env>        Environment to use
+    -f <file>       Installs software from list in <file>
+    -d <directory>  Installs software from extracted archive in <directory>
 
 The first form allows you to install a software package by specifying a URL.
 All subsequent arguments will be forwarded to the package build system.
 
-The second form will install dependencies listed in the specified file where
-each line will specify a dependency like in the first form, that is:
+The second form will install software listed in the specified file where
+each line is in the first form, that is:
 
 URL1 [ARGS...]
 URL2 [ARGS...]
@@ -217,8 +219,9 @@ parse_install(cmdline& cl, const zap::strings& cmd_args)
 
     zap::commands::install_opts opts;
 
+    set_opt(args, "<url>", opts.url);
     set_opt(args, "<file>", opts.file);
-    set_opt(args, "<url>", opts.target);
+    set_opt(args, "<directory>", opts.directory);
     set_opt(args, "<args>", opts.args);
 
     cl.cp = new_command<zap::commands::install>(cl.env(), opts);
