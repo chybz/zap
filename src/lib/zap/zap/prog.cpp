@@ -306,13 +306,8 @@ prog::handle_error(
     } else if (ec) {
         die_unless(
             opts.mode == run_mode::no_fail,
-            "failed to start command: ", cmdline,
+            "command failed: ", cmdline,
             ":\n", ec.message()
-        );
-    } else if (status) {
-        die_unless(
-            opts.mode == run_mode::no_fail,
-            "command failed (", status, "): ", cmdline
         );
     }
 }

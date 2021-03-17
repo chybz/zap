@@ -48,7 +48,7 @@ install::install_directory(const std::string& dir)
 void
 install::install_archive(const archive_info& ai)
 {
-    zap::builder b(env(), ai);
+    zap::builder b(env(), ai, opts_.args);
     zap::package::manifest pm;
 
     b.configure();

@@ -13,7 +13,8 @@ struct library
 {
     std::string name;
     std::string alias;
-    std::string interface_dir;
+    std::string source_interface_dir;
+    std::string installed_interface_dir;
     string_set headers;
 
     void add_header(const std::string& header);
@@ -45,7 +46,14 @@ struct project
 
     void add_header(const std::string& name, const std::string& header);
     void add_headers(const std::string& name, const zap::string_set& hs);
-    void set_interface_dir(const std::string& name, const std::string& dir);
+
+    void set_interface_dirs(
+        const std::string& name,
+        const std::string& source,
+        const std::string& installed
+    );
+
+    void reindex();
 };
 
 }

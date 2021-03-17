@@ -60,6 +60,12 @@ private:
     bool not_a_library(const std::string& s) const;
 
     zap::string_views parse_build_interface(const std::string& s) const;
+    zap::string_views parse_install_interface(const std::string& s) const;
+
+    zap::string_views parse_interface(
+        const std::string& s,
+        const std::string_view& interface
+    ) const;
 
     bool ignore_library(const cmd& c) const;
 
@@ -75,7 +81,8 @@ private:
 
     void set_library_interface(
         const std::string& name,
-        const std::string& dir
+        const std::string& source,
+        const std::string& installed
     );
 
     void set_project_dirs(const std::string& dir);
@@ -86,6 +93,7 @@ private:
     std::string inst_dir_;
     std::string file_;
     std::string_view build_interface_;
+    std::string_view install_interface_;
     std::string subdir_;
     project static_;
     project shared_;

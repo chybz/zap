@@ -6,20 +6,29 @@
 
 namespace zap {
 
-builder_base::builder_base(const zap::env& e, const archive_info& ai)
+builder_base::builder_base(
+    const zap::env& e,
+    const archive_info& ai,
+    const strings& args
+)
 : e_(e),
-ai_(ai)
+ai_(ai),
+args_(args)
 {}
 
 builder_base::~builder_base()
 {}
 
-builder::builder(const zap::env& e, const archive_info& ai)
+builder::builder(
+    const zap::env& e,
+    const archive_info& ai,
+    const strings& args
+)
 {
     if (file_exists(cat_file(ai.source_dir, "CMakeLists.txt"))) {
-        bp_ = std::make_unique<zap::builders::cmake>(e, ai);
+        bp_ = std::make_unique<zap::builders::cmake>(e, ai, args);
     } else if (file_exists(cat_file(ai.source_dir, "configure"))) {
-        bp_ = std::make_unique<zap::builders::autotools>(e, ai);
+        bp_ = std::make_unique<zap::builders::autotools>(e, ai, args);
     } else {
         die("unknown build system in dir: ", ai.source_dir);
     }

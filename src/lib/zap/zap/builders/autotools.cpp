@@ -3,8 +3,12 @@
 
 namespace zap::builders {
 
-autotools::autotools(const zap::env& e, const archive_info& ai)
-: builder_base(e, ai)
+autotools::autotools(
+    const zap::env& e,
+    const archive_info& ai,
+    const zap::strings& args
+)
+: builder_base(e, ai, args)
 {
     make_.cmd = zap::find_cmd("make");
     build_dir_ = cat_dir(ai.dir, "build");

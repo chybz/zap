@@ -8,7 +8,12 @@ namespace zap::builders {
 class cmake : public zap::builder_base
 {
 public:
-    cmake(const zap::env& e, const zap::archive_info& ai);
+    cmake(
+        const zap::env& e,
+        const zap::archive_info& ai,
+        const zap::strings& args = {}
+    );
+
     virtual ~cmake();
 
     void configure() const final;

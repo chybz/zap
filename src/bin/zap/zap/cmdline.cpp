@@ -46,14 +46,14 @@ Manages environments.
 
 static const char install_usage[] =
 R"(usage:
-    zap install [-e <env>] <url> [<args>...]
+    zap install [-e <env>] <url> [--] [<args>...]
+    zap install [-e <env>] -d <directory> [--] [<args>...]
     zap install [-e <env>] -f <file>
-    zap install [-e <env>] -d <directory>
 
 Options:
     -e <env>        Environment to use
-    -f <file>       Installs software from list in <file>
     -d <directory>  Installs software from extracted archive in <directory>
+    -f <file>       Installs software from list in <file>
 
 The first form allows you to install a software package by specifying a URL.
 All subsequent arguments will be forwarded to the package build system.
@@ -220,9 +220,9 @@ parse_install(cmdline& cl, const zap::strings& cmd_args)
     zap::commands::install_opts opts;
 
     set_opt(args, "<url>", opts.url);
-    set_opt(args, "<file>", opts.file);
-    set_opt(args, "<directory>", opts.directory);
     set_opt(args, "<args>", opts.args);
+    set_opt(args, "-d", opts.directory);
+    set_opt(args, "-f", opts.file);
 
     cl.cp = new_command<zap::commands::install>(cl.env(), opts);
 }

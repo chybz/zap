@@ -46,7 +46,8 @@ cmd::has(const std::string& key) const
 trace_parser::trace_parser(const zap::toolchain& tc)
 : tc_(tc),
 hdr_re_(zap::re(zap::re_type::hdr)),
-build_interface_{ "$<BUILD_INTERFACE:" }
+build_interface_{ "$<BUILD_INTERFACE:" },
+install_interface_{ "$<INSTALL_INTERFACE:" }
 {}
 
 trace_parser::~trace_parser()
@@ -210,6 +211,8 @@ void
 trace_parser::parse_library_includes(const std::string& line)
 {
     auto cmd = parse_cmd(line);
+    std::string siface;
+    std::string diface = "include";
 
     for (const auto& a : cmd.args) {
         if (a.starts_with(build_interface_)) {
@@ -217,15 +220,23 @@ trace_parser::parse_library_includes(const std::string& line)
             auto inc_dir = zap::fullpath(dirs.front());
 
             if (inc_dir.starts_with(src_dir_)) {
-                set_library_interface(cmd.subject, inc_dir);
+                siface = inc_dir;
 
                 zap::files files;
 
                 zap::add_files(files, inc_dir, zap::re(zap::re_type::hdr));
                 add_library_headers(cmd.subject, files);
             }
+        } else if (a.starts_with(install_interface_)) {
+            auto dirs = parse_install_interface(a);
+
+            if (!dirs.empty()) {
+                diface = dirs.front();
+            }
         }
     }
+
+    set_library_interface(cmd.subject, siface, diface);
 }
 
 void
@@ -270,11 +281,22 @@ trace_parser::not_a_library(const std::string& s) const
 
 zap::string_views
 trace_parser::parse_build_interface(const std::string& s) const
+{ return parse_interface(s, build_interface_); }
+
+zap::string_views
+trace_parser::parse_install_interface(const std::string& s) const
+{ return parse_interface(s, install_interface_); }
+
+zap::string_views
+trace_parser::parse_interface(
+    const std::string& s,
+    const std::string_view& interface
+) const
 {
     std::string_view list = s;
 
-    if (list.starts_with(build_interface_)) {
-        list.remove_prefix(build_interface_.size());
+    if (list.starts_with(interface)) {
+        list.remove_prefix(interface.size());
         list.remove_suffix(1);
     }
 
@@ -341,11 +363,12 @@ trace_parser::add_library_headers(
 void
 trace_parser::set_library_interface(
     const std::string& name,
-    const std::string& dir
+    const std::string& source,
+    const std::string& installed
 )
 {
-    static_.set_interface_dir(name, dir);
-    shared_.set_interface_dir(name, dir);
+    static_.set_interface_dirs(name, source, installed);
+    shared_.set_interface_dirs(name, source, installed);
 }
 
 void

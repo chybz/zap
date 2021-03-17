@@ -9,8 +9,12 @@
 
 namespace zap::builders {
 
-cmake::cmake(const zap::env& e, const archive_info& ai)
-: builder_base(e, ai)
+cmake::cmake(
+    const zap::env& e,
+    const archive_info& ai,
+    const zap::strings& args
+)
+: builder_base(e, ai, args)
 {
     cmake_.cmd = zap::find_cmd("cmake");
     build_dir_ = zap::cat_dir(ai.dir, "build");
@@ -35,19 +39,23 @@ cmake::configure() const
         zap::cmake::toolchain_file::write(e_.toolchain(), toolchain_file);
     }
 
-    cmake_.run({
-        .args = {
-            zap::cat("-DCMAKE_PREFIX_PATH=", e_["root"]),
-            zap::cat("-DCMAKE_INSTALL_PREFIX=", e_["root"]),
-            zap::cat("-DCMAKE_TOOLCHAIN_FILE=", toolchain_file),
-            "-S", ai_.source_dir,
-            "-B", build_dir_,
-            "-Wno-dev", // trace mode vomits...
-            "--trace-expand",
-            zap::cat("--trace-redirect=", trace_file_),
-            "--trace-format=json-v1"
-        }
-    });
+    zap::strings args = {
+        zap::cat("-DCMAKE_PREFIX_PATH=", e_["root"]),
+        zap::cat("-DCMAKE_INSTALL_PREFIX=", e_["root"]),
+        zap::cat("-DCMAKE_TOOLCHAIN_FILE=", toolchain_file),
+        "-S", ai_.source_dir,
+        "-B", build_dir_,
+        "-Wno-dev", // trace mode vomits...
+        "--trace-expand",
+        zap::cat("--trace-redirect=", trace_file_),
+        "--trace-format=json-v1"
+    };
+
+    if (!args_.empty()) {
+        args.insert(args.end(), args_.begin(), args_.end());
+    }
+
+    cmake_.run({ .args = std::move(args) });
 }
 
 void
