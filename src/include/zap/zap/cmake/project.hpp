@@ -6,16 +6,18 @@
 #include <unordered_map>
 
 #include <zap/types.hpp>
+#include <zap/link_type.hpp>
 
 namespace zap::cmake {
 
 struct library
 {
     std::string name;
+    link_type link;
     std::string alias;
     std::string source_interface_dir;
     std::string installed_interface_dir;
-    string_set headers;
+    zap::string_set headers;
 
     void add_header(const std::string& header);
     void add_headers(const zap::string_set& hs);
@@ -31,7 +33,6 @@ struct project
     std::string name;
     libraries libs;
     library_map map;
-    zap::string_map aliases;
 
     void clear();
 
@@ -39,7 +40,7 @@ struct project
 
     bool has_library(const std::string& name) const;
 
-    void add_library(const std::string& name);
+    void add_library(const std::string& name, zap::link_type lt);
     void add_alias(const std::string& name, const std::string& target);
 
     library& get_library(const std::string& name);

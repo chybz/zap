@@ -61,7 +61,8 @@ trace_parser::parse(
 {
     src_dir_ = zap::fullpath(src_dir);
 
-    set_project_dirs(src_dir_);
+    p_.clear();
+    p_.dir = src_dir_;
 
     std::ifstream ifs(trace_file);
 
@@ -93,8 +94,7 @@ trace_parser::post_install(const std::string& inst_dir)
 {
     inst_dir_ = zap::fullpath(inst_dir);
 
-    static_.clean_libraries(inst_dir_);
-    shared_.clean_libraries(inst_dir_);
+    p_.clean_libraries(inst_dir_);
 }
 
 void
@@ -111,13 +111,9 @@ trace_parser::handle_deps()
     std::erase_if(rev_deps_, external_lib);
 }
 
-const project&
-trace_parser::static_project() const
-{ return static_; }
-
-const project&
-trace_parser::shared_project() const
-{ return shared_; }
+const zap::cmake::project&
+trace_parser::project() const
+{ return p_; }
 
 void
 trace_parser::parse_subdirectory(const std::string& line)
@@ -152,25 +148,28 @@ trace_parser::parse_library(const std::string& line)
 
     seen_libs_.insert(lib);
 
-    if (!cmd.has("ALIAS")) {
+    if (cmd.has("ALIAS")) {
+        die_unless(cmd.args.size() == 2, "invalid add_library ALIAS");
+
+        p_.add_alias(lib, cmd.args[1]);
+    } else {
         // SHARED, STATIC, INTERFACE...
         die_unless(cmd.args.size() > 0, "invalid add_library");
 
+        zap::link_type lt;
+
         if (cmd.has("STATIC")) {
-            static_.add_library(lib);
+            lt = link_type::static_;
         } else if (cmd.has("SHARED")) {
-            shared_.add_library(lib);
+            lt = link_type::shared_;
         } else {
-            // INTERFACE or unspecified, valid for both schemes
-            static_.add_library(lib);
-            shared_.add_library(lib);
+            // INTERFACE or unspecified, automatic based on BUILD_SHARED_LIBS
+            lt = link_type::auto_;
         }
 
-        parse_library_sources(lib, cmd.args);
-    } else {
-        die_unless(cmd.args.size() == 2, "invalid add_library ALIAS");
+        p_.add_library(lib, lt);
 
-        add_alias(lib, cmd.args[1]);
+        parse_library_sources(lib, cmd.args);
     }
 }
 
@@ -204,7 +203,7 @@ trace_parser::parse_library_sources(
         }
     }
 
-    add_library_headers(lib, headers);
+    p_.add_headers(lib, headers);
 }
 
 void
@@ -225,7 +224,7 @@ trace_parser::parse_library_includes(const std::string& line)
                 zap::files files;
 
                 zap::add_files(files, inc_dir, zap::re(zap::re_type::hdr));
-                add_library_headers(cmd.subject, files);
+                p_.add_headers(cmd.subject, files);
             }
         } else if (a.starts_with(install_interface_)) {
             auto dirs = parse_install_interface(a);
@@ -236,7 +235,7 @@ trace_parser::parse_library_includes(const std::string& line)
         }
     }
 
-    set_library_interface(cmd.subject, siface, diface);
+    p_.set_interface_dirs(cmd.subject, siface, diface);
 }
 
 void
@@ -341,44 +340,6 @@ trace_parser::make_cmd(const std::string& cmd) const
     oss <<  "\"cmd\":" << '"' << cmd << '"';
 
     return oss.str();
-}
-
-void
-trace_parser::add_alias(const std::string& name, const std::string& target)
-{
-    static_.add_alias(name, target);
-    shared_.add_alias(name, target);
-}
-
-void
-trace_parser::add_library_headers(
-    const std::string& name,
-    const zap::string_set& headers
-)
-{
-    static_.add_headers(name, headers);
-    shared_.add_headers(name, headers);
-}
-
-void
-trace_parser::set_library_interface(
-    const std::string& name,
-    const std::string& source,
-    const std::string& installed
-)
-{
-    static_.set_interface_dirs(name, source, installed);
-    shared_.set_interface_dirs(name, source, installed);
-}
-
-void
-trace_parser::set_project_dirs(const std::string& dir)
-{
-    static_.clear();
-    static_.dir = dir;
-
-    shared_.clear();
-    shared_.dir = dir;
 }
 
 }

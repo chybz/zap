@@ -10,11 +10,11 @@ namespace zap {
 
 bool
 toolchain_info::link_shared() const
-{ return link == link_type::link_shared; }
+{ return link == link_type::shared_; }
 
 bool
 toolchain_info::link_static() const
-{ return link == link_type::link_static; }
+{ return link == link_type::static_; }
 
 struct toolchain_detect
 {

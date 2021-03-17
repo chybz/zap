@@ -43,7 +43,6 @@ project::clear()
     name.clear();
     libs.clear();
     map.clear();
-    aliases.clear();
 }
 
 void
@@ -69,9 +68,9 @@ project::has_library(const std::string& name) const
 { return map.contains(name); }
 
 void
-project::add_library(const std::string& name)
+project::add_library(const std::string& name, zap::link_type lt)
 {
-    library l{ name };
+    library l{ name, lt };
 
     auto pos = libs.size();
 
@@ -137,7 +136,7 @@ project::set_interface_dirs(
 void
 project::reindex()
 {
-    map.clear(lib.name);
+    map.clear();
 
     for (std::size_t i = 0; i < libs.size(); ++i) {
         const auto& l = libs[i];

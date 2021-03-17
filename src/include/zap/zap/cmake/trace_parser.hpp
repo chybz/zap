@@ -36,8 +36,7 @@ public:
 
     void post_install(const std::string& inst_dir);
 
-    const project& static_project() const;
-    const project& shared_project() const;
+    const zap::cmake::project& project() const;
 
 private:
     void handle_deps();
@@ -72,21 +71,6 @@ private:
     cmd parse_cmd(const std::string& line) const;
     std::string make_cmd(const std::string& cmd) const;
 
-    void add_alias(const std::string& name, const std::string& target);
-
-    void add_library_headers(
-        const std::string& name,
-        const zap::string_set& headers
-    );
-
-    void set_library_interface(
-        const std::string& name,
-        const std::string& source,
-        const std::string& installed
-    );
-
-    void set_project_dirs(const std::string& dir);
-
     const zap::toolchain& tc_;
     re2::RE2 hdr_re_;
     std::string src_dir_;
@@ -95,8 +79,7 @@ private:
     std::string_view build_interface_;
     std::string_view install_interface_;
     std::string subdir_;
-    project static_;
-    project shared_;
+    zap::cmake::project p_;
     zap::string_set seen_libs_;
     zap::string_set_map deps_;
     zap::string_set_map rev_deps_;

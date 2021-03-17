@@ -45,6 +45,7 @@ cmake::configure() const
         zap::cat("-DCMAKE_TOOLCHAIN_FILE=", toolchain_file),
         "-S", ai_.source_dir,
         "-B", build_dir_,
+        "-G", "Ninja",
         "-Wno-dev", // trace mode vomits...
         "--trace-expand",
         zap::cat("--trace-redirect=", trace_file_),
@@ -82,7 +83,9 @@ cmake::install(zap::package::manifest& pm) const
     zap::pkg_config::configs pcc(e_, stage_dir_);
 
     tp.parse(ai_.source_dir, trace_file_);
-    tp.post_install(zap::cat_dir(stage_dir_, e_["root"]));
+
+    // Note: env root starts with a '/'
+    tp.post_install(zap::cat(stage_dir_, e_["root"]));
 
     std::cout << "WHOAA" << std::endl;
 }

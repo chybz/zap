@@ -4,8 +4,9 @@ namespace zap {
 
 enum class link_type
 {
-    link_static,
-    link_shared
+    static_,
+    shared_,
+    auto_
 };
 
 }
