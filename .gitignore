@@ -1,0 +1,6 @@
+/build
+/ext
+/stage
+src/CMakeLists.txt
+src/bin/**/CMakeLists.txt
+src/lib/**/CMakeLists.txt
