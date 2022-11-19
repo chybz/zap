@@ -1,0 +1,19 @@
+https://github.com/madler/zlib/archive/v1.2.11.zip
+https://github.com/lz4/lz4/archive/v1.9.3.zip
+https://tukaani.org/xz/xz-5.2.5.tar.gz
+https://github.com/facebook/zstd/archive/v1.4.5.zip
+https://github.com/openssl/openssl/archive/OpenSSL_1_1_1q.zip no-tests
+https://github.com/libarchive/libarchive/archive/v3.5.1.zip -DENABLE_LIBB2=OFF -DENABLE_LIBXML2=OFF -DENABLE_EXPAT=OFF -DENABLE_PCREPOSIX=OFF -DENABLE_ICONV=OFF
+https://github.com/libssh2/libssh2/archive/libssh2-1.9.0.zip
+https://github.com/libgit2/libgit2/archive/v1.1.0.zip -DBUILD_CLAR=OFF
+https://github.com/curl/curl/archive/curl-7_75_0.zip -DCMAKE_USE_LIBSSH2=ON
+https://github.com/DaanDeMeyer/reproc/archive/v14.2.1.zip -DREPROC++=ON
+https://github.com/google/re2/archive/2020-11-01.zip -DRE2_BUILD_TESTING=OFF
+https://github.com/taskflow/taskflow/archive/v3.0.0.zip -DTF_BUILD_CUDA=OFF -DTF_BUILD_TESTS=OFF -DTF_BUILD_EXAMPLES=OFF
+https://github.com/nlohmann/json/archive/v3.9.1.zip -DJSON_BuildTests=OFF
+https://github.com/pantor/inja/archive/v3.1.0.zip -DBUILD_TESTING=OFF -DBUILD_BENCHMARK=OFF
+https://github.com/marzer/tomlplusplus/archive/v2.3.0.zip
+https://github.com/docopt/docopt.cpp/archive/v0.6.3.zip
+https://www.sqlite.org/2021/sqlite-autoconf-3340100.tar.gz
+https://github.com/fnc12/sqlite_orm/archive/1.6.zip -DSQLITE_ORM_ENABLE_CXX_17=ON -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF
+https://github.com/p-ranav/tabulate/archive/v1.4.zip

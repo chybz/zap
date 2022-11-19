@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -e
+
+ME=$(basename $0)
+MYDIR=$(cd $(dirname $0)/.. && pwd)
+
+BOOTSTRAP_DIR=$MYDIR/bootstrap
+SRC_DIR=$MYDIR/src
+
+cd $BOOTSTRAP_DIR
+
+find . -type f -name CMakeLists.txt | while read CMF; do
+    cp $CMF $SRC_DIR/${CMF#./}
+done
