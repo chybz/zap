@@ -5,7 +5,6 @@
 #include <zap/target.hpp>
 #include <zap/types.hpp>
 #include <zap/graph.hpp>
-#include <zap/link_type.hpp>
 
 namespace zap {
 
@@ -21,8 +20,6 @@ struct project
     std::string version;
 
     project_langs langs;
-
-    link_type link;
 
     bool sub_targets = false;
 

@@ -24,8 +24,8 @@ add_subdirectory(bin)
 
 install(
     TARGETS
-        zap
-        binary_zap
+        zap_library
+        zap_binary
     EXPORT zap-config
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

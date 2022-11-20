@@ -156,18 +156,7 @@ trace_parser::parse_library(const std::string& line)
         // SHARED, STATIC, INTERFACE...
         die_unless(cmd.args.size() > 0, "invalid add_library");
 
-        zap::link_type lt;
-
-        if (cmd.has("STATIC")) {
-            lt = link_type::static_;
-        } else if (cmd.has("SHARED")) {
-            lt = link_type::shared_;
-        } else {
-            // INTERFACE or unspecified, automatic based on BUILD_SHARED_LIBS
-            lt = link_type::auto_;
-        }
-
-        p_.add_library(lib, lt);
+        p_.add_library(lib);
 
         parse_library_sources(lib, cmd.args);
     }

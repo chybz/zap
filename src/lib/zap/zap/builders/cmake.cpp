@@ -2,10 +2,8 @@
 
 #include <zap/builders/cmake.hpp>
 #include <zap/utils.hpp>
-#include <zap/cmake/configs.hpp>
 #include <zap/cmake/trace_parser.hpp>
 #include <zap/cmake/toolchain_file.hpp>
-#include <zap/pkg_config/configs.hpp>
 
 namespace zap::builders {
 
@@ -79,8 +77,6 @@ cmake::install(zap::package::manifest& pm) const
     });
 
     zap::cmake::trace_parser tp(e_.toolchain());
-    zap::cmake::configs cmc(e_, stage_dir_);
-    zap::pkg_config::configs pcc(e_, stage_dir_);
 
     tp.parse(ai_.source_dir, trace_file_);
 

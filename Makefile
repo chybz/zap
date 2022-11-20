@@ -24,7 +24,7 @@ endif
 all: check_configured
 	@echo "usage: make debug|release"
 
-debug:
+debug: check_configured
 	cmake --build $(BUILDDIR)/debug $(CMAKE_BUILD_OPTS)
 
 release: check_configured
@@ -53,10 +53,10 @@ configure: autocmake
 	        -B $(BUILDDIR)/$$TYPE; \
 	done
 
-reconfigure: externals configure
+reconfigure: clean configure
 
 clean:
-	@$(MAKE) -C $(BUILDDIR) clean
+	@rm -rf build/{debug,release}
 
 distclean:
 	@rm -rf build ext
