@@ -68,9 +68,9 @@ project::has_library(const std::string& name) const
 { return map.contains(name); }
 
 void
-project::add_library(const std::string& name)
+project::add_library(const std::string& name, zap::link_type lt)
 {
-    library l{ name };
+    library l{ name, lt };
 
     auto pos = libs.size();
 

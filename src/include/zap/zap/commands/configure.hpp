@@ -41,19 +41,6 @@ private:
         std::string& lib
     ) const;
 
-
-    void project_pkg_info(
-        std::ostream& os,
-        const std::string& label,
-        const zap::string_set& pkgs
-    ) const;
-
-    void project_targets_info(
-        std::ostream& os,
-        const std::string& label,
-        const zap::targets& ts
-    ) const;
-
     const zap::env& e() const;
 
     configure_opts opts_;

@@ -61,6 +61,14 @@ executor_(e)
 toolchain::~toolchain()
 {}
 
+bool
+toolchain::link_shared() const
+{ return info_.link_shared(); }
+
+bool
+toolchain::link_static() const
+{ return info_.link_static(); }
+
 const std::string&
 toolchain::target_arch() const
 { return target_arch_; }
