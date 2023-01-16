@@ -27,8 +27,8 @@ public:
 
 protected:
     const env& e_;
-    const archive_info& ai_;
-    const strings& args_;
+    archive_info ai_;
+    strings args_;
 };
 
 using builder_ptr = std::unique_ptr<builder_base>;

@@ -54,7 +54,7 @@ cmake::configure() const
         args.insert(args.end(), args_.begin(), args_.end());
     }
 
-    cmake_.run({ .args = std::move(args) });
+    cmake_.run({ .args = args });
 }
 
 void

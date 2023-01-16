@@ -22,6 +22,7 @@ analyze::operator()()
 
     s.push_rmpath(tmp);
 
+    // TODO: find correct project type instead of CMake default below
     zap::builders::cmake cm(
         env(),
         {
