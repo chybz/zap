@@ -2,6 +2,8 @@
 #include <zap/builders/cmake.hpp>
 #include <zap/cmake/trace_parser.hpp>
 #include <zap/scope.hpp>
+#include <zap/zapfile.hpp>
+#include <zap/utils.hpp>
 
 namespace zap::commands {
 
@@ -16,6 +18,12 @@ analyze::~analyze()
 void
 analyze::operator()()
 {
+    zapfile zf;
+
+    zf.load();
+
+    return;
+
     zap::scope s;
 
     auto tmp = zap::empty_temp_dir("/tmp");
