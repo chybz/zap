@@ -23,7 +23,7 @@ target_link_libraries(
     PUBLIC
         Taskflow::Taskflow
         re2::re2
-        tomlplusplus::tomlplusplus
+        yaml-cpp
     PRIVATE
         tabulate::tabulate
         sqlite_orm::sqlite_orm

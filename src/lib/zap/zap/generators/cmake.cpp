@@ -69,165 +69,46 @@ cmake::generate_main()
 
 void
 cmake::generate_includes()
-{
-    ofs_ << "\ninclude(GNUInstallDirs)\n";
-
-    if (p().has_pkg_configs()) {
-        ofs_ << "include(FindPkgConfig)\n";
-    }
-}
+{}
 
 void
 cmake::generate_pkg_configs()
-{
-    if (!p().has_pkg_configs()) {
-        return;
-    }
-
-    ofs_ << "\n";
-
-    for (const auto& pc : p().pkg_configs) {
-        ofs_
-            << "pkg_check_modules(" << zap::toupper(pc)
-            << " REQUIRED IMPORTED_TARGET GLOBAL " << pc << ")\n"
-            ;
-    }
-}
+{}
 
 void
 cmake::generate_cmake_components()
-{
-    if (p().has_cmake_components()) {
-        return;
-    }
-
-    ofs_ << "\n";
-
-    for (const auto& p : p().cmake_components) {
-        ofs_
-            << "find_package(\n"
-            << "    " << p.first << "\n"
-            << zap::indent(
-                "CONFIG",
-                "REQUIRED",
-                "COMPONENTS",
-                zap::indent(p.second)
-            )
-            << "\n)\n"
-            ;
-    }
-}
+{}
 
 void
 cmake::generate_cmake_modules()
-{
-    if (p().has_cmake_modules()) {
-        return;
-    }
-
-    ofs_ << "\n";
-
-    for (const auto& m : p().cmake_modules) {
-        ofs_
-            << "find_package(" << m << " CONFIG REQUIRED)\n"
-            ;
-    }
-}
+{}
 
 void
 cmake::generate_targets(const zap::targets& ts)
-{
-    ofs_ << "\n";
-
-    for (const auto& p : ts) {
-        generate_target(p.second);
-    }
-}
+{}
 
 void
 cmake::generate_target(const zap::target& t)
-{
-    //open_list(t.src_dir);
-
-    if (t.is_bin() || t.is_tst()) {
-        generate_exe_target(t);
-    } else if (t.is_lib() || t.is_mod()) {
-        generate_lib_target(t);
-    }
-}
+{}
 
 void
 cmake::generate_exe_target(const zap::target& t)
-{
-    auto tname = zap::join("_", zap::to_string(t.type), t.name);
-
-    ofs_
-        << "add_executable(\n"
-        << "    " << tname << "\n"
-        ;
-
-    generate_target_sources(t);
-
-    ofs_ << ")\n";
-}
+{}
 
 void
 cmake::generate_lib_target(const zap::target& t)
-{
-    auto tname = zap::join("_", zap::to_string(t.type), t.name);
-
-
-    ofs_
-        << "add_library(\n"
-        << "    " << tname << "\n"
-        ;
-
-    generate_target_sources(t);
-
-    ofs_ << ")\n";
-}
+{}
 
 void
 cmake::generate_target_sources(const zap::target& t)
-{
-    if (t.has_public_headers()) {
-        auto rel_header_dir = zap::cat_dir("..", "..", "include", t.name);
-        auto pad = "    " + rel_header_dir + "/";
-
-        ofs_ << zap::indent_with(pad, t.public_headers) << "\n";
-    }
-
-    if (t.has_private_headers()) {
-        ofs_ << zap::indent(t.private_headers) << "\n";
-    }
-
-    if (t.has_sources()) {
-        ofs_ << zap::indent(t.sources) << "\n";
-    }
-}
+{}
 
 void
 cmake::open_list(const std::string& dir)
-{
-    close_list();
-
-    auto list = zap::cat_file(dir, "CMakeLists.txt");
-
-    ofs_.open(list);
-
-    zap::die_unless(
-        ofs_.is_open(),
-        "failed to open ", list
-    );
-}
+{}
 
 void
 cmake::close_list()
-{
-    if (ofs_.is_open()) {
-        ofs_.close();
-        ofs_.clear();
-    }
-}
+{}
 
 }

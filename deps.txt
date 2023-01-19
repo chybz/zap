@@ -12,7 +12,7 @@ https://github.com/google/re2/archive/2020-11-01.zip -DRE2_BUILD_TESTING=OFF
 https://github.com/taskflow/taskflow/archive/v3.0.0.zip -DTF_BUILD_CUDA=OFF -DTF_BUILD_TESTS=OFF -DTF_BUILD_EXAMPLES=OFF
 https://github.com/nlohmann/json/archive/v3.9.1.zip -DJSON_BuildTests=OFF
 https://github.com/pantor/inja/archive/v3.1.0.zip -DBUILD_TESTING=OFF -DBUILD_BENCHMARK=OFF
-https://github.com/jbeder/yaml-cpp/archive/v0.7.0.zip
+https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.7.0.zip
 https://github.com/docopt/docopt.cpp/archive/v0.6.3.zip
 https://www.sqlite.org/2021/sqlite-autoconf-3340100.tar.gz
 https://github.com/fnc12/sqlite_orm/archive/1.6.zip -DSQLITE_ORM_ENABLE_CXX_17=ON -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF
