@@ -5,6 +5,7 @@
 #include <zap/target.hpp>
 #include <zap/types.hpp>
 #include <zap/graph.hpp>
+#include <zap/dependency.hpp>
 
 namespace zap {
 
@@ -20,6 +21,8 @@ struct project
     std::string version;
 
     project_langs langs;
+
+    dependencies deps;
 
     bool sub_targets = false;
 

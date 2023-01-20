@@ -1,4 +1,7 @@
+#include <string>
+
 #include <yaml-cpp/yaml.h>
+#include <re2/re2.h>
 
 #include <zap/zapfile.hpp>
 #include <zap/utils.hpp>
@@ -24,15 +27,44 @@ zapfile::load(const std::string& file)
             return;
         }
 
+        re2::RE2 depexpr("(\\w+:)?(.+)@(.+)");
+        std::string type;
+        std::string path;
+        std::string version;
+
+
         for (const auto& dep : deps) {
             std::cout << "new dep" << std::endl;
+            std::string s;
+
 
             if (dep.IsScalar()) {
-                std::cout << "scalar" << std::endl;
+                s = dep.as<std::string>();
             } else if (dep.IsMap()) {
-                std::cout << "map" << std::endl;
+                if (dep.size() != 1) {
+                    std::cout << "FUCK";
+                }
+
+                auto it = dep.begin();
+                s = it->first.as<std::string>();
+                std::cout << it->second << std::endl;
+                const auto& opts = it->second;
+
+                if (!opts.IsMap()) {
+                    std::cout << "invalid dependency options";
+                }
             } else {
                 std::cout << "other" << std::endl;
+            }
+
+            if (!re2::RE2::FullMatch(s, depexpr, &type, &path, &version)) {
+                std::cout << "invalid dependency: " << s << std::endl;
+            } else {
+                std::cout
+                    << "dep type=" << type
+                    << " path=" << path
+                    << " version=" << version
+                    << std::endl;
             }
         }
     }
