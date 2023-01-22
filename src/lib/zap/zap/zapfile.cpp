@@ -1,71 +1,74 @@
 #include <string>
 
-#include <yaml-cpp/yaml.h>
 #include <re2/re2.h>
 
 #include <zap/zapfile.hpp>
 #include <zap/utils.hpp>
+#include <zap/log.hpp>
 
 namespace zap {
 
 void
 zapfile::load(const std::string& file)
 {
-    if (!file_exists(file)) {
-        std::cout << "invalid file: " << file << std::endl;
-
-        return;
-    }
+    die_unless(file_exists(file), "invalid file: ", file);
 
     YAML::Node c = YAML::LoadFile(file);
 
-    if (c["depends"]) {
-        const auto& deps = c["depends"];
+    load_deps(c);
+}
 
-        if (!deps.IsSequence()) {
-            std::cout << "invalid depends" << std::endl;
-            return;
+void
+zapfile::load_deps(const YAML::Node& c)
+{
+    if (!c["depends"]) {
+        return;
+    }
+
+    const auto& deps = c["depends"];
+
+    die_unless(deps.IsSequence(), "depends is not a sequence");
+
+    re2::RE2 depexpr("(?:(\\w+):)?(.+)@(.+)");
+    re2::RE2 urlexpr("(\\w+)://.+");
+
+    std::string type;
+    std::string path;
+    std::string version;
+    std::string scheme;
+
+    for (const auto& dep : deps) {
+        std::string s;
+
+        if (dep.IsScalar()) {
+            s = dep.as<std::string>();
+        } else if (dep.IsMap()) {
+            die_if(dep.size() != 1, "dependency map size is not 1: ", dep);
+
+            auto it = dep.begin();
+            s = it->first.as<std::string>();
+            auto opts = it->second;
+
+            die_unless(
+                opts.IsMap(), "dependency options is not a map: ",
+                opts
+            );
+        } else {
+            die("dependency is not a scalar or map: ", dep);
         }
 
-        re2::RE2 depexpr("(\\w+:)?(.+)@(.+)");
-        std::string type;
-        std::string path;
-        std::string version;
-
-
-        for (const auto& dep : deps) {
-            std::cout << "new dep" << std::endl;
-            std::string s;
-
-
-            if (dep.IsScalar()) {
-                s = dep.as<std::string>();
-            } else if (dep.IsMap()) {
-                if (dep.size() != 1) {
-                    std::cout << "FUCK";
-                }
-
-                auto it = dep.begin();
-                s = it->first.as<std::string>();
-                std::cout << it->second << std::endl;
-                const auto& opts = it->second;
-
-                if (!opts.IsMap()) {
-                    std::cout << "invalid dependency options";
-                }
-            } else {
-                std::cout << "other" << std::endl;
-            }
-
-            if (!re2::RE2::FullMatch(s, depexpr, &type, &path, &version)) {
-                std::cout << "invalid dependency: " << s << std::endl;
-            } else {
-                std::cout
-                    << "dep type=" << type
-                    << " path=" << path
-                    << " version=" << version
-                    << std::endl;
-            }
+        if (re2::RE2::FullMatch(s, depexpr, &type, &path, &version)) {
+            std::cout
+                << "dep type=" << type
+                << " path=" << path
+                << " version=" << version
+                << std::endl;
+        } else if (re2::RE2::FullMatch(s, urlexpr, &scheme)) {
+            std::cout
+                << "dep direct URL scheme=" << scheme
+                << std::endl;
+        } else {
+            die("invalid dependency: ", s);
         }
     }
 }

@@ -2,6 +2,11 @@ name: zap
 version: 0.0.1
 depends:
   - madler/zlib@v1.2.13
+  - GL:lz4/lz4@v1.9.3
+  - https://tukaani.org/xz/xz-5.2.5.tar.gz
   - DaanDeMeyer/reproc:
+      version: v14.2.1
       configure:
         - -DREPROC++=ON
+      install:
+        - zob
