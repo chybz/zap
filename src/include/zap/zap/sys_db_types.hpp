@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include <zap/types.hpp>
 
 namespace zap {
@@ -30,5 +32,14 @@ struct sys_db_env
 };
 
 using sys_db_envs = std::vector<sys_db_env>;
+
+struct sys_db_remote
+{
+    std::string id;
+    std::string url;
+    std::string type;
+};
+
+using sys_db_remotes = std::unordered_map<std::string, sys_db_remote>;
 
 }

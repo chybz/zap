@@ -1,7 +1,7 @@
 // Copied/adapted from cppreference
 #pragma once
 
-namespace zaps {
+namespace zap {
 
 template <typename... Ts>
 struct overloaded : Ts...

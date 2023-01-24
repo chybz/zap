@@ -15,8 +15,9 @@ public:
 
     virtual void download(
         const std::string& url,
-        const std::string& dir
-    ) const = 0;
+        const std::string& dir,
+        const std::string& filename
+    ) const;
 
 protected:
     const env_paths& ep_;

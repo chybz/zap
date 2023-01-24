@@ -27,7 +27,6 @@ target_link_libraries(
     PRIVATE
         tabulate::tabulate
         sqlite_orm::sqlite_orm
-        CURL::libcurl
         reproc++
         stdc++fs
 )

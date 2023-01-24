@@ -1,12 +1,13 @@
 https://github.com/madler/zlib/archive/v1.2.11.zip
 https://github.com/lz4/lz4/archive/v1.9.3.zip
+https://github.com/google/brotli/archive/v1.0.9.zip
 https://tukaani.org/xz/xz-5.2.5.tar.gz
 https://github.com/facebook/zstd/archive/v1.4.5.zip
 https://github.com/openssl/openssl/archive/OpenSSL_1_1_1q.zip no-tests
 https://github.com/libarchive/libarchive/archive/v3.5.1.zip -DENABLE_LIBB2=OFF -DENABLE_LIBXML2=OFF -DENABLE_EXPAT=OFF -DENABLE_PCREPOSIX=OFF -DENABLE_ICONV=OFF
 https://github.com/libssh2/libssh2/archive/libssh2-1.9.0.zip
 https://github.com/libgit2/libgit2/archive/v1.1.0.zip -DBUILD_CLAR=OFF
-https://github.com/curl/curl/archive/curl-7_75_0.zip -DCMAKE_USE_LIBSSH2=ON
+https://github.com/yhirose/cpp-httplib/archive/v0.11.4.zip
 https://github.com/DaanDeMeyer/reproc/archive/v14.2.1.zip -DREPROC++=ON
 https://github.com/google/re2/archive/2020-11-01.zip -DRE2_BUILD_TESTING=OFF
 https://github.com/taskflow/taskflow/archive/v3.0.0.zip -DTF_BUILD_CUDA=OFF -DTF_BUILD_TESTS=OFF -DTF_BUILD_EXAMPLES=OFF

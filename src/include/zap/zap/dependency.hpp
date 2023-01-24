@@ -1,26 +1,50 @@
 #pragma once
 
 #include <vector>
+#include <variant>
 
 #include <zap/types.hpp>
 
 namespace zap {
 
-enum class dependency_type
+namespace remotes {
+
+struct git
 {
-    github,
-    gitlab
+    std::string scheme;
+    std::string netloc;
+    std::string id;
+    std::string name;
+    std::string version;
 };
 
+struct github : git
+{};
+
+struct gitlab : git
+{};
+
+struct direct
+{
+    std::string url;
+    std::string name;
+    std::string version;
+};
+
+} // namespace remotes
+
+using remote = std::variant<
+    remotes::github,
+    remotes::gitlab,
+    remotes::direct
+>;
+
 std::string
-to_string(dependency_type dt);
+remote_url(const remote& r);
 
 struct dependency
 {
-    dependency_type type;
-    std::string owner;
-    std::string repo;
-    std::string version;
+    remote r;
     strings_map opts;
 
     std::string to_string() const;

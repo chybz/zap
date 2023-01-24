@@ -29,7 +29,7 @@ zapfile::load_deps(const YAML::Node& c)
 
     die_unless(deps.IsSequence(), "depends is not a sequence");
 
-    re2::RE2 depexpr("(?:(\\w+):)?(.+)@(.+)");
+    re2::RE2 depexpr("(?:(\\w+):)?([^@]+)(?:@(.+))?");
     re2::RE2 urlexpr("(\\w+)://.+");
 
     std::string type;

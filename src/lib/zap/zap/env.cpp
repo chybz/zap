@@ -2,7 +2,6 @@
 
 #include <zap/env.hpp>
 #include <zap/archiver.hpp>
-#include <zap/fetchers/curl.hpp>
 #include <zap/scope.hpp>
 #include <zap/log.hpp>
 #include <zap/utils.hpp>
@@ -204,6 +203,6 @@ env::init()
 
 void
 env::make_fetcher()
-{ fetcher_ptr_ = new_fetcher<zap::fetchers::curl>(paths_); }
+{ fetcher_ptr_ = new_fetcher<fetcher>(paths_); }
 
 }

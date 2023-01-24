@@ -3,6 +3,7 @@
 #include <zap/env_db.hpp>
 #include <zap/utils.hpp>
 #include <zap/log.hpp>
+#include <zap/remote.hpp>
 
 namespace zap {
 
@@ -23,6 +24,12 @@ struct sys_db_spec
                 "envs",
                 make_column("name", &sys_db_env::name, primary_key()),
                 make_column("root", &sys_db_env::root)
+            ).without_rowid(),
+            make_table(
+                "remotes",
+                make_column("id", &sys_db_remote::id, primary_key()),
+                make_column("url", &sys_db_remote::url),
+                make_column("type", &sys_db_remote::type)
             ).without_rowid()
         );
     }
@@ -56,6 +63,13 @@ sys_db::sys_db()
     db().sync_schema();
 
     load_info();
+
+    if (initial) {
+        add_remote("GH", "https:://github.com", "github");
+        add_remote("GL", "https:://gitlab.com", "gitlab");
+    }
+
+    load_remotes();
 }
 
 sys_db::~sys_db()
@@ -193,6 +207,20 @@ sys_db::ls_env(const std::string& name)
 }
 
 void
+sys_db::add_remote(
+    const std::string& id,
+    const std::string& url,
+    const std::string& type
+)
+{
+    check_remote(type);
+
+    die_if(remotes_.contains(id), "remote already exists: ", id);
+
+    add_remote(sys_db_remote{ id, url, type });
+}
+
+void
 sys_db::load_info()
 {
     auto tx_cb = [&](zap::scope& scope) {
@@ -207,5 +235,25 @@ sys_db::load_info()
 void
 sys_db::save_info()
 {}
+
+void
+sys_db::add_remote(const sys_db_remote& r)
+{
+    remotes_[r.id] = r;
+
+    db().replace(r);
+}
+
+void
+sys_db::load_remotes()
+{
+    auto tx_cb = [&](zap::scope& scope) {
+        for (auto& r : db().get_all<sys_db_remote>()) {
+            remotes_.try_emplace(r.id, r);
+        }
+    };
+
+    dbi().exec_read(tx_cb);
+}
 
 }
