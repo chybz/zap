@@ -30,14 +30,6 @@ void catch_global()
 
 int main(int ac, char** av)
 {
-    auto u = zap::parse_url(av[1]);
-
-    zap::die_unless(u.parsed, "invalid url: ", av[1]);
-
-    std::cout << zap::to_string(u) << std::endl;
-
-    return 0;
-
     std::set_terminate(catch_global);
 
     int rc = 0;
