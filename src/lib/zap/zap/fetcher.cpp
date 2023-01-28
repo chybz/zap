@@ -5,6 +5,7 @@
 #include <zap/fetcher.hpp>
 #include <zap/utils.hpp>
 #include <zap/log.hpp>
+#include <zap/url.hpp>
 
 namespace zap {
 
@@ -24,13 +25,26 @@ fetcher::download(
 {
     mkpath(dir);
 
-    std::ofstream ofs(cat_file(dir, filename), std::ios::binary);
+    auto file = cat_file(dir, filename);
 
+    std::ofstream ofs(file, std::ios::binary);
 
+    die_if(!ofs, "failed to open file: ", file);
 
-    die_unless(
-        r.error.code == cpr::ErrorCode::OK,
-        "failed to download ", url, ": ", r.error.code
+    auto u = parse_url(url);
+
+    die_unless(u.parsed, "invalid url: ", url);
+
+    httplib::Client c(u.hostname);
+
+    auto res = c.Get(u.uri,
+        [&] (const char* data, size_t size) {
+            ofs.write(data, size);
+
+            die_if(!ofs, "failed write file: ", file);
+
+            return true;
+        }
     );
 }
 

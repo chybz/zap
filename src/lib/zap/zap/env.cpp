@@ -102,7 +102,7 @@ env::download_archive(scope& s, archive_info& ai) const
 
     set_temp_dir(s, ai);
 
-    fetcher().download(ai.url, ai.temp_dir);
+    // TOFIX fetcher().download(ai.url, ai.temp_dir);
 
     auto [ dlok, file ] = unique_file(ai.temp_dir);
 
@@ -203,6 +203,6 @@ env::init()
 
 void
 env::make_fetcher()
-{ fetcher_ptr_ = new_fetcher<fetcher>(paths_); }
+{ fetcher_ptr_ = new_fetcher<zap::fetcher>(paths_); }
 
 }
