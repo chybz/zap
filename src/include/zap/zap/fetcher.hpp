@@ -19,6 +19,12 @@ public:
         const std::string& filename
     ) const;
 
+    virtual void download_repo_archive(
+        const std::string& repo,
+        const std::string& ref,
+        const std::string& dir
+    ) const;
+
 protected:
     const env_paths& ep_;
 };

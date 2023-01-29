@@ -13,9 +13,9 @@ struct git
 {
     std::string scheme;
     std::string netloc;
-    std::string id;
+    std::string author;
     std::string name;
-    std::string version;
+    std::string ref;
 };
 
 struct github : git

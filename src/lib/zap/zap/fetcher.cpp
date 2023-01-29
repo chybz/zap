@@ -48,25 +48,26 @@ fetcher::download(
         [&] (const char* data, size_t size) {
             ofs.write(data, size);
 
-            std::cout << "Got " << size << "bytes" << std::endl;
-
             die_if(!ofs, "failed write file: ", file);
 
             return true;
         }
     );
 
-    if (res) {
-        std::cout
-            << "file " << file
-            << " downloaded:"
-            << " status=" << res->status
-            << std::endl
-            ;
-    } else {
-        auto err = res.error();
-        std::cout << "HTTP error: " << httplib::to_string(err) << std::endl;
-    }
+    die_if(
+        !res,
+        "HTTP error while downloading file: ",
+        file,
+        httplib::to_string(res.error())
+    );
 }
+
+void
+fetcher::download_repo_archive(
+    const std::string& repo,
+    const std::string& ref,
+    const std::string& dir
+) const
+{}
 
 }

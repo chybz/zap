@@ -25,9 +25,7 @@ zapfile::load_deps(const YAML::Node& c)
         return;
     }
 
-    const auto& deps = c["depends"];
-
-    die_unless(deps.IsSequence(), "depends is not a sequence");
+    die_unless(c["depends"].IsSequence(), "depends is not a sequence");
 
     re2::RE2 depexpr("(?:(\\w+):)?([^@]+)(?:@(.+))?");
     re2::RE2 urlexpr("(\\w+)://.+");
@@ -37,7 +35,7 @@ zapfile::load_deps(const YAML::Node& c)
     std::string version;
     std::string scheme;
 
-    for (const auto& dep : deps) {
+    for (const auto& dep : c["depends"]) {
         std::string s;
 
         if (dep.IsScalar()) {
@@ -58,11 +56,9 @@ zapfile::load_deps(const YAML::Node& c)
         }
 
         if (re2::RE2::FullMatch(s, depexpr, &type, &path, &version)) {
-            std::cout
-                << "dep type=" << type
-                << " path=" << path
-                << " version=" << version
-                << std::endl;
+            if (type.empty()) {
+                type = "GH";
+            }
         } else if (re2::RE2::FullMatch(s, urlexpr, &scheme)) {
             std::cout
                 << "dep direct URL scheme=" << scheme

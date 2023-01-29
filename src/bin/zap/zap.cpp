@@ -30,18 +30,6 @@ void catch_global()
 
 int main(int ac, char** av)
 {
-    zap::env_paths ep;
-    zap::fetcher f(ep);
-
-    f.download(
-        "https://github.com/yhirose/cpp-httplib/archive/refs/tags/v0.11.2.zip",
-        "/tmp/prout",
-        "zob.zip"
-    );
-
-    return 0;
-
-
     std::set_terminate(catch_global);
 
     int rc = 0;

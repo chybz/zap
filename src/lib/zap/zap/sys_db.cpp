@@ -65,8 +65,8 @@ sys_db::sys_db()
     load_info();
 
     if (initial) {
-        add_remote("GH", "https:://github.com", "github");
-        add_remote("GL", "https:://gitlab.com", "gitlab");
+        new_remote("GH", "https://github.com", "github");
+        new_remote("GL", "https://gitlab.com", "gitlab");
     }
 
     load_remotes();
@@ -115,6 +115,11 @@ sys_db::default_env() const
     return de;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Environments
+//
+///////////////////////////////////////////////////////////////////////////////
 void
 sys_db::new_env(const std::string& name, const std::string& dir)
 {
@@ -206,8 +211,13 @@ sys_db::ls_env(const std::string& name)
     return envs;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Remotes
+//
+///////////////////////////////////////////////////////////////////////////////
 void
-sys_db::add_remote(
+sys_db::new_remote(
     const std::string& id,
     const std::string& url,
     const std::string& type
@@ -215,11 +225,60 @@ sys_db::add_remote(
 {
     check_remote(type);
 
-    die_if(remotes_.contains(id), "remote already exists: ", id);
+    dbi().ensure_not_exists<sys_db_remote>("remote", &sys_db_remote::id, id);
 
-    add_remote(sys_db_remote{ id, url, type });
+    sys_db_remote r{ id, url, type };
+
+    db().insert(r);
+
+    remotes_.try_emplace(r.id, r);
 }
 
+sys_db_remote
+sys_db::delete_remote(const std::string& id)
+{
+    sys_db_remote r;
+
+    auto tx_cb = [&](zap::scope& scope) {
+        r = dbi().ensure_exists<sys_db_remote>(
+            "remote", &sys_db_remote::id, id
+        );
+
+        db().remove<sys_db_remote>(id);
+    };
+
+    dbi().exec_write(tx_cb);
+}
+
+bool
+sys_db::has_remote(const std::string& id) const
+{ return remotes_.contains(id); }
+
+const sys_db_remote&
+sys_db::remote(const std::string& id) const
+{ return remotes_.at(id); }
+
+const sys_db_remotes&
+sys_db::remotes() const
+{ return remotes_; }
+
+void
+sys_db::load_remotes()
+{
+    auto tx_cb = [&](zap::scope& scope) {
+        for (auto& r : db().get_all<sys_db_remote>()) {
+            remotes_.try_emplace(r.id, r);
+        }
+    };
+
+    dbi().exec_read(tx_cb);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Info
+//
+///////////////////////////////////////////////////////////////////////////////
 void
 sys_db::load_info()
 {
@@ -235,25 +294,5 @@ sys_db::load_info()
 void
 sys_db::save_info()
 {}
-
-void
-sys_db::add_remote(const sys_db_remote& r)
-{
-    remotes_[r.id] = r;
-
-    db().replace(r);
-}
-
-void
-sys_db::load_remotes()
-{
-    auto tx_cb = [&](zap::scope& scope) {
-        for (auto& r : db().get_all<sys_db_remote>()) {
-            remotes_.try_emplace(r.id, r);
-        }
-    };
-
-    dbi().exec_read(tx_cb);
-}
 
 }

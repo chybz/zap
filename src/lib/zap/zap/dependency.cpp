@@ -10,7 +10,6 @@ std::string
 remote_host_or(const remotes::git& r, const std::string& alt)
 { return r.netloc.empty() ? alt : join("://", r.scheme, r.netloc); }
 
-
 std::string
 remote_url(const remote& r)
 {
@@ -23,22 +22,21 @@ remote_url(const remote& r)
                     << remote_host_or(r, "https://github.com")
                     << join(
                         "/",
-                        r.id,
+                        r.author,
                         "archive/refs/tags",
-                        join("-", r.name, r.version) + ".zip"
+                        join("-", r.name, r.ref) + ".zip"
                     )
                     ;
             },
             [&oss](const remotes::gitlab& r) {
-                // https://gitlab.expandium.com/mno/himport/-/archive/v2022.Q1.3/himport-v2022.Q1.3.zip
                 oss
                     << remote_host_or(r, "https://gitlab.com")
                     << join(
                         "/",
-                        r.id,
+                        r.author,
                         "-/archive",
-                        r.version,
-                        join("-", r.name, r.version) + ".zip"
+                        r.ref,
+                        join("-", r.name, r.ref) + ".zip"
                     )
                     ;
             },

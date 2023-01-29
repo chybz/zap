@@ -7,6 +7,7 @@
 #include <zap/cmdline.hpp>
 #include <zap/env.hpp>
 #include <zap/commands/env.hpp>
+#include <zap/commands/remote.hpp>
 #include <zap/commands/configure.hpp>
 #include <zap/commands/build.hpp>
 #include <zap/commands/install.hpp>
@@ -26,6 +27,7 @@ Options:
 
 Commands:
     env          Manage environments
+    remote       Manage remotes
     install      Install software
     configure    Configures project
     analyze      Shows project targets and interfaces
@@ -42,6 +44,15 @@ R"(usage:
     zap env lspkgs [<name>]
 
 Manages environments.
+)";
+
+static const char remote_usage[] =
+R"(usage:
+    zap remote new <id> <type> <url>
+    zap remote delete <id>
+    zap remote ls
+
+Manages remotes.
 )";
 
 static const char install_usage[] =
@@ -211,6 +222,30 @@ parse_env(cmdline& cl, const zap::strings& cmd_args)
 }
 
 void
+parse_remote(cmdline& cl, const zap::strings& cmd_args)
+{
+    auto args = docopt::docopt(remote_usage, cmd_args, true);
+
+    set_env(cl, args, "-e");
+
+    zap::commands::remote_opts opts;
+
+    if (args["new"].asBool()) {
+        opts.cmd = zap::commands::remote_cmd::new_remote;
+        set_opt(args, "<type>", opts.type);
+        set_opt(args, "<url>", opts.url);
+    } else if (args["delete"].asBool()) {
+        opts.cmd = zap::commands::remote_cmd::delete_remote;
+    } else if (args["ls"].asBool()) {
+        opts.cmd = zap::commands::remote_cmd::ls_remote;
+    }
+
+    set_opt(args, "<id>", opts.id);
+
+    cl.cp = new_command<zap::commands::remote>(cl.env(), opts);
+}
+
+void
 parse_install(cmdline& cl, const zap::strings& cmd_args)
 {
     auto args = docopt::docopt(install_usage, cmd_args, true);
@@ -258,6 +293,7 @@ using parse_map = std::unordered_map<std::string, parse_func>;
 
 parse_map parsers = {
     { "env", &parse_env },
+    { "remote", &parse_remote },
     { "install", &parse_install },
     { "configure", &parse_configure },
     { "analyze", &parse_analyze }

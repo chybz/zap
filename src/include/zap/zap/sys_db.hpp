@@ -27,22 +27,26 @@ public:
     sys_db_env get_env(const std::string& name);
     sys_db_envs ls_env(const std::string& name = {});
 
-    void add_remote(
+    void new_remote(
         const std::string& id,
         const std::string& url,
         const std::string& type
     );
+    sys_db_remote delete_remote(const std::string& id);
+
+    bool has_remote(const std::string& id) const;
+    const sys_db_remote& remote(const std::string& id) const;
+    const sys_db_remotes& remotes() const;
 
 private:
     // Private use for now, it inserts into db
     void set_var(const std::string& name, const std::string& val);
     void del_var(const std::string& name);
 
+    void load_remotes();
+
     void load_info();
     void save_info();
-
-    void add_remote(const sys_db_remote& r);
-    void load_remotes();
 
     auto& db();
     auto& dbi();
