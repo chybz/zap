@@ -3,7 +3,7 @@
 #include <zap/env_db.hpp>
 #include <zap/utils.hpp>
 #include <zap/log.hpp>
-#include <zap/remote.hpp>
+#include <zap/repository.hpp>
 
 namespace zap {
 
