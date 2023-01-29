@@ -1,5 +1,6 @@
 #include <fstream>
 
+#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
 
 #include <zap/fetcher.hpp>
@@ -31,21 +32,41 @@ fetcher::download(
 
     die_if(!ofs, "failed to open file: ", file);
 
-    auto u = parse_url(url);
+    zap::url u(url);
 
     die_unless(u.parsed, "invalid url: ", url);
 
-    httplib::Client c(u.hostname);
+    httplib::Client c(u.host());
 
-    auto res = c.Get(u.uri,
+    c.set_follow_location(true);
+
+    // TOFIX: need to find a better way to fix this
+    c.enable_server_certificate_verification(false);
+
+    auto res = c.Get(
+        u.uri,
         [&] (const char* data, size_t size) {
             ofs.write(data, size);
+
+            std::cout << "Got " << size << "bytes" << std::endl;
 
             die_if(!ofs, "failed write file: ", file);
 
             return true;
         }
     );
+
+    if (res) {
+        std::cout
+            << "file " << file
+            << " downloaded:"
+            << " status=" << res->status
+            << std::endl
+            ;
+    } else {
+        auto err = res.error();
+        std::cout << "HTTP error: " << httplib::to_string(err) << std::endl;
+    }
 }
 
 }

@@ -29,6 +29,7 @@ target_link_libraries(
         sqlite_orm::sqlite_orm
         reproc++
         stdc++fs
+        PkgConfig::OpenSSL
 )
 
 set_target_properties(

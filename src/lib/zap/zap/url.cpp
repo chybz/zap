@@ -14,39 +14,71 @@ static const re2::RE2 url_re(
     "(.*)"                     // uri
 );
 
-url
-parse_url(const std::string& s)
-{
-    url u;
+url::url()
+{}
 
-    u.parsed = re2::RE2::FullMatch(
+url::url(const std::string& s)
+{ parse(s); }
+
+std::string
+url::host() const
+{
+    std::ostringstream oss;
+
+    if (!scheme.empty()) {
+        oss << scheme << "://";
+    }
+
+    if (!user.empty()) {
+        oss << user;
+
+        if (!password.empty()) {
+            oss << ":" << password;
+        }
+
+        oss << "@";
+    }
+
+    oss << hostname;
+
+    if (!port.empty()) {
+        oss << ":" << port;
+    }
+
+    return oss.str();
+}
+
+bool
+url::parse(const std::string& s)
+{
+    parsed = re2::RE2::FullMatch(
         s,
         url_re,
-        &u.scheme,
-        &u.user,
-        &u.password,
-        &u.hostname,
-        &u.port,
-        &u.uri
+        &scheme,
+        &user,
+        &password,
+        &hostname,
+        &port,
+        &uri
     );
 
-    return u;
+    return parsed;
 }
 
 std::string
-to_string(const url& u)
+url::to_string() const
 {
     std::ostringstream oss;
 
     oss
         << "url: "
-        << " parsed=" << u.parsed
-        << " scheme=\"" << u.scheme << "\""
-        << " user=\"" << u.user << "\""
-        << " password=\"" << u.password << "\""
-        << " hostname=\"" << u.hostname << "\""
-        << " port=\"" << u.port << "\""
-        << " uri=\"" << u.uri << "\""
+        << " parsed=" << parsed
+        << " scheme=\"" << scheme << "\""
+        << " user=\"" << user << "\""
+        << " password=\"" << password << "\""
+        << " hostname=\"" << hostname << "\""
+        << " port=\"" << port << "\""
+        << " uri=\"" << uri << "\""
         ;
 
     return oss.str();

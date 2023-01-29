@@ -11,12 +11,14 @@ struct url
     std::string hostname;
     std::string port;
     std::string uri;
+
+    url();
+    url(const std::string& s);
+
+    std::string host() const;
+
+    bool parse(const std::string& s);
+    std::string to_string() const;
 };
-
-url
-parse_url(const std::string& s);
-
-std::string
-to_string(const url& u);
 
 }
