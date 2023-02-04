@@ -5,7 +5,7 @@ depends:
   - GL:lz4/lz4@v1.9.3
   - https://tukaani.org/xz/xz-5.2.5.tar.gz
   - DaanDeMeyer/reproc:
-      version: v14.2.1
+      ref: v14.2.1
       configure:
         - -DREPROC++=ON
       install:

@@ -4,6 +4,7 @@
 #include <variant>
 
 #include <zap/types.hpp>
+#include <zap/repository.hpp>
 
 namespace zap {
 
@@ -40,7 +41,10 @@ using remote = std::variant<
 >;
 
 std::string
-remote_url(const remote& r);
+remote_to_string(const remote& r);
+
+remote
+remote_from_string(const std::string& s);
 
 struct dependency
 {

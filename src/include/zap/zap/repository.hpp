@@ -13,7 +13,7 @@ enum class repository_type
     bitbucket
 };
 
-using repository_to_st ring_map = std::unordered_map<
+using repository_to_string_map = std::unordered_map<
     repository_type, std::string
 >;
 

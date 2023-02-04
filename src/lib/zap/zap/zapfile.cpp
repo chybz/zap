@@ -5,6 +5,7 @@
 #include <zap/zapfile.hpp>
 #include <zap/utils.hpp>
 #include <zap/log.hpp>
+#include <zap/url.hpp>
 
 namespace zap {
 
@@ -28,15 +29,14 @@ zapfile::load_deps(const YAML::Node& c)
     die_unless(c["depends"].IsSequence(), "depends is not a sequence");
 
     re2::RE2 depexpr("(?:(\\w+):)?([^@]+)(?:@(.+))?");
-    re2::RE2 urlexpr("(\\w+)://.+");
 
-    std::string type;
-    std::string path;
+    std::string id;
+    std::string spec;
     std::string version;
-    std::string scheme;
 
     for (const auto& dep : c["depends"]) {
         std::string s;
+        dependency d;
 
         if (dep.IsScalar()) {
             s = dep.as<std::string>();
@@ -51,14 +51,16 @@ zapfile::load_deps(const YAML::Node& c)
                 opts.IsMap(), "dependency options is not a map: ",
                 opts
             );
+
+            load_strings(opts, "configure", d.opts);
+            load_strings(opts, "build", d.opts);
+            load_strings(opts, "install", d.opts);
         } else {
             die("dependency is not a scalar or map: ", dep);
         }
 
-        if (re2::RE2::FullMatch(s, depexpr, &type, &path, &version)) {
-            if (type.empty()) {
-                type = "GH";
-            }
+        if (re2::RE2::FullMatch(s, depexpr, &id, &spec, &version)) {
+            set_remote(id, spec, version, d);
         } else if (re2::RE2::FullMatch(s, urlexpr, &scheme)) {
             std::cout
                 << "dep direct URL scheme=" << scheme
@@ -66,6 +68,59 @@ zapfile::load_deps(const YAML::Node& c)
         } else {
             die("invalid dependency: ", s);
         }
+    }
+}
+
+void
+zapfile::set_remote(
+    const std::string& id,
+    const std::string& spec,
+    const std::string& version,
+    dependency& d
+)
+{}
+
+void
+zapfile::set_remote_repository(
+    const std::string& id,
+    const std::string& spec,
+    const std::string& version,
+    dependency& d
+)
+{
+    url u;
+
+    if (id.empty()) {
+        t = from_string("github");
+    } else {
+        t = from_string(type);
+    }
+
+
+}
+
+void
+zapfile::load_strings(
+    const YAML::Node& n,
+    const std::string& key,
+    strings_map& m
+)
+{
+    if (!n[key]) {
+        return;
+    }
+
+    die_unless(
+        n[key].IsSequence(),
+        "options for '", key, "' is not a sequence: ",
+        n[key]
+    );
+
+    auto& l = m[key];
+
+    for (const auto& p : n[key]) {
+        auto v = p.as<std::string>();
+        l.emplace_back(std::move(v));
     }
 }
 

@@ -11,7 +11,7 @@ remote_host_or(const remotes::git& r, const std::string& alt)
 { return r.netloc.empty() ? alt : join("://", r.scheme, r.netloc); }
 
 std::string
-remote_url(const remote& r)
+remote_to_string(const remote& r)
 {
     std::ostringstream oss;
 
@@ -56,7 +56,7 @@ dependency::to_string() const
     std::ostringstream oss;
 
     oss
-        << "url: " << remote_url(r)
+        << "url: " << remote_to_string(r)
         // TODO: dump opts
         ;
 

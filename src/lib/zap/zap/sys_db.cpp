@@ -223,8 +223,6 @@ sys_db::new_remote(
     const std::string& type
 )
 {
-    check_remote(type);
-
     dbi().ensure_not_exists<sys_db_remote>("remote", &sys_db_remote::id, id);
 
     sys_db_remote r{ id, url, type };
@@ -248,6 +246,8 @@ sys_db::delete_remote(const std::string& id)
     };
 
     dbi().exec_write(tx_cb);
+
+    return r;
 }
 
 bool
