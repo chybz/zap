@@ -10,17 +10,23 @@
 namespace zap {
 
 void
-zapfile::load(const std::string& file)
+zapfile::load(
+    const std::string& file,
+    const sys_db_remotes& remotes
+)
 {
     die_unless(file_exists(file), "invalid file: ", file);
 
     YAML::Node c = YAML::LoadFile(file);
 
-    load_deps(c);
+    load_deps(remotes, c);
 }
 
 void
-zapfile::load_deps(const YAML::Node& c)
+zapfile::load_deps(
+    const sys_db_remotes& remotes,
+    const YAML::Node& c
+)
 {
     if (!c["depends"]) {
         return;
@@ -60,7 +66,7 @@ zapfile::load_deps(const YAML::Node& c)
         }
 
         if (re2::RE2::FullMatch(s, depexpr, &id, &spec, &version)) {
-            set_remote(id, spec, version, d);
+            set_remote(remotes, id, spec, version, d);
         } else if (re2::RE2::FullMatch(s, urlexpr, &scheme)) {
             std::cout
                 << "dep direct URL scheme=" << scheme
@@ -73,6 +79,7 @@ zapfile::load_deps(const YAML::Node& c)
 
 void
 zapfile::set_remote(
+    const sys_db_remotes& remotes,
     const std::string& id,
     const std::string& spec,
     const std::string& version,
@@ -82,6 +89,7 @@ zapfile::set_remote(
 
 void
 zapfile::set_remote_repository(
+    const sys_db_remotes& remotes,
     const std::string& id,
     const std::string& spec,
     const std::string& version,
@@ -90,13 +98,14 @@ zapfile::set_remote_repository(
 {
     url u;
 
-    if (id.empty()) {
-        t = from_string("github");
-    } else {
-        t = from_string(type);
+    die_unless(remotes.contains(id), "unknown remote: ", id);
+
+    const auto& r = remotes.at(id);
+    auto t = to_repository(r.type);
+
+    switch (t) {
+        case repository_type::github
     }
-
-
 }
 
 void

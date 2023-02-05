@@ -44,11 +44,17 @@ std::string
 remote_to_string(const remote& r);
 
 remote
-remote_from_string(const std::string& s);
+to_remote(
+    repository_type type,
+    const std::string& base,
+    const std::string& spec,
+    const std::string& ref
+);
 
 struct dependency
 {
     remote r;
+    repository_type type;
     strings_map opts;
 
     std::string to_string() const;

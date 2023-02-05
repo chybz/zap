@@ -1,6 +1,7 @@
 #include <sstream>
 
 #include <zap/dependency.hpp>
+#include <zap/join_utils.hpp>
 #include <zap/variant_utils.hpp>
 #include <zap/join_utils.hpp>
 
@@ -48,6 +49,34 @@ remote_to_string(const remote& r)
     );
 
     return oss.str();
+}
+
+remote
+to_remote(
+    repository_type type,
+    const std::string& base,
+    const std::string& spec,
+    const std::string& ref
+)
+{
+    remote r;
+    url u(base);
+    auto parts = split("/", spec);
+
+    die_unless(u.parsed(), "invalid remote base: ", base);
+    die_unless(parts.size() == 2, "unknown remote spec: ", spec);
+
+    switch (type) {
+        case repository_type::github:
+        r = remotes::github{{
+            .scheme = u.scheme,
+            .netloc =
+        }}
+        case repository_type::gitlab:
+        case repository_type::bitbucket:
+    }
+
+    return r;
 }
 
 std::string

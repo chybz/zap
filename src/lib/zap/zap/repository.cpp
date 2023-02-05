@@ -36,7 +36,7 @@ to_string(repository_type t)
 { return get_repository_to_string_map().at(t); }
 
 repository_type
-from_string(const std::string& s)
+to_repository(const std::string& s)
 {
     const auto& m = get_string_to_repository_map();
 

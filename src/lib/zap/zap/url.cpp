@@ -7,9 +7,9 @@
 namespace zap {
 
 static const re2::RE2 url_re(
-    "(?:(\\w+)://)"           // scheme
+    "(?:(\\w+)://)"            // scheme
     "(?:(\\w+)\\:(\\w+)@)?"    // user:password@
-    "([^/:]+)"                // hostname
+    "([^/:]+)"                 // hostname
     "(?:\\:(\\d*))?"           // port
     "(.*)"                     // uri
 );

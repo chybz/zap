@@ -31,7 +31,7 @@ const std::string&
 to_string(repository_type t);
 
 repository_type
-from_string(const std::string& s);
+to_repository(const std::string& s);
 
 bool
 valid_repository(const std::string& s);
