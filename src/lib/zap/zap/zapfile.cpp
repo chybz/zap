@@ -67,10 +67,6 @@ zapfile::load_deps(
 
         if (re2::RE2::FullMatch(s, depexpr, &id, &spec, &version)) {
             set_remote(remotes, id, spec, version, d);
-        } else if (re2::RE2::FullMatch(s, urlexpr, &scheme)) {
-            std::cout
-                << "dep direct URL scheme=" << scheme
-                << std::endl;
         } else {
             die("invalid dependency: ", s);
         }
@@ -102,10 +98,6 @@ zapfile::set_remote_repository(
 
     const auto& r = remotes.at(id);
     auto t = to_repository(r.type);
-
-    switch (t) {
-        case repository_type::github
-    }
 }
 
 void

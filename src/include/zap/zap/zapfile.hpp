@@ -26,7 +26,16 @@ struct zapfile
         const sys_db_remotes& remotes,
         const std::string& type,
         const std::string& path,
-        const std::string& version
+        const std::string& version,
+        dependency& d
+    );
+
+    void set_remote_repository(
+        const sys_db_remotes& remotes,
+        const std::string& id,
+        const std::string& spec,
+        const std::string& version,
+        dependency& d
     );
 
     void load_strings(

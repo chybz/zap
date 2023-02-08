@@ -1,9 +1,11 @@
 #include <sstream>
 
 #include <zap/dependency.hpp>
-#include <zap/join_utils.hpp>
+#include <zap/utils.hpp>
 #include <zap/variant_utils.hpp>
 #include <zap/join_utils.hpp>
+#include <zap/url.hpp>
+#include <zap/log.hpp>
 
 namespace zap {
 
@@ -63,17 +65,22 @@ to_remote(
     url u(base);
     auto parts = split("/", spec);
 
-    die_unless(u.parsed(), "invalid remote base: ", base);
+    die_unless(u.parsed, "invalid remote base: ", base);
     die_unless(parts.size() == 2, "unknown remote spec: ", spec);
 
     switch (type) {
         case repository_type::github:
         r = remotes::github{{
             .scheme = u.scheme,
-            .netloc =
-        }}
+            .netloc = u.scheme
+        }};
+        break;
         case repository_type::gitlab:
+        break;
         case repository_type::bitbucket:
+        break;
+        case repository_type::none:
+        break;
     }
 
     return r;
